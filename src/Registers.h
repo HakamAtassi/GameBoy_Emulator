@@ -3,29 +3,28 @@
 
 #include <cstdint>
 
-
-
 namespace GameBoy{
-	
-			//register consists of 6 16 bit addresses
-			//but in each(almost each) address is split down the middle
-			//it can be addresses as a whole or by each resigers
-			//		A | F
-			//		B | C
-			//		D | E
-			//		H | L
-			//		 SP
-			//		 PC
-			//A is the accumulator, F is flags. Remainder are mostly GP.
-			
-			//since F is a flag register, it consists of several variables
-			//bit 7 is Zero flag,
-			//bit 6 is sub flag (BCD)
-			//bit 5 is half carry flag (BCD)
-			//bit 4 is carry flag
+
+	//register consists of 6 16 bit addresses
+	//but in each(almost each) address is split down the middle
+	//it can be addresses as a whole or by each Registers
+	//		A | F
+	//		B | C
+	//		D | E
+	//		H | L
+	//		 SP
+	//		 PC
+	//A is the accumulator, F is flags. Remainder are mostly GP.
+
+	//since F is a flag register, it consists of several variables
+	//bit 7 is Zero flag,
+	//bit 6 is sub flag (BCD)
+	//bit 5 is half carry flag (BCD)
+	//bit 4 is carry flag
 
 
-	struct Registers{
+	class Registers{
+		public:
 
 		union
 		{
