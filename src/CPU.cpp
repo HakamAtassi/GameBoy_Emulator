@@ -911,3 +911,65 @@ int CPU::cp_h(){}
 int CPU::cp_l(){}	
 int CPU::cp_hl(){}
 int CPU::cp_a(){}
+
+
+/*0xC0*/
+int ret_nz();	
+int pop_bc();	
+int jp_nz_a16();	
+int jp_a16();		
+int call_nz_a16();	
+int push_bc();	
+int add_a_d8();	
+int rst_a0();
+int ret_z();	
+int ret();		
+int jp_z_a16();		
+int call_z_a16();	
+int call_z16();		
+int adc_a_d8();	
+int rst_1();
+
+/*0xD0*/
+int ret_nc();	
+int pop_de();	
+int jp_nc_a16();	
+int call_nc_a16();	
+int push_de();	
+int sub_d8();	
+int rst_2();	
+int ret_c();	
+int reti();		
+int ret_c_a16();	
+int call_c_a16();	
+int sbc_a_d8();	
+int rst_3();
+
+/*0xE0*/
+int ld_a8_a();	
+int pop_hl();	
+int ld_c_a();	
+int push_hl();	
+int and_d8();	
+int rst_4();	
+int add_sp_s8();	
+int jp_hl();	
+int ld_a16_a();
+int xor_d8();	
+int rst_5();
+
+
+/*0xF0*/
+int ld_a_a8();		
+int pop_af();		
+int ld_a_c();	
+int di();	
+int push_af();	
+int or_d8();	
+int rst_6();	
+int ld_hl_sp_s8();	
+int ld_sp_hl();		
+int ld_a_a16();	
+int ei();	
+int cp_d8();	
+int rst_7();
