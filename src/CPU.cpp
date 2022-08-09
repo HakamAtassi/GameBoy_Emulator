@@ -85,6 +85,234 @@ void CPU::execute(){	//dont forget interrupts
 
 }
 
+/******implementation of core instructions below******/
+
+
+
+int CPU::ld(uint8_t & reg1, uint8_t data){
+	cycles=2;
+	reg1=data;
+	return 0;
+}
+
+
+
+
+int CPU::ld_reg_d8(uint8_t & reg){
+	cycles=2;
+	uint8_t imm=ram.read(PC);
+	PC++;
+	reg=imm;
+	return 0;
+}
+
+int CPU::ld_reg_d16(uint16_t & reg1){
+	cycles=3; 
+	uint16_t data=ram.read(PC);
+	PC++;
+	data|=ram.read(PC)<<8;
+	PC++;
+	reg1=data;
+	return 0;
+}
+
+int CPU::inc_reg(uint8_t & reg){
+	cycles=1;
+	regs.halfCarry=((reg&0x0F)==0x0F);
+	reg++;
+	regs.zero=(reg==0x00);
+	regs.negative=0;
+	return 0;
+}
+
+int CPU::inc_reg(uint16_t & reg){
+	cycles=2;
+	reg++;
+	return 0;
+}
+
+int CPU::dec_reg(uint8_t & reg){
+	cycles=1;
+	regs.halfCarry=((reg&0x0F)==0x00);
+	reg--;
+	regs.zero=(reg==0x00);
+	regs.negative=1;
+	return 0;
+}
+int CPU::dec_reg(uint16_t & reg){
+	cycles=2;
+	regs.BC--;
+	return 0;
+}
+
+
+int CPU::ld_mem_a(uint16_t & addr){
+	cycles=2;
+	ram.write(addr,regs.A);
+	return 0;
+}
+
+int CPU::jr(bool condition){
+	if(condition){
+		cycles=3;
+		int8_t s8=ram.read(PC);
+		PC++;
+		PC=PC+s8;
+	}
+	else{
+		cycles=2;
+		PC++;
+	}
+	return 0;
+}
+
+
+
+
+int CPU::inc_reg(uint8_t & reg){
+	cycles=1;
+	regs.halfCarry=((reg&0x0F)==0x0F);
+	regs.negative=0;
+	regs.zero=(reg==0xFF);
+	reg++;
+	return 0;
+}
+
+int CPU::add(uint8_t & reg1, uint8_t & reg2){
+
+}
+
+
+int CPU::add(uint16_t & reg1, uint16_t & reg2){
+	cycles=2;
+	regs.negative=0;
+	uint32_t result=reg1+reg2;
+	regs.carry=result>0xffff;
+	regs.halfCarry=((reg1&0x0fff)+(reg2&0x0fff)>0x0fff);
+	regs.negative=0;
+	return 0;
+}
+
+int CPU::adc(uint8_t & reg1, uint8_t & reg2){
+		
+	int carry=(regs.carry==1);
+	uint16_t result=reg1+reg2+carry;
+	regs.zero=(result==0);
+	regs.carry=(result>0xff);
+	regs.halfCarry=(((reg1&0x0F)+(reg2&0x0F)+carry)>0x0F);
+	regs.negative=0;
+
+	reg1=(int8_t)result&0xff;
+	return 0;
+}	
+int CPU::sub(uint8_t & reg1, uint8_t & reg2){
+	uint16_t result=reg1-reg2;
+	regs.carry=(reg2>reg1);
+	regs.halfCarry=((reg2&0x0f)>(reg1&0x0f));
+	reg1=reg1-reg2;
+
+	regs.zero=(reg1==0);
+	regs.negative=1;
+}
+int CPU::sub(uint16_t & reg1, uint16_t & reg2){
+
+}
+int CPU::sbc(uint16_t & reg1, uint16_t & reg2){
+
+}
+int CPU::sbc(uint8_t & reg1, uint8_t & reg2){
+	int carry=regs.carry;
+
+	regs.carry=((reg2+carry)>reg1);
+	regs.halfCarry=(((reg2&0x0F)+carry)>(reg1&0x0F));
+
+	reg1=reg1-carry-reg2;
+	regs.zero=(reg1==0);
+	regs.negative=1;
+	return 0;
+}
+int CPU::_and(uint16_t & reg1, uint16_t & reg2){	//many of these functions cam be written as templates
+
+	reg1=reg1&reg2;
+	regs.carry=0;
+	regs.halfCarry=1;
+	regs.negative=0;
+	regs.zero=(reg1==0);
+
+}
+int CPU::_and(uint8_t & reg1, uint8_t & reg2){
+	reg1=reg1&reg2;
+	regs.carry=0;
+	regs.halfCarry=1;
+	regs.negative=0;
+	regs.zero=(reg1==0);
+}
+int CPU::_xor(uint16_t & reg1, uint16_t & reg2){
+	reg1^=reg2;
+	regs.carry=0;
+	regs.halfCarry=0;
+	regs.negative=0;
+	regs.zero=(reg1==0);
+	return 0;
+}
+int CPU::_xor(uint8_t & reg1, uint8_t & reg2){
+	reg1^=reg2;
+	regs.carry=0;
+	regs.halfCarry=0;
+	regs.negative=0;
+	regs.zero=(reg1==0);
+	return 0;
+}
+int CPU::_or(uint16_t & reg1, uint16_t & reg2){
+	reg1|=reg2;
+	regs.carry=0;
+	regs.halfCarry=0;
+	regs.negative=0;
+	regs.zero=(reg1==0);
+	return 0;
+}
+int CPU::_or(uint8_t & reg1, uint8_t & reg2){
+	reg1|=reg2;
+	regs.carry=0;
+	regs.halfCarry=0;
+	regs.negative=0;
+	regs.zero=(reg1==0);
+	return 0;
+}
+int CPU::cp(uint16_t & reg1, uint16_t & reg2){
+
+	regs.negative=1;
+	regs.zero=(reg1==reg2);
+	regs.carry=(reg2>reg1);
+	regs.halfCarry=((reg2&0x0FF)>(reg1&0x0FF));
+
+}
+int CPU::cp(uint8_t & reg1, uint8_t & reg2){	//doesnt actually store result of subtraction anywhere
+	
+	regs.negative=1;
+	regs.zero=(reg1==reg2);
+	regs.carry=(reg2>reg1);
+	regs.halfCarry=((reg2&0x0F)>(reg1&0x0F));
+
+}
+int CPU::pop(uint16_t & reg1){
+	reg1=ram.read(SP);
+	SP++;
+	reg1|=ram.read(SP)<<8;
+	SP++;
+	return 0;
+}
+
+int CPU::push(uint16_t & reg1){
+	SP--;
+	ram.write(SP,(reg1&0xFF00)>>8);
+	SP--;
+	ram.write(SP,(reg1&0x00FF)>>8);
+	return 0;
+}
+
+/******implementation of core instructions above******/
+
 
 int CPU::nop(){	//0x00
 	cycles=1;
@@ -92,52 +320,33 @@ int CPU::nop(){	//0x00
 }
 
 int CPU::ld_bc_d16(){	//0x01
-	cycles=3; 
-	uint16_t imm=ram.read(PC);
-	PC++;
-	imm|=ram.read(PC)<<8;
-	PC++;
-	regs.BC.Word=imm;
-
+	ld_reg_d16(regs.BC);
 	return 0;
 }
 
 int CPU::ld_bc_a(){	//0x02
-	cycles=2;
-	ram.write(regs.BC.Word,regs.FA.Byte.A);
+	ld_mem_a(regs.BC);
 	return 0;
 }
 
 int CPU::inc_bc(){	//0x03
-	cycles=2;
-	regs.BC.Word++;
+	inc_reg(regs.BC);
 	return 0;
 }
 
-int CPU::inc_b(){	//0x04
-	cycles=1;
-	//carry flag unchanged
-	regs.FA.Byte.F.H=((regs.BC.Byte.B&0x0F)==0x0F);
-	regs.FA.Byte.F.N=0;
-	regs.FA.Byte.F.Z=(regs.BC.Byte.B==0xFF);
-	regs.BC.Byte.B++;
 
+
+int CPU::inc_b(){	//0x04
+	inc_reg(regs.B);
 }
 
 int CPU::dec_b(){	//0x05
-	//carry flag unchanged
-	regs.FA.Byte.F.H=((regs.BC.Byte.B&0x0F)==0x00);
-	regs.FA.Byte.F.N=1;
-	regs.FA.Byte.F.Z=(regs.BC.Byte.B==0x01);
-	regs.BC.Byte.B--;
+	dec_reg(regs.B);
 	return 0;
 }
 
 int CPU::ld_b_d8(){	//0x06
-	cycles=2;
-	uint8_t imm=ram.read(PC);
-	PC++;
-	regs.BC.Byte.B=imm;
+	ld_reg_d8(regs.B);
 	return 0;
 }
 
@@ -145,13 +354,13 @@ int CPU::ld_b_d8(){	//0x06
 int CPU::rlca(){	//0x07
 	cycles=1;
 
-	regs.FA.Byte.F.Z=0;
-	regs.FA.Byte.F.N=0;
-	regs.FA.Byte.F.H=0;
+	regs.zero=0;
+	regs.negative=0;
+	regs.halfCarry=0;
 
-	regs.FA.Byte.F.C=(regs.FA.Byte.A&0x80)>>8;
-	regs.FA.Byte.A=regs.FA.Byte.A<<1;
-	regs.FA.Byte.A|=regs.FA.Byte.F.C;	//to rotate, use the same value that was stored in the carry bit
+	regs.carry=(regs.A&0x80)>>8;
+	regs.A=regs.A<<1;
+	regs.A|=regs.carry;	//to rotate, use the same value that was stored in the carry bit
 	return 0;
 }
 
@@ -169,40 +378,43 @@ int CPU::ld_a16_sp(){	//0x08
 }
 
 int CPU::add_hl_bc(){	//0x09
-
+	add(regs.HL,regs.BC);
+	return 0;
 }
 
 int CPU::ld_a_bc(){	//0x0A
-	cycles=2;
-	uint16_t operand=ram.read(regs.BC.Word);
-	regs.FA.Byte.A=operand;
+	ld(regs.A,ram.read(regs.BC));
 	return 0;
 }
 
 int CPU::dec_bc(){	//0x0B
-	cycles=2;
-	regs.BC.Word--;
-	PC++;
-	return 0;
+	dec_reg(regs.BC);
 }
 
 int CPU::inc_c(){	//0x0C
-
+	inc_reg(regs.C);
+	return 0;
 }
 
 int CPU::dec_c(){	//0x0D
-
+	dec_reg(regs.C);
+	return 0;
 }
 
 int CPU::ld_c_d8(){	//0x0E
-	cycles=2;
-	uint8_t imm=ram.read(PC);
-	regs.BC.Byte.C=imm;
-	PC++;
+	ld_reg_d8(regs.C);
 	return 0;
 }
 
 int CPU::rrca(){	//0x0F
+	cycles=1;
+	regs.zero=0;
+	regs.negative=0;
+	regs.halfCarry=0;
+	regs.carry=regs.A&0x01;
+	regs.A=regs.A>>1;
+	regs.A|=regs.carry;
+	return 0;
 
 }
 
@@ -212,182 +424,128 @@ int CPU::stop(){	//0x10
 }
 
 int CPU::ld_de_d16(){	//0x11
-	cycles=3;
-
-	uint16_t imm=ram.read(PC);
-	PC++;
-	imm|=ram.read(PC)<<8;
-	PC++;
-	regs.DE.Word=imm;
-
+	ld_reg_d16(regs.DE);
 	return 0;
 }
 
 int CPU::ld_de_a(){	//0x12
-	cycles=2;
-	ram.write(regs.DE.Word,regs.FA.Byte.A);
+	ld_mem_a(regs.DE);
 	return 0;
 }
 
 int CPU::inc_de(){	//0x13
-	cycles=2;
-	regs.DE.Word++;
+	inc_reg(regs.DE);
 	return 0;
 
 }
 
 int CPU::inc_d(){	//0x14
-	cycles=1;
-	regs.FA.Byte.F.H=((regs.DE.Byte.D&0x0F)==0x0F);
-	regs.FA.Byte.F.N=0;
-	regs.FA.Byte.F.Z=(regs.DE.Byte.D==0xFF);
-	regs.BC.Byte.B++;
+	inc_reg(regs.D);
 	return 0;
 }
 
 int CPU::dec_d(){	//0x15
-	//carry flag unchanged
-	regs.FA.Byte.F.H=((regs.DE.Byte.D&0x0F)==0x00);
-	regs.FA.Byte.F.N=1;
-	regs.FA.Byte.F.Z=(regs.DE.Byte.D==0x01);
-	regs.DE.Byte.D--;
+	dec_reg(regs.B);
 	return 0;
 }
 
 int CPU::ld_d_d8(){	//0x16
-	cycles=2;
-	uint8_t imm=ram.read(PC);
-	PC++;
-	regs.DE.Byte.D=imm;
+	ld_reg_d8(regs.D);
 	return 0;
 }
 
 int CPU::rla(){	//0x17
 	//possible error
-	regs.FA.Byte.F.Z=0;
-	regs.FA.Byte.F.N=0;
-	regs.FA.Byte.F.H=0;
+	regs.zero=0;
+	regs.negative=0;
+	regs.halfCarry=0;
 
-	int MSB=(regs.FA.Byte.A&0x80)>>8;
-	int carry=regs.FA.Byte.F.C;
-	regs.FA.Byte.F.C=MSB;
-	regs.FA.Byte.A=regs.FA.Byte.A<<1;
-	regs.FA.Byte.A|=carry;
+	int MSB=(regs.A&0x80)>>8;
+	int carry=regs.carry;
+	regs.carry=MSB;
+	regs.A=regs.A<<1;
+	regs.A|=carry;
 	return 0;
 }
 
 int CPU::jr_s8(){	//0x18
 					//possible error here (signed or unsigned number?)
-	cycles=3;
-	int8_t s8=ram.read(PC);
-	PC++;
-	PC=PC+s8;
-	return 0;
+	jr(1);
 }
 
 int CPU::add_hl_de(){	//0x19
-
+	add(regs.HL,regs.DE);
+	return 0;
 }
 
 int CPU::ld_a_de(){	//0x1A
-	cycles=2;
-	uint16_t operand=ram.read(regs.DE.Word);
-	regs.FA.Byte.A=operand;
+	ld(regs.A,ram.read(regs.DE));
 	return 0;
 }
 
 
 int CPU::dec_de(){	//0x1B
-	cycles=2;
-	regs.DE.Word--;
-	PC++;
-	return 0;
+	dec_reg(regs.DE);
+
 }
 
 
 int CPU::inc_e(){	//0x1C
-
+	inc_reg(regs.E);
+	return 0;
 }
 
 int CPU::dec_e(){	//0x1D
-
+	dec_reg(regs.C);
+	return 0;
 }
 
 int CPU::ld_e_d8(){	//0x1E
-	cycles=2;
-	uint8_t imm=ram.read(PC);
-	regs.DE.Byte.E=imm;
-	PC++;
+	ld_reg_d8(regs.C);
 	return 0;
 }
 
 int CPU::rra(){	//0x1F
-
-}
-
-int CPU::jr_nz_s8(){	//0x20
-
-	if(regs.FA.Byte.F.Z==0){
-		cycles=3;
-		int8_t s8=ram.read(PC);
-		PC++;
-		PC=PC+s8;
-	}
-	else{
-		cycles=2;
-		PC++;
-	}
+	int temp=regs.A&0x01;
+	regs.A=regs.A>>1;
+	regs.A|=regs.carry<<8;
+	regs.carry=temp;
 	return 0;
 }
 
-int CPU::ld_hl_d16(){	//0x21
-	cycles=3;
-	uint16_t imm=ram.read(PC);
-	PC++;
-	imm|=ram.read(PC)<<8;
-	PC++;
-	regs.HL.Word=imm;
+int CPU::jr_nz_s8(){	//0x20
+	jr(regs.zero!=1);
+}
 
+int CPU::ld_hl_d16(){	//0x21
+	ld_reg_d16(regs.HL);
 	return 0;
 }
 
 int CPU::ld_hlp_a(){	//0x22
-	cycles=2;
-	ram.write(regs.HL.Word,regs.FA.Byte.A);
-	regs.HL.Word++;
+	ld_mem_a(regs.HL);
+	regs.HL++;
 	return 0;
 
 }
 
 int CPU::inc_hl(){	//0x23
-	cycles=2;
-	regs.HL.Word++;
+	inc_reg(regs.HL);
 	return 0;
 }
 
 int CPU::inc_h(){	//0x24
-	cycles=1;
-	regs.FA.Byte.F.H=((regs.HL.Byte.H&0x0F)==0x0F);
-	regs.FA.Byte.F.N=0;
-	regs.FA.Byte.F.Z=(regs.HL.Byte.H==0xFF);
-	regs.BC.Byte.B++;
+	inc_reg(regs.H);
+	return 0;
 }
 
 int CPU::dec_h(){	//0x25
-	//carry flag unchanged
-	cycles=1;
-	regs.FA.Byte.F.H=((regs.HL.Byte.H&0x0F)==0x00);
-	regs.FA.Byte.F.N=1;
-	regs.FA.Byte.F.Z=(regs.HL.Byte.H==0x01);
-	regs.HL.Byte.H--;
+	dec_reg(regs.B);
 	return 0;
 }
 
 int CPU::ld_h_d8(){	//0x26
-	cycles=2;
-	uint8_t imm=ram.read(PC);
-	PC++;
-	regs.HL.Byte.H=imm;
+	ld_reg_d8(regs.H);
 	return 0;
 }
 
@@ -399,276 +557,235 @@ int CPU::daa(){	//0x27
 
 int CPU::jr_z_s8(){	//0x28
 
-	if(regs.FA.Byte.F.Z==1){
-		cycles=3;
-		int8_t s8=ram.read(PC);
-		PC++;
-		PC=PC+s8;
-	}
-	else{
-		cycles=2;
-		PC++;
-	}
-	return 0;
+	jr(regs.zero==1);
 }
 
-int CPU::add_hl_hl(){
-	
+int CPU::add_hl_hl(){	//0x29
+	add(regs.HL,regs.HL);
+	return 0;
 }
 
 
 int CPU::ld_a_hlp(){	//0x2A
-	cycles=2;
-	regs.FA.Byte.A=ram.read(regs.HL.Word);
-	regs.HL.Word++;
+	ld(regs.A,ram.read(regs.HL));
+	regs.HL++;
 	return 0;
-
 }
 
 int CPU::dec_hl(){	//0x2B
-	cycles=2;
-	regs.HL.Word--;
-	PC++;
-	return 0;
+	dec_reg(regs.HL);
+
 }
 
 int CPU::inc_l(){	//0x2C
-	
-
+	inc_reg(regs.L);
+	return 0;
 }
 
 
-int CPU::dec_l(){
-
+int CPU::dec_l(){	//0x2d
+	dec_reg(regs.L);
+	return 0;
 }
 
 int CPU::ld_l_d8(){	//0x2E
-	cycles=2;
-	uint8_t imm=ram.read(PC);
-	regs.HL.Byte.L=imm;
-	PC++;
+	ld_reg_d8(regs.L);
 	return 0;
 }
 
 int CPU::cpl(){	//0x2F
-
+	cycles=1;
+	regs.A=~regs.A;
+	regs.negative=1;
+	regs.halfCarry=1;
+	return 0;
 }
 
 int CPU::jr_nc_s8(){	//0x30
 	
-	if(regs.FA.Byte.F.C==0){
-		cycles=3;
-		int8_t s8=ram.read(PC);
-		PC++;
-		PC=PC+s8;
-	}
-	else{
-		cycles=2;
-		PC++;
-	}
-	return 0;
+	jr(regs.carry!=1);
 }
 
 int CPU::ld_sp_d16(){	//0x31
-	cycles=3;
-	uint16_t imm=ram.read(PC);
-	PC++;
-	imm|=ram.read(PC)<<8;
-	PC++;
-	SP=imm;
-
+	ld_reg_d16(SP);
 	return 0;
 }
 
 int CPU::ld_hlm_a(){	//0x32
-
-	cycles=2;
-	ram.write(regs.HL.Word, regs.FA.Byte.A);
-	regs.HL.Word--;
+	ld_mem_a(regs.HL);
+	regs.HL--;
 	return 0;
 }
 
 int CPU::inc_sp(){	//0x33
-	cycles=2;
-	SP++;
+	inc_reg(SP);
 	return 0;
 }
 
 int CPU::inc_hl_mem(){	//0x34
+	uint8_t contents=ram.read(regs.HL);
 	cycles=1;
-	uint8_t contents=ram.read(regs.HL.Word);
-	regs.FA.Byte.F.H=((contents&0x0F)==0x0F);
-	regs.FA.Byte.F.N=0;
-	regs.FA.Byte.F.Z=(contents==0xFF);
-	ram.write(regs.HL.Word,contents++);
+	regs.halfCarry=((contents&0x0F)==0x0F);
+	regs.negative=0;
+	regs.zero=(contents==0xFF);
+	ram.write(regs.HL,contents++);
 	return 0;
 }
 
 int CPU::dec_hl_mem(){	//0x35
-	uint8_t contents=ram.read(regs.HL.Word);
-	regs.FA.Byte.F.H=((contents&0x0F)==0x00);
-	regs.FA.Byte.F.N=1;
-	regs.FA.Byte.F.Z=(contents==0x01);
-	ram.write(regs.HL.Word,contents--);
+	uint8_t contents=ram.read(regs.HL);
+	regs.halfCarry=((contents&0x0F)==0x00);
+	regs.negative=1;
+	regs.zero=(contents==0x01);
+	ram.write(regs.HL,contents--);
 	return 0;
 }
 
 int CPU::ld_hl_d8(){	//0x36
-	cycles=3;
+	cycles=2;
 	uint8_t imm=ram.read(PC);
 	PC++;
-	ram.write(regs.HL.Word,imm);
+	ram.write(regs.HL,imm);
 	return 0;
 }
 
 int CPU::scf(){	//0x37
 	cycles=1;
 
-	regs.FA.Byte.F.C=1;
-	regs.FA.Byte.F.H=0;
-	regs.FA.Byte.F.N=0;
-	regs.FA.Byte.F.Z=0;
+	regs.carry=1;
+	regs.halfCarry=0;
+	regs.negative=0;
+	regs.zero=0;
 	return 0;
 }
 
 int CPU::jr_c_s8(){ //0x38
 
-	if(regs.FA.Byte.F.C==1){
-		cycles=3;
-		int8_t s8=ram.read(PC);
-		PC++;
-		PC=PC+s8;
-	}
-	else{
-		cycles=2;
-		PC++;
-	}
-	return 0;
+	jr(regs.carry==1);
+
 }
 
 int CPU::add_hl_sp(){	//0x39
-
+	add(regs.HL,SP);
+	return 0;
 }
 
 int CPU::ld_a_hlm(){	//0x3A
-
-	cycles=2;
-	regs.FA.Byte.A=ram.read(regs.HL.Word);
-	regs.HL.Word--;
+	ld(regs.A,ram.read(regs.HL));
+	regs.HL--;
 	return 0;
 }
 
 int CPU::dec_sp(){	//0x3B
-	cycles=2;
-	SP--;
-	PC++;
-	return 0;
+	dec_reg(regs.BC);
 }
 
 int CPU::inc_a(){	//0x3C
-	
+	inc_reg(regs.A);
+	return 0;
 }
 
 int CPU::dec_a(){	//0x3D
-
+	dec_reg(regs.C);
+	return 0;
 }
 
 int CPU::ld_a_d8(){	//0x3E
-	cycles=2;
-	uint8_t imm=ram.read(PC);
-	PC++;
-	regs.FA.Byte.A=imm;
+	ld_reg_d8(regs.A);
 	return 0;
-
 }
 
 int CPU::ccf(){	//0x3F
 
+	cycles=1;
+	regs.negative=0;
+	regs.halfCarry=0;
+	regs.carry=~regs.carry;
 	return 0;
 }
 
 
 int CPU::ld_b_b(){	//0x40
 	cycles=1;
-	regs.BC.Byte.B=regs.BC.Byte.B;
+	regs.B=regs.B;
 	return 0;
 }
 int CPU::ld_b_c(){	//0x41
 	cycles=1;
-	regs.BC.Byte.B=regs.BC.Byte.C;
+	regs.B=regs.C;
 	return 0;
 }
 int CPU::ld_b_d(){	//0x42
 	cycles=1;
-	regs.BC.Byte.B=regs.DE.Byte.D;
+	regs.B=regs.D;
 	return 0;
 }	
 int CPU::ld_b_e(){	//0x43
 	cycles=1;
-	regs.BC.Byte.B=regs.DE.Byte.E;
+	regs.B=regs.E;
 	return 0;
 }
 int CPU::ld_b_h(){	//0x44
 	cycles=1;
-	regs.BC.Byte.B=regs.HL.Byte.H;
+	regs.B=regs.H;
 	return 0;
 }
 int CPU::ld_b_l(){	//0x45
 	cycles=1;
-	regs.BC.Byte.B=regs.HL.Byte.L;
+	regs.B=regs.L;
 	return 0;
 }
 int CPU::ld_b_hl(){	//0x46
 	cycles=2;
-	uint8_t operand=ram.read(regs.HL.Word);
-	regs.BC.Byte.B=operand;
+	uint8_t operand=ram.read(regs.HL);
+	regs.B=operand;
 	return 0;
 
 }
 int CPU::ld_b_a(){	//0x47
 	cycles=1;
-	regs.BC.Byte.B=regs.FA.Byte.A;
+	regs.B=regs.A;
 	return 0;
 }
 int CPU::ld_c_b(){	//0x48
 	cycles=1;
-	regs.BC.Byte.C=regs.BC.Byte.B;
+	regs.C=regs.B;
 	return 0;
 }
 int CPU::ld_c_c(){	//0x49
 	cycles=1;
-	regs.BC.Byte.C=regs.BC.Byte.C;
+	regs.C=regs.C;
 	return 0;
 }
 int CPU::ld_c_d(){	//0x4A
 	cycles=1;
-	regs.BC.Byte.C=regs.BC.Byte.C;
+	regs.C=regs.C;
 	return 0;
 }
 int CPU::ld_c_e(){	//0x4B
 	cycles=1;
-	regs.BC.Byte.C=regs.DE.Byte.E;
+	regs.C=regs.E;
 	return 0;
 }
 int CPU::ld_c_h(){	//0x4C
 	cycles=1;
-	regs.BC.Byte.C=regs.HL.Byte.H;
+	regs.C=regs.H;
 	return 0;
 }
 int CPU::ld_c_l(){	//0x4D
 	cycles=1;
-	regs.BC.Byte.C=regs.HL.Byte.L;
+	regs.C=regs.L;
 	return 0;
 }
 int CPU::ld_c_hl(){	//0x4E
 	cycles=2;
-	uint8_t operand=ram.read(regs.HL.Word);
-	regs.BC.Byte.C=operand;
+	uint8_t operand=ram.read(regs.HL);
+	regs.C=operand;
 	return 0;
 }
 int CPU::ld_c_a(){	//0x4F
 	cycles=1;
-	regs.BC.Byte.C=regs.FA.Byte.A;
+	regs.C=regs.A;
 	return 0;
 }
 
@@ -677,670 +794,965 @@ int CPU::ld_c_a(){	//0x4F
 /*0x50 instructions*/
 int CPU::ld_d_b(){	//0x50
 	cycles=1;
-	regs.DE.Byte.D=regs.BC.Byte.B;
+	regs.D=regs.B;
 	return 0;
 }
 int CPU::ld_d_c(){	//0x51
 	cycles=1;
-	regs.DE.Byte.D=regs.BC.Byte.C;
+	regs.D=regs.C;
 	return 0;
 }
 int CPU::ld_d_d(){	//0x52
 	cycles=1;
-	regs.DE.Byte.D=regs.DE.Byte.D;
+	regs.D=regs.D;
 	return 0;
 }
 int CPU::ld_d_e(){	//0x53
 	cycles=1;
-	regs.DE.Byte.D=regs.DE.Byte.E;
+	regs.D=regs.E;
 	return 0;
 }
 int CPU::ld_d_h(){	//0x54
 	cycles=1;
-	regs.DE.Byte.D=regs.HL.Byte.H;
+	regs.D=regs.H;
 	return 0;
 }
 int CPU::ld_d_l(){	//0x55
 	cycles=1;
-	regs.DE.Byte.D=regs.HL.Byte.L;
+	regs.D=regs.L;
 	return 0;
 }
 int CPU::ld_d_hl(){	//0x56
 	cycles=2;
-	uint8_t operand=ram.read(regs.HL.Word);
-	regs.DE.Byte.D=operand;
+	uint8_t operand=ram.read(regs.HL);
+	regs.D=operand;
 	return 0;
 }	
 int CPU::ld_d_a(){	//0x57
 	cycles=1;
-	regs.DE.Byte.D=regs.FA.Byte.A;
+	regs.D=regs.A;
 	return 0;
 }
 int CPU::ld_e_b(){	//0x58
 	cycles=1;
-	regs.DE.Byte.E=regs.BC.Byte.B;
+	regs.E=regs.B;
 	return 0;
 }
 int CPU::ld_e_c(){	//0x59
 	cycles=1;
-	regs.DE.Byte.E=regs.BC.Byte.C;
+	regs.E=regs.C;
 	return 0;
 }
 int CPU::ld_e_d(){	//0x5A
 	cycles=1;
-	regs.DE.Byte.E=regs.DE.Byte.D;
+	regs.E=regs.D;
 	return 0;
 }
 int CPU::ld_e_e(){	//0x5B
 	cycles=1;
-	regs.DE.Byte.E=regs.DE.Byte.E;
+	regs.E=regs.E;
 	return 0;
 }
 int CPU::ld_e_h(){	//0x5C
 	cycles=1;
-	regs.DE.Byte.E=regs.HL.Byte.H;
+	regs.E=regs.H;
 	return 0;
 }	
 int CPU::ld_e_l(){	//0x5D
 	cycles=1;
-	regs.DE.Byte.E=regs.HL.Byte.L;
+	regs.E=regs.L;
 	return 0;
 } 	
 int CPU::ld_e_hl(){	//0x5E
 	cycles=2;
-	uint8_t operand=ram.read(regs.HL.Word);
-	regs.DE.Byte.E=operand;
+	uint8_t operand=ram.read(regs.HL);
+	regs.E=operand;
 	return 0;
 }	
 int CPU::ld_e_a(){	//0x5F
 	cycles=1;
-	regs.DE.Byte.E=regs.FA.Byte.A;
+	regs.E=regs.A;
 	return 0;
 }
 
 /*0x60 instructions*/
 int CPU::ld_h_b(){
 	cycles=1;
-	regs.HL.Byte.H=regs.BC.Byte.B;
+	regs.H=regs.B;
 	return 0;
 }	
 int CPU::ld_h_c(){
 	cycles=1;
-	regs.HL.Byte.H=regs.BC.Byte.C;
+	regs.H=regs.C;
 	return 0;
 }	
 int CPU::ld_h_d(){
 	cycles=1;
-	regs.HL.Byte.H=regs.DE.Byte.D;
+	regs.H=regs.D;
 	return 0;
 }	
 int CPU::ld_h_e(){
 	cycles=1;
-	regs.HL.Byte.H=regs.DE.Byte.E;
+	regs.H=regs.E;
 	return 0;
 }	
 int CPU::ld_h_h(){
 	cycles=1;
-	regs.HL.Byte.H=regs.HL.Byte.H;
+	regs.H=regs.H;
 	return 0;
 }	
 int CPU::ld_h_l(){
 	cycles=1;
-	regs.HL.Byte.H=regs.HL.Byte.L;
+	regs.H=regs.L;
 	return 0;
 }	
 int CPU::ld_h_hl(){
 	cycles=2;
-	uint8_t operand=ram.read(regs.HL.Word);
-	regs.HL.Byte.H=operand;
+	uint8_t operand=ram.read(regs.HL);
+	regs.H=operand;
 	return 0;
 }	
 int CPU::ld_h_a(){
 	cycles=1;
-	regs.HL.Byte.H=regs.FA.Byte.A;
+	regs.H=regs.A;
 	return 0;
 }	
 int CPU::ld_l_b(){
 	cycles=1;
-	regs.HL.Byte.L=regs.BC.Byte.B;
+	regs.L=regs.B;
 	return 0;
 }	
 int CPU::ld_l_c(){
 	cycles=1;
-	regs.HL.Byte.L=regs.BC.Byte.C;
+	regs.L=regs.C;
 	return 0;
 }	
 int CPU::ld_l_d(){
 	cycles=1;
-	regs.HL.Byte.L=regs.DE.Byte.D;
+	regs.L=regs.D;
 	return 0;
 }	
 int CPU::ld_l_e(){
 	cycles=1;
-	regs.HL.Byte.L=regs.DE.Byte.E;
+	regs.L=regs.E;
 	return 0;
 }	
 int CPU::ld_l_h(){
 	cycles=1;
-	regs.HL.Byte.L=regs.HL.Byte.H;
+	regs.L=regs.H;
 	return 0;
 }	
 int CPU::ld_l_l(){
 	cycles=1;
-	regs.HL.Byte.L=regs.HL.Byte.L;
+	regs.L=regs.L;
 	return 0;
 } 	
 int CPU::ld_l_hl(){
 	cycles=2;
-	uint8_t operand=ram.read(regs.HL.Word);
-	regs.HL.Byte.L=operand;
+	uint8_t operand=ram.read(regs.HL);
+	regs.L=operand;
 	return 0;
 }	
 int CPU::ld_l_a(){
 	cycles=1;
-	regs.HL.Byte.L=regs.FA.Byte.A;
+	regs.L=regs.A;
 	return 0;
 }
 
 /*0x70 instructions*/
 int CPU::ld_hl_b(){
 	cycles=2;
-	ram.write(regs.HL.Word,regs.BC.Byte.B);
+	ram.write(regs.HL,regs.B);
 
 }	
 int CPU::ld_hl_c(){
 	cycles=2;
-	ram.write(regs.HL.Word,regs.BC.Byte.C);
+	ram.write(regs.HL,regs.C);
 }
 int CPU::ld_hl_d(){
 	cycles=2;
-	ram.write(regs.HL.Word,regs.DE.Byte.D);
+	ram.write(regs.HL,regs.D);
 }	
 int CPU::ld_hl_e(){
 	cycles=2;
-	ram.write(regs.HL.Word,regs.DE.Byte.E);
+	ram.write(regs.HL,regs.E);
 }	
 int CPU::ld_hl_h(){
 	cycles=2;
-	ram.write(regs.HL.Word,regs.HL.Byte.H);
+	ram.write(regs.HL,regs.H);
 }	
 int CPU::ld_hl_l(){
 	cycles=2;
-	ram.write(regs.HL.Word,regs.HL.Byte.L);
+	ram.write(regs.HL,regs.L);
 }	
 int CPU::HALT(){
 
 }		
 int CPU::ld_hl_a(){
 	cycles=2;
-	ram.write(regs.HL.Word,regs.FA.Byte.A);
+	ram.write(regs.HL,regs.A);
 }	
 int CPU::ld_a_b(){
 	cycles=1;
-	regs.FA.Byte.A=regs.BC.Byte.B;
+	regs.A=regs.B;
 	return 0;
 }	
 int CPU::ld_a_c(){
 	cycles=1;
-	regs.FA.Byte.A=regs.BC.Byte.C;
+	regs.A=regs.C;
 	return 0;
 }	
 int CPU::ld_a_d(){
 	cycles=1;
-	regs.FA.Byte.A=regs.DE.Byte.D;
+	regs.A=regs.D;
 	return 0;
 }	
 int CPU::ld_a_e(){
 	cycles=1;
-	regs.FA.Byte.A=regs.DE.Byte.D;
+	regs.A=regs.D;
 	return 0;
 }	
 int CPU::ld_a_h(){
 	cycles=1;
-	regs.FA.Byte.A=regs.HL.Byte.H;
+	regs.A=regs.H;
 	return 0;
 }	
 int CPU::ld_a_l(){
 	cycles=1;
-	regs.FA.Byte.A=regs.HL.Byte.L;
+	regs.A=regs.L;
 	return 0;
 } 	
 int CPU::ld_a_hl(){
 	cycles=2;
-	uint8_t operand=ram.read(regs.HL.Word);
-	regs.FA.Byte.A=operand;
+	uint8_t operand=ram.read(regs.HL);
+	regs.A=operand;
 	return 0;
 }	
 int CPU::ld_a_a(){
 	cycles=1;
-	regs.FA.Byte.A=regs.FA.Byte.A;
+	regs.A=regs.A;
 	return 0;
 };
 
 
 /*0x80 instructions*/
-int CPU::add_a_b(){}	
-int CPU::add_a_c(){}	
-int CPU::add_a_d(){}	
-int CPU::add_a_e(){}	
-int CPU::add_a_h(){}	
-int CPU::add_a_l(){}	
-int CPU::add_a_hl(){}	
-int CPU::add_a_a(){}
-int CPU::adc_a_b(){}	
-int CPU::adc_a_c(){}	
-int CPU::adc_a_d(){}	
-int CPU::adc_a_e(){}	
-int CPU::adc_a_h(){}	
-int CPU::adc_a_l(){}
-int CPU::adc_a_hl(){}	
-int CPU::adc_a_a(){}
+int CPU::add_a_b(){	//0x80
+	cycles=1;
+	uint16_t result=regs.A+regs.B;
+	regs.halfCarry=(regs.A&0x0F)+(regs.B&0x0F);
+	regs.carry=result>0xff;
+	regs.negative=0;
+	return 0;
+}	
+int CPU::add_a_c(){	//0x81
+	cycles=1;
+	uint16_t result=regs.A+regs.C;
+	regs.halfCarry=(regs.A&0x0F)+(regs.C&0x0F);
+	regs.carry=result>0xff;
+	regs.negative=0;
+	return 0;
+}	
+int CPU::add_a_d(){	//0x82
+	cycles=1;
+	uint16_t result=regs.A+regs.D;
+	regs.halfCarry=(regs.A&0x0F)+(regs.D&0x0F);
+	regs.carry=result>0xff;
+	regs.negative=0;
+	return 0;
+}	
+int CPU::add_a_e(){	//0x83
+	cycles=1;
+	uint16_t result=regs.A+regs.E;
+	regs.halfCarry=(regs.A&0x0F)+(regs.E&0x0F);
+	regs.carry=result>0xff;
+	regs.negative=0;
+	return 0;
+}	
+int CPU::add_a_h(){	//0x84
+	cycles=1;
+	uint16_t result=regs.A+regs.H;
+	regs.halfCarry=(regs.A&0x0F)+(regs.H&0x0F);
+	regs.carry=result>0xff;
+	regs.negative=0;
+	return 0;
+}	
+int CPU::add_a_l(){	//0x85
+	cycles=1;
+	uint16_t result=regs.A+regs.L;
+	regs.halfCarry=(regs.A&0x0F)+(regs.L&0x0F);
+	regs.carry=result>0xff;
+	regs.negative=0;
+	return 0;
+}	
+int CPU::add_a_hl(){	//0x86
+	cycles=1;
+	uint16_t result=regs.A+ram.read(regs.HL);
+	regs.halfCarry=(regs.A&0x0F)+(ram.read(regs.HL)&0x0F);
+	regs.carry=result>0xff;
+	regs.negative=0;
+	return 0;
+}	
+int CPU::add_a_a(){	//0x87
+	cycles=1;
+	uint16_t result=regs.A+regs.A;
+	regs.halfCarry=(regs.A&0x0F)+(regs.A&0x0F);
+	regs.carry=result>0xff;
+	regs.negative=0;
+	return 0;
+}
+int CPU::adc_a_b(){	//0x88
+
+}	
+int CPU::adc_a_c(){	//0x89
+
+}	
+int CPU::adc_a_d(){	//0x8A
+
+}	
+int CPU::adc_a_e(){	//0x8B
+
+}	
+int CPU::adc_a_h(){	//0x8C
+
+}	
+int CPU::adc_a_l(){	//0x8D
+
+}
+int CPU::adc_a_hl(){	//0x8E
+
+}	
+int CPU::adc_a_a(){	//0x8F
+
+}
 
 /*0x90 instructions*/
-int CPU::sub_b(){}	
-int CPU::sub_c(){}	
-int CPU::sub_d(){}	
-int CPU::sub_e(){}	
-int CPU::sub_h(){}	
-int CPU::sub_l(){}	
-int CPU::sub_hl(){}	
-int CPU::sub_a(){}
-int CPU::sbc_a_b(){}	
-int CPU::sbc_a_c(){}	
-int CPU::sbc_a_d(){}	
-int CPU::sbc_a_e(){}	
-int CPU::sbc_a_h(){}	
-int CPU::sbc_a_l(){}	
-int CPU::sbc_a_hl(){}	
-int CPU::sbc_a_a(){}
+int CPU::sub_b(){	//0x90
+
+}	
+int CPU::sub_c(){	//0x91
+
+}	
+int CPU::sub_d(){	//0x92
+
+}	
+int CPU::sub_e(){	//0x93
+
+}	
+int CPU::sub_h(){	//0x94
+
+}	
+int CPU::sub_l(){	//0x95
+
+}	
+int CPU::sub_hl(){	//0x96
+
+}	
+int CPU::sub_a(){	//0x97
+
+}
+int CPU::sbc_a_b(){	//0x98
+
+}	
+int CPU::sbc_a_c(){	//0x99
+
+}	
+int CPU::sbc_a_d(){	//0x9A
+
+}	
+int CPU::sbc_a_e(){	//0x9B
+
+}	
+int CPU::sbc_a_h(){	//0x9C
+
+}	
+int CPU::sbc_a_l(){	//0x9D
+
+}	
+int CPU::sbc_a_hl(){	//0x9E
+
+}	
+int CPU::sbc_a_a(){	//0x9F
+
+}
 
 
 /*0xA0 instructions*/
-int CPU::add_b(){}	
-int CPU::add_c(){}	
-int CPU::add_d(){}	
-int CPU::add_e(){}	
-int CPU::add_h(){}	
-int CPU::add_l(){}	
-int CPU::add_hl(){}	
-int CPU::add_a(){}
-int CPU::xor_b(){}	
-int CPU::xor_c(){}	
-int CPU::xor_d(){}	
-int CPU::xor_e(){}	
-int CPU::xor_h(){}	
-int CPU::xor_l(){}	
-int CPU::xor_hl(){}
-int CPU::xor_a(){}
+int CPU::add_b(){	//0xA0
+
+}	
+int CPU::add_c(){	//0xA1
+
+}	
+int CPU::add_d(){	//0xA2
+
+}	
+int CPU::add_e(){	//0xA3
+
+}	
+int CPU::add_h(){	//0xA4
+
+}	
+int CPU::add_l(){	//0xA5
+
+}	
+int CPU::add_hl(){	//0xA6
+
+}	
+int CPU::add_a(){	//0xA7
+
+}
+int CPU::xor_b(){	//0xA8
+
+}	
+int CPU::xor_c(){	//0xA9
+
+}	
+int CPU::xor_d(){	//0xAA
+
+}	
+int CPU::xor_e(){	//0xAB
+
+}	
+int CPU::xor_h(){	//0xAC
+
+}	
+int CPU::xor_l(){	//0xAD
+
+}	
+int CPU::xor_hl(){	//0xAE
+
+}
+int CPU::xor_a(){	//0xAF
+
+}
 
 /*0xB0 instructions*/
-int CPU::or_b(){}	
-int CPU::or_c(){}
-int CPU::or_d(){}	
-int CPU::or_e(){}	
-int CPU::or_h(){}	
-int CPU::or_l(){}	
-int CPU::or_hl(){}
-int CPU::or_a(){}
-int CPU::cp_b(){}	
-int CPU::cp_c(){}	
-int CPU::cp_d(){}	
-int CPU::cp_e(){}	
-int CPU::cp_h(){}	
-int CPU::cp_l(){}	
-int CPU::cp_hl(){}
-int CPU::cp_a(){}
+int CPU::or_b(){	//0xB0
+
+}	
+int CPU::or_c(){	//0xB1
+
+}
+int CPU::or_d(){	//0xB2
+
+}	
+int CPU::or_e(){	//0xB3
+
+}	
+int CPU::or_h(){	//0xB0
+
+}	
+int CPU::or_l(){	//0xB0
+
+}	
+int CPU::or_hl(){	//0xB0
+
+}
+int CPU::or_a(){	//0xB0
+
+}
+int CPU::cp_b(){	//0xB0
+
+}	
+int CPU::cp_c(){	//0xB0
+
+}	
+int CPU::cp_d(){	//0xB0
+
+}	
+int CPU::cp_e(){	//0xB0
+
+}	
+int CPU::cp_h(){	//0xB0
+
+}	
+int CPU::cp_l(){	//0xB0
+
+}	
+int CPU::cp_hl(){	//0xB0
+
+}
+int CPU::cp_a(){	//0xB0
+
+}
 
 
 /*0xC0*/
-int ret_nz();	
-int pop_bc();	
-int jp_nz_a16();	
-int jp_a16();		
-int call_nz_a16();	
-int push_bc();	
-int add_a_d8();	
-int rst_a0();
-int ret_z();	
-int ret();		
-int jp_z_a16();		
-int call_z_a16();	
-int call_z16();		
-int adc_a_d8();	
-int rst_1();
+int CPU::ret_nz(){
+	if(regs.zero==0){
+		cycles=5;
+		uint16_t _PC=0x00;
+		_PC=ram.read(SP);
+		SP++;
+		_PC|=ram.read(SP)<<8;
+		SP++;
+		PC=_PC;
+	}
+	else{
+		cycles=2;
+	}
+}	
+int CPU::pop_bc(){
+
+}	
+int CPU::jp_nz_a16(){
+
+}	
+int CPU::jp_a16(){
+
+}		
+int CPU::call_nz_a16(){
+
+}	
+int CPU::push_bc(){
+
+}	
+int CPU::add_a_d8(){
+
+}	
+int CPU::rst_a0(){
+
+}
+int CPU::ret_z(){
+
+}	
+int CPU::ret(){
+
+}		
+int CPU::jp_z_a16(){
+
+}		
+int CPU::call_z_a16(){
+
+}	
+int CPU::call_z16(){
+
+}		
+int CPU::adc_a_d8(){
+
+}	
+int CPU::rst_1(){
+
+}
 
 /*0xD0*/
-int ret_nc();	
-int pop_de();	
-int jp_nc_a16();	
-int call_nc_a16();	
-int push_de();	
-int sub_d8();	
-int rst_2();	
-int ret_c();	
-int reti();		
-int ret_c_a16();	
-int call_c_a16();	
-int sbc_a_d8();	
-int rst_3();
+int CPU::ret_nc(){	//0xD0
+	if(regs.carry==0){
+		cycles=5;
+		uint16_t _PC=0x00;
+		_PC=ram.read(SP);
+		SP++;
+		_PC|=ram.read(SP)<<8;
+		SP++;
+		PC=_PC;
+	}
+	else{
+		cycles=2;
+	}
+}	
+int CPU::pop_de(){	//0xD1
+
+}	
+int CPU::jp_nc_a16(){	//0xD2
+
+}	
+int CPU::call_nc_a16(){	//0xD4
+
+}	
+int CPU::push_de(){	//0xD4
+
+}	
+int CPU::sub_d8(){	//0xD5
+
+}	
+int CPU::rst_2(){	//0xD6
+
+}	
+int CPU::ret_c(){	//0xD7
+
+}	
+int CPU::reti(){	//0xD8
+
+}		
+int CPU::jp_c_a16(){	//0xDA
+
+}	
+int CPU::call_c_a16(){	//0xDC
+
+}	
+int CPU::sbc_a_d8(){	//0xDE
+
+}	
+int CPU::rst_3(){	//0xDF
+
+}
 
 /*0xE0*/
-int ld_a8_a();	
-int pop_hl();	
-int ld_c_a();	
-int push_hl();	
-int and_d8();	
-int rst_4();	
-int add_sp_s8();	
-int jp_hl();	
-int ld_a16_a();
-int xor_d8();	
-int rst_5();
+int CPU::ld_a8_a(){
+
+}	
+int CPU::pop_hl(){
+
+}	
+int CPU::ld_c_a(){
+
+}	
+int CPU::push_hl(){
+
+}	
+int CPU::and_d8(){
+
+}	
+int CPU::rst_4(){
+
+}	
+int CPU::add_sp_s8(){
+
+}	
+int CPU::jp_hl(){
+
+}	
+int CPU::ld_a16_a(){
+
+}
+int CPU::xor_d8(){
+
+}	
+int CPU::rst_5(){
+
+}
 
 
 /*0xF0*/
-int ld_a_a8();		
-int pop_af();		
-int ld_a_c();	
-int di();	
-int push_af();	
-int or_d8();	
-int rst_6();	
-int ld_hl_sp_s8();	
-int ld_sp_hl();		
-int ld_a_a16();	
-int ei();	
-int cp_d8();	
-int rst_7();
+int CPU::ld_a_a8(){
+
+}		
+int CPU::pop_af(){
+
+}		
+int CPU::ld_a_c(){
+
+}	
+int CPU::di(){
+
+}	
+int CPU::push_af(){
+
+}	
+int CPU::or_d8(){
+
+}	
+int CPU::rst_6(){
+
+}	
+int CPU::ld_hl_sp_s8(){
+	
+}	
+int CPU::ld_sp_hl(){
+
+}		
+int CPU::ld_a_a16(){
+
+}	
+int CPU::ei(){
+
+}	
+int CPU::cp_d8(){
+
+}	
+int CPU::rst_7(){
+
+}
 
 
 /***********16 BIT INSTRUCTIONS BELOW******************/
 /*0x00*/
-int rlc_b();	
-int rlc_c();	
-int rlc_d();	
-int rlc_e();	
-int rlc_h();	
-int rlc_l();	
-int rlc_hl();	
-int rlc_a();
-int rrc_b();	
-int rrc_c();	
-int rrc_d();	
-int rrc_e();	
-int rrc_h();	
-int rrc_l();	
-int rrc_hl();	
-int rrc_a();
+int CPU::rlc_b(){}	
+int CPU::rlc_c(){}	
+int CPU::rlc_d(){}	
+int CPU::rlc_e(){}	
+int CPU::rlc_h(){}	
+int CPU::rlc_l(){}	
+int CPU::rlc_hl(){}	
+int CPU::rlc_a(){}
+int CPU::rrc_b(){}	
+int CPU::rrc_c(){}	
+int CPU::rrc_d(){}	
+int CPU::rrc_e(){}	
+int CPU::rrc_h(){}	
+int CPU::rrc_l(){}	
+int CPU::rrc_hl(){}	
+int CPU::rrc_a(){}
 
 /*0x01*/
-int rl_b();		
-int rl_c();		
-int rl_d();		
-int rl_e();		
-int rl_h();		
-int rl_l();		
-int rl_hl();	
-int rl_a();
-int rr_b();		
-int rr_c();		
-int rr_d();		
-int rr_e();		
-int rr_h();		
-int rr_l();		
-int rr_hl();	
-int rr_a();
+int CPU::rl_b(){}		
+int CPU::rl_c(){}		
+int CPU::rl_d(){}		
+int CPU::rl_e(){}		
+int CPU::rl_h(){}		
+int CPU::rl_l(){}		
+int CPU::rl_hl(){}	
+int CPU::rl_a(){}
+int CPU::rr_b(){}		
+int CPU::rr_c(){}		
+int CPU::rr_d(){}		
+int CPU::rr_e(){}		
+int CPU::rr_h(){}		
+int CPU::rr_l(){}		
+int CPU::rr_hl(){}	
+int CPU::rr_a(){}
 
 /*0x02*/
-int sla_b();	
-int sla_c();	
-int sla_d();	
-int sla_e();	
-int sla_h();	
-int sla_l();	
-int sla_hl();	
-int sla_a();
-int sra_b();	
-int sra_c();	
-int sra_d();	
-int sra_e();	
-int sra_h();	
-int sra_l();	
-int sra_hl();	
-int sra_a();
+int CPU::sla_b(){}	
+int CPU::sla_c(){}	
+int CPU::sla_d(){}	
+int CPU::sla_e(){}	
+int CPU::sla_h(){}	
+int CPU::sla_l(){}	
+int CPU::sla_hl(){}	
+int CPU::sla_a(){}
+int CPU::sra_b(){}	
+int CPU::sra_c(){}	
+int CPU::sra_d(){}	
+int CPU::sra_e(){}	
+int CPU::sra_h(){}	
+int CPU::sra_l(){}	
+int CPU::sra_hl(){}	
+int CPU::sra_a(){}
 
 
 /*0x03*/
-int swap_b();	
-int swap_c();
-int swap_d();	
-int swap_e();	
-int swap_h();	
-int swap_l();	
-int swap_hl();	
-int swap_a();
-int srl_b();	
-int srl_c();	
-int srl_d();	
-int srl_e();	
-int srl_h();	
-int srl_l();	
-int srl_hl();	
-int srl_a();
+int CPU::swap_b(){}	
+int CPU::swap_c(){}
+int CPU::swap_d(){}	
+int CPU::swap_e(){}	
+int CPU::swap_h(){}	
+int CPU::swap_l(){}	
+int CPU::swap_hl(){}	
+int CPU::swap_a(){}
+int CPU::srl_b(){}	
+int CPU::srl_c(){}	
+int CPU::srl_d(){}	
+int CPU::srl_e(){}	
+int CPU::srl_h(){}	
+int CPU::srl_l(){}	
+int CPU::srl_hl(){}	
+int CPU::srl_a(){}
 
 /*0x04*/
-int bit_0_b();	
-int bit_0_c();	
-int bit_0_f();	
-int bit_0_e();	
-int bit_0_h();	
-int bit_0_l();
-int bit_0_hl();
-int bit_0_a();
-int bit_1_b();	
-int bit_1_c();	
-int bit_1_f();	
-int bit_1_e();	
-int bit_1_h();	
-int bit_1_l();	
-int bit_1_hl();	
-int bit_1_a();
+int CPU::bit_0_b(){}	
+int CPU::bit_0_c(){}	
+int CPU::bit_0_f(){}	
+int CPU::bit_0_e(){}	
+int CPU::bit_0_h(){}	
+int CPU::bit_0_l(){}
+int CPU::bit_0_hl(){}
+int CPU::bit_0_a(){}
+int CPU::bit_1_b(){}	
+int CPU::bit_1_c(){}	
+int CPU::bit_1_f(){}	
+int CPU::bit_1_e(){}	
+int CPU::bit_1_h(){}	
+int CPU::bit_1_l(){}	
+int CPU::bit_1_hl(){}	
+int CPU::bit_1_a(){}
 
 /*0x05*/
-int bit_2_b();	
-int bit_2_c();	
-int bit_2_f();	
-int bit_2_e();	
-int bit_2_h();	
-int bit_2_l();	
-int bit_2_hl();	
-int bit_2_a();
-int bit_3_b();	
-int bit_3_c();	
-int bit_3_f();	
-int bit_3_e();	
-int bit_3_h();	
-int bit_3_l();	
-int bit_3_hl();	
-int bit_3_a();
+int CPU::bit_2_b(){}	
+int CPU::bit_2_c(){}	
+int CPU::bit_2_f(){}	
+int CPU::bit_2_e(){}	
+int CPU::bit_2_h(){}	
+int CPU::bit_2_l(){}	
+int CPU::bit_2_hl(){}	
+int CPU::bit_2_a(){}
+int CPU::bit_3_b(){}	
+int CPU::bit_3_c(){}	
+int CPU::bit_3_f(){}	
+int CPU::bit_3_e(){}	
+int CPU::bit_3_h(){}	
+int CPU::bit_3_l(){}	
+int CPU::bit_3_hl(){}	
+int CPU::bit_3_a(){}
 
 /*0x06*/
-int bit_4_b();	
-int bit_4_c();	
-int bit_4_f();	
-int bit_4_e();
-int bit_4_h();	
-int bit_4_l();	
-int bit_4_hl();	
-int bit_4_a();
-int bit_5_b();	
-int bit_3_c();	
-int bit_5_f();	
-int bit_5_e();	
-int bit_5_h();	
-int bit_5_l();	
-int bit_5_hl();	
-int bit_5_a();
+int CPU::bit_4_b(){}	
+int CPU::bit_4_c(){}	
+int CPU::bit_4_f(){}	
+int CPU::bit_4_e(){}
+int CPU::bit_4_h(){}	
+int CPU::bit_4_l(){}	
+int CPU::bit_4_hl(){}	
+int CPU::bit_4_a(){}
+int CPU::bit_5_b(){}	
+int CPU::bit_3_c(){}	
+int CPU::bit_5_f(){}	
+int CPU::bit_5_e(){}	
+int CPU::bit_5_h(){}	
+int CPU::bit_5_l(){}	
+int CPU::bit_5_hl(){}	
+int CPU::bit_5_a(){}
 
 /*0x07*/
-int bit_6_b();	
-int bit_6_c();	
-int bit_6_f();	
-int bit_6_e();	
-int bit_6_h();	
-int bit_6_l();	
-int bit_6_hl();
-int bit_6_a();
-int bit_7_b();	
-int bit_3_c();
-int bit_7_f();
-int bit_7_e();	
-int bit_7_h();	
-int bit_7_l();	
-int bit_7_hl();
-int bit_7_a();
+int CPU::bit_6_b(){}	
+int CPU::bit_6_c(){}	
+int CPU::bit_6_f(){}	
+int CPU::bit_6_e(){}	
+int CPU::bit_6_h(){}	
+int CPU::bit_6_l(){}	
+int CPU::bit_6_hl(){}
+int CPU::bit_6_a(){}
+int CPU::bit_7_b(){}	
+int CPU::bit_3_c(){}
+int CPU::bit_7_f(){}
+int CPU::bit_7_e(){}	
+int CPU::bit_7_h(){}	
+int CPU::bit_7_l(){}	
+int CPU::bit_7_hl(){}
+int CPU::bit_7_a(){}
 
 /*0x08*/
-int res_0_b();	
-int res_0_c();	
-int res_0_f();	
-int res_0_e();	
-int res_0_h();
-int res_0_l();	
-int res_0_hl();	
-int res_0_a();
-int res_1_b();	
-int res_1_c();	
-int res_1_f();	
-int res_1_e();	
-int res_1_h();	
-int res_1_l();
-int res_1_hl();
-int res_1_a();
+int CPU::res_0_b(){}	
+int CPU::res_0_c(){}	
+int CPU::res_0_f(){}	
+int CPU::res_0_e(){}	
+int CPU::res_0_h(){}
+int CPU::res_0_l(){}	
+int CPU::res_0_hl(){}	
+int CPU::res_0_a(){}
+int CPU::res_1_b(){}	
+int CPU::res_1_c(){}	
+int CPU::res_1_f(){}	
+int CPU::res_1_e(){}	
+int CPU::res_1_h(){}	
+int CPU::res_1_l(){}
+int CPU::res_1_hl(){}
+int CPU::res_1_a(){}
 
 /*0x09*/
-int res_2_b();	
-int res_2_c();	
-int res_2_f();	
-int res_2_e();	
-int res_2_h();	
-int res_2_l();	
-int res_2_hl();
-int res_2_a();
-int res_3_b();	
-int res_3_c();	
-int res_3_f();	
-int res_3_e();	
-int res_3_h();	
-int res_3_l();	
-int res_3_hl();
-int res_3_a();
+int CPU::res_2_b(){}	
+int CPU::res_2_c(){}	
+int CPU::res_2_f(){}	
+int CPU::res_2_e(){}	
+int CPU::res_2_h(){}	
+int CPU::res_2_l(){}	
+int CPU::res_2_hl(){}
+int CPU::res_2_a(){}
+int CPU::res_3_b(){}	
+int CPU::res_3_c(){}	
+int CPU::res_3_f(){}	
+int CPU::res_3_e(){}	
+int CPU::res_3_h(){}	
+int CPU::res_3_l(){}	
+int CPU::res_3_hl(){}
+int CPU::res_3_a(){}
 
 /*0x0A*/
-int res_4_b();
-int res_4_c();	
-int res_4_f();
-int res_4_e();	
-int res_4_h();	
-int res_4_l();	
-int res_4_hl();
-int res_4_a();
-int res_5_b();	
-int res_3_c();	
-int res_5_f();	
-int res_5_e();	
-int res_5_h();	
-int res_5_l();	
-int res_5_hl();	
-int res_5_a();
+int CPU::res_4_b(){}
+int CPU::res_4_c(){}	
+int CPU::res_4_f(){}
+int CPU::res_4_e(){}	
+int CPU::res_4_h(){}	
+int CPU::res_4_l(){}	
+int CPU::res_4_hl(){}
+int CPU::res_4_a(){}
+int CPU::res_5_b(){}	
+int CPU::res_3_c(){}	
+int CPU::res_5_f(){}	
+int CPU::res_5_e(){}	
+int CPU::res_5_h(){}	
+int CPU::res_5_l(){}	
+int CPU::res_5_hl(){}	
+int CPU::res_5_a(){}
 
 /*0x0B*/
-int res_6_b();	
-int res_6_c();	
-int res_6_f();	
-int res_6_e();	
-int res_6_h();	
-int res_6_l();	
-int res_6_hl();
-int res_6_a();
-int res_7_b();	
-int res_3_c();	
-int res_7_f();	
-int res_7_e();	
-int res_7_h();	
-int res_7_l();	
-int res_7_hl();	
-int res_7_a();
+int CPU::res_6_b(){}	
+int CPU::res_6_c(){}	
+int CPU::res_6_f(){}	
+int CPU::res_6_e(){}	
+int CPU::res_6_h(){}	
+int CPU::res_6_l(){}	
+int CPU::res_6_hl(){}
+int CPU::res_6_a(){}
+int CPU::res_7_b(){}	
+int CPU::res_3_c(){}	
+int CPU::res_7_f(){}	
+int CPU::res_7_e(){}	
+int CPU::res_7_h(){}	
+int CPU::res_7_l(){}	
+int CPU::res_7_hl(){}	
+int CPU::res_7_a(){}
 
 /*0x0C*/
-int set_0_b();	
-int set_0_c();	
-int set_0_f();	
-int set_0_e();	
-int set_0_h();	
-int set_0_l();
-int set_0_hl();
-int set_0_a();
-int set_1_b();
-int set_1_c();	
-int set_1_f();	
-int set_1_e();	
-int set_1_h();	
-int set_1_l();	
-int set_1_hl();
-int set_1_a();
+int CPU::set_0_b(){}	
+int CPU::set_0_c(){}	
+int CPU::set_0_f(){}	
+int CPU::set_0_e(){}	
+int CPU::set_0_h(){}	
+int CPU::set_0_l(){}
+int CPU::set_0_hl(){}
+int CPU::set_0_a(){}
+int CPU::set_1_b(){}
+int CPU::set_1_c(){}	
+int CPU::set_1_f(){}	
+int CPU::set_1_e(){}	
+int CPU::set_1_h(){}	
+int CPU::set_1_l(){}	
+int CPU::set_1_hl(){}
+int CPU::set_1_a(){}
 
 /*0x0D*/
-int set_2_b();	
-int set_2_c();	
-int set_2_f();	
-int set_2_e();	
-int set_2_h();	
-int set_2_l();	
-int set_2_hl();
-int set_2_a();
-int set_3_b();
-int set_3_c();	
-int set_3_f();	
-int set_3_e();	
-int set_3_h();	
-int set_3_l();	
-int set_3_hl();	
-int set_3_a();
+int CPU::set_2_b(){}	
+int CPU::set_2_c(){}	
+int CPU::set_2_f(){}	
+int CPU::set_2_e(){}	
+int CPU::set_2_h(){}	
+int CPU::set_2_l(){}	
+int CPU::set_2_hl(){}
+int CPU::set_2_a(){}
+int CPU::set_3_b(){}
+int CPU::set_3_c(){}	
+int CPU::set_3_f(){}	
+int CPU::set_3_e(){}	
+int CPU::set_3_h(){}	
+int CPU::set_3_l(){}	
+int CPU::set_3_hl(){}	
+int CPU::set_3_a(){}
 
 /*0x0E*/
-int set_4_b();	
-int set_4_c();	
-int set_4_f();	
-int set_4_e();	
-int set_4_h();
-int set_4_l();
-int set_4_hl();
-int set_4_a();
-int set_5_b();	
-int set_3_c();
-int set_5_f();	
-int set_5_e();	
-int set_5_h();	
-int set_5_l();	
-int set_5_hl();	
-int set_5_a();
+int CPU::set_4_b(){}	
+int CPU::set_4_c(){}	
+int CPU::set_4_f(){}	
+int CPU::set_4_e(){}	
+int CPU::set_4_h(){}
+int CPU::set_4_l(){}
+int CPU::set_4_hl(){}
+int CPU::set_4_a(){}
+int CPU::set_5_b(){}	
+int CPU::set_3_c(){}
+int CPU::set_5_f(){}	
+int CPU::set_5_e(){}	
+int CPU::set_5_h(){}	
+int CPU::set_5_l(){}	
+int CPU::set_5_hl(){}	
+int CPU::set_5_a(){}
 
 /*0x0F*/
-int set_6_b();	
-int set_6_c();	
-int set_6_f();	
-int set_6_e();	
-int set_6_h();	
-int set_6_l();	
-int set_6_hl();
-int set_6_a();
-int set_7_b();	
-int set_3_c();	
-int set_7_f();	
-int set_7_e();	
-int set_7_h();	
-int set_7_l();	
-int set_7_hl();
-int set_7_a();
+int CPU::set_6_b(){}	
+int CPU::set_6_c(){}	
+int CPU::set_6_f(){}	
+int CPU::set_6_e(){}	
+int CPU::set_6_h(){}	
+int CPU::set_6_l(){}	
+int CPU::set_6_hl(){}
+int CPU::set_6_a(){}
+int CPU::set_7_b(){}	
+int CPU::set_3_c(){}	
+int CPU::set_7_f(){}	
+int CPU::set_7_e(){}	
+int CPU::set_7_h(){}	
+int CPU::set_7_l(){}	
+int CPU::set_7_hl(){}
+int CPU::set_7_a(){}
+
 

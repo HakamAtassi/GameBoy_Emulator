@@ -23,57 +23,57 @@ namespace GameBoy{
 	//bit 4 is carry flag
 
 
-	class Registers{
-		public:
+	struct Registers{
 
 		union
 		{
 			struct
 			{
+				union
+				{
+					struct{
+						uint8_t U0:1;	//unused
+						uint8_t U1:1;	//unused
+						uint8_t U2:1;	//unused
+						uint8_t U3:1;	//unused
+						uint8_t carry:1;	//carry
+						uint8_t halfCarry:1;	//half carry 
+						uint8_t negative:1;	//subtraction flag
+						uint8_t zero:1;	//zero flag
+					};
+					uint8_t	F;
+				};
 				uint8_t A;
-				struct{
-					unsigned U0:1;	//unused
-					unsigned U1:1;	//unused
-					unsigned U2:1;	//unused
-					unsigned U3:1;	//unused
-					unsigned C:1;	//carry
-					unsigned H:1;	//half carry 
-					unsigned N:1;	//subtraction flag
-					unsigned Z:1;	//zero flag
-				}F;
-			} Byte;
-			uint16_t Word;
-		}FA;
+			};
+			uint16_t AF;
+		};
 
 		union
 		{
 			struct
 			{
 				uint8_t C, B;
-			} Byte;
-			uint16_t Word;
-		}BC;
+			};
+			uint16_t BC;
+		};
 
 		union
 		{
 			struct
 			{
 				uint8_t E, D;
-			} Byte;
-			uint16_t Word;
-		}DE;
+			};
+			uint16_t DE;
+		};
 
 		union
 		{
 			struct
 			{
 				uint8_t L, H;
-			} Byte;
-			uint16_t Word;
-		}HL;
-
-
-
+			};
+			uint16_t HL;
+		};
 	};
 }
 

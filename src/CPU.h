@@ -14,6 +14,9 @@ namespace GameBoy{
 
 		public:
 			CPU();
+			void fetch();
+			void execute();
+
 
 		private:
 			//registers
@@ -96,7 +99,7 @@ namespace GameBoy{
 
 			/*0xD0*/
 			int ret_nc();			int pop_de();			int jp_nc_a16();	int call_nc_a16();	int push_de();		int sub_d8();		int rst_2();		int ret_c();			
-			int reti();				int jp_c_a16();		int call_c_a16();	int sbc_a_d8();		int rst_3();
+			int reti();				int jp_c_a16();			int call_c_a16();	int sbc_a_d8();		int rst_3();
 
 			/*0xE0*/
 			int ld_a8_a();			int pop_hl();			int ld_c_a();		int push_hl();		int and_d8();		int rst_4();		int add_sp_s8();	int jp_hl();	
@@ -139,11 +142,11 @@ namespace GameBoy{
 
 			/*0x06*/
 			int bit_4_b();	int bit_4_c();	int bit_4_f();	int bit_4_e();	int bit_4_h();	int bit_4_l();	int bit_4_hl();	int bit_4_a();
-			int bit_5_b();	int bit_3_c();	int bit_5_f();	int bit_5_e();	int bit_5_h();	int bit_5_l();	int bit_5_hl();	int bit_5_a();
+			int bit_5_b();	int bit_5_c();	int bit_5_f();	int bit_5_e();	int bit_5_h();	int bit_5_l();	int bit_5_hl();	int bit_5_a();
 
 			/*0x07*/
 			int bit_6_b();	int bit_6_c();	int bit_6_f();	int bit_6_e();	int bit_6_h();	int bit_6_l();	int bit_6_hl();	int bit_6_a();
-			int bit_7_b();	int bit_3_c();	int bit_7_f();	int bit_7_e();	int bit_7_h();	int bit_7_l();	int bit_7_hl();	int bit_7_a();
+			int bit_7_b();	int bit_7_c();	int bit_7_f();	int bit_7_e();	int bit_7_h();	int bit_7_l();	int bit_7_hl();	int bit_7_a();
 
 			/*0x08*/
 			int res_0_b();	int res_0_c();	int res_0_f();	int res_0_e();	int res_0_h();	int res_0_l();	int res_0_hl();	int res_0_a();
@@ -155,11 +158,11 @@ namespace GameBoy{
 
 			/*0x0A*/
 			int res_4_b();	int res_4_c();	int res_4_f();	int res_4_e();	int res_4_h();	int res_4_l();	int res_4_hl();	int res_4_a();
-			int res_5_b();	int res_3_c();	int res_5_f();	int res_5_e();	int res_5_h();	int res_5_l();	int res_5_hl();	int res_5_a();
+			int res_5_b();	int res_5_c();	int res_5_f();	int res_5_e();	int res_5_h();	int res_5_l();	int res_5_hl();	int res_5_a();
 
 			/*0x0B*/
 			int res_6_b();	int res_6_c();	int res_6_f();	int res_6_e();	int res_6_h();	int res_6_l();	int res_6_hl();	int res_6_a();
-			int res_7_b();	int res_3_c();	int res_7_f();	int res_7_e();	int res_7_h();	int res_7_l();	int res_7_hl();	int res_7_a();
+			int res_7_b();	int res_7_c();	int res_7_f();	int res_7_e();	int res_7_h();	int res_7_l();	int res_7_hl();	int res_7_a();
 
 			/*0x0C*/
 			int set_0_b();	int set_0_c();	int set_0_f();	int set_0_e();	int set_0_h();	int set_0_l();	int set_0_hl();	int set_0_a();
@@ -171,11 +174,61 @@ namespace GameBoy{
 
 			/*0x0E*/
 			int set_4_b();	int set_4_c();	int set_4_f();	int set_4_e();	int set_4_h();	int set_4_l();	int set_4_hl();	int set_4_a();
-			int set_5_b();	int set_3_c();	int set_5_f();	int set_5_e();	int set_5_h();	int set_5_l();	int set_5_hl();	int set_5_a();
+			int set_5_b();	int set_5_c();	int set_5_f();	int set_5_e();	int set_5_h();	int set_5_l();	int set_5_hl();	int set_5_a();
 
 			/*0x0F*/
 			int set_6_b();	int set_6_c();	int set_6_f();	int set_6_e();	int set_6_h();	int set_6_l();	int set_6_hl();	int set_6_a();
-			int set_7_b();	int set_3_c();	int set_7_f();	int set_7_e();	int set_7_h();	int set_7_l();	int set_7_hl();	int set_7_a();
+			int set_7_b();	int set_7_c();	int set_7_f();	int set_7_e();	int set_7_h();	int set_7_l();	int set_7_hl();	int set_7_a();
+
+
+
+
+
+		private:
+			//base instructions
+			//these instructions form the bases of all the opcodes. 
+
+			int ld(uint8_t & reg1, uint8_t data);
+			int ld_reg_d8(uint8_t & reg);
+			int ld_reg_d16(uint16_t & reg1);
+			int ld_mem_a(uint16_t & addr);
+
+			int jr(bool condition);
+
+			int inc_reg(uint8_t & reg);
+			int inc_reg(uint16_t & reg);
+
+			int dec_reg(uint8_t & reg);
+			int dec_reg(uint16_t & reg);
+
+			int add(uint8_t & reg1, uint8_t & reg2);
+			int add(uint16_t & reg1, uint16_t & reg2);
+
+			int adc(uint8_t & reg1, uint8_t & reg2);
+			int adc(uint16_t & reg1, uint16_t & reg2);
+
+			int sub(uint8_t & reg1, uint8_t & reg2);
+			int sub(uint16_t & reg1, uint16_t & reg2);
+
+			int sbc(uint16_t & reg1, uint16_t & reg2);
+			int sbc(uint8_t & reg1, uint8_t & reg2);
+
+			int _and(uint16_t & reg1, uint16_t & reg2);
+			int _and(uint8_t & reg1, uint8_t & reg2);
+
+			int _xor(uint16_t & reg1, uint16_t & reg2);
+			int _xor(uint8_t & reg1, uint8_t & reg2);
+
+			int _or(uint16_t & reg1, uint16_t & reg2);
+			int _or(uint8_t & reg1, uint8_t & reg2);
+
+			int cp(uint16_t & reg1, uint16_t & reg2);
+			int cp(uint8_t & reg1, uint8_t & reg2);
+
+			int pop(uint16_t & reg1);
+
+			int push(uint16_t & reg1);
+
 
 
 	};
