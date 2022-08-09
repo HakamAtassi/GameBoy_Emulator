@@ -5,6 +5,7 @@
 #include "Registers.h"
 #include "RAM.h"
 #include <cstdint>
+#include <vector>
 
 
 //Note: the CPU is little endian
@@ -19,14 +20,23 @@ namespace GameBoy{
 			Registers regs;
 			uint16_t PC=0;	//program counter
 			uint16_t SP=0;	//stack pointer
-			
-			//ram module
+			uint8_t instruction=0;
 			RAM ram;
+
+			//LUTs for opcodes
+			std::vector<int (CPU::*)(void)> opcodeLUT;
+			std::vector<int (CPU::*)(void)> opcodeLUTCB;	//functions for CB indext instructions
+
+
+		private:
+			//non physical helper members
+			bool flagCB=0;	//flag is set when 0xCB is read as an instruction
+							//set, => use CB indexed instruction
+							//unset
+							//interrupts not enabled when this value is set
 
 			//cycle count (CPU is multicycle. A new instruction is executed only when this is 0)
 			int cycles=0;
-			uint8_t instruction=0;
-			uint8_t data=0;
 
 
 		private:
@@ -86,7 +96,7 @@ namespace GameBoy{
 
 			/*0xD0*/
 			int ret_nc();			int pop_de();			int jp_nc_a16();	int call_nc_a16();	int push_de();		int sub_d8();		int rst_2();		int ret_c();			
-			int reti();				int ret_c_a16();		int call_c_a16();	int sbc_a_d8();		int rst_3();
+			int reti();				int jp_c_a16();		int call_c_a16();	int sbc_a_d8();		int rst_3();
 
 			/*0xE0*/
 			int ld_a8_a();			int pop_hl();			int ld_c_a();		int push_hl();		int and_d8();		int rst_4();		int add_sp_s8();	int jp_hl();	
@@ -96,6 +106,10 @@ namespace GameBoy{
 			int ld_a_a8();			int pop_af();			int ld_a_c();		int di();			int push_af();		int or_d8();		int rst_6();		int ld_hl_sp_s8();		
 			int ld_sp_hl();			int ld_a_a16();			int ei();			int cp_d8();		int rst_7();
 	
+			/*invalid opcode*/
+			int invalid();
+
+
 		
 			//16 bit opcodes
 		
