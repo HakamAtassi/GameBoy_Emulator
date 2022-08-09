@@ -86,7 +86,7 @@ namespace GameBoy{
 			int sbc_a_b();			int sbc_a_c();			int sbc_a_d();		int sbc_a_e();		int sbc_a_h();		int sbc_a_l();		int sbc_a_hl();		int sbc_a_a();
 
 			/*0xA0*/
-			int add_b();			int add_c();			int add_d();		int add_e();		int add_h();		int add_l();		int add_hl();		int add_a();
+			int and_b();			int and_c();			int and_d();		int and_e();		int and_h();		int and_l();		int and_hl();		int and_a();
 			int xor_b();			int xor_c();			int xor_d();		int xor_e();		int xor_h();		int xor_l();		int xor_hl();		int xor_a();
 
 			/*0xB0*/
@@ -188,7 +188,8 @@ namespace GameBoy{
 			//base instructions
 			//these instructions form the bases of all the opcodes. 
 
-			int ld(uint8_t & reg1, uint8_t data);
+			int ld_reg_addr(uint8_t & reg1, uint8_t data);
+			int ld_reg_reg(uint8_t & reg1, uint8_t reg2);
 			int ld_reg_d8(uint8_t & reg);
 			int ld_reg_d16(uint16_t & reg1);
 			int ld_mem_a(uint16_t & addr);

@@ -16,7 +16,7 @@ CPU::CPU(){
 			&CPU::ld_hl_b,		&CPU::ld_hl_c,		&CPU::ld_hl_d,		&CPU::ld_hl_e,		&CPU::ld_hl_h,		&CPU::ld_hl_l,		&CPU::HALT,			&CPU::ld_hl_a,	&CPU::ld_a_b,		&CPU::ld_a_c,		&CPU::ld_a_d,		&CPU::ld_a_e,		&CPU::ld_a_h,		&CPU::ld_a_l,		&CPU::ld_a_hl,		&CPU::ld_a_a,
 			&CPU::add_a_b,		&CPU::add_a_c,		&CPU::add_a_d,		&CPU::add_a_e,		&CPU::add_a_h,		&CPU::add_a_l,		&CPU::add_a_hl,		&CPU::add_a_a,	&CPU::adc_a_b,		&CPU::adc_a_c,		&CPU::adc_a_d,		&CPU::adc_a_e,		&CPU::adc_a_h,		&CPU::adc_a_l,		&CPU::adc_a_hl,		&CPU::adc_a_a,
 			&CPU::sub_b,		&CPU::sub_c,		&CPU::sub_d,		&CPU::sub_e,		&CPU::sub_h,		&CPU::sub_l,		&CPU::sub_hl,		&CPU::sub_a,	&CPU::sbc_a_b,		&CPU::sbc_a_c,		&CPU::sbc_a_d,		&CPU::sbc_a_e,		&CPU::sbc_a_h,		&CPU::sbc_a_l,		&CPU::sbc_a_hl,		&CPU::sbc_a_a,
-			&CPU::add_b,		&CPU::add_c,		&CPU::add_d,		&CPU::add_e,		&CPU::add_h,		&CPU::add_l,		&CPU::add_hl,		&CPU::add_a,	&CPU::xor_b,		&CPU::xor_c,		&CPU::xor_d,		&CPU::xor_e,		&CPU::xor_h,		&CPU::xor_l,		&CPU::xor_hl,		&CPU::xor_a,
+			&CPU::and_b,		&CPU::and_c,		&CPU::and_d,		&CPU::and_e,		&CPU::and_h,		&CPU::and_l,		&CPU::and_hl,		&CPU::and_a,	&CPU::xor_b,		&CPU::xor_c,		&CPU::xor_d,		&CPU::xor_e,		&CPU::xor_h,		&CPU::xor_l,		&CPU::xor_hl,		&CPU::xor_a,
 			&CPU::or_b,			&CPU::or_c,			&CPU::or_d,			&CPU::or_e,			&CPU::or_h,			&CPU::or_l,			&CPU::or_hl,		&CPU::or_a,		&CPU::cp_b,			&CPU::cp_c,			&CPU::cp_d,			&CPU::cp_e,			&CPU::cp_h,			&CPU::cp_l,			&CPU::cp_hl,		&CPU::cp_a,
 			&CPU::ret_nz,		&CPU::pop_bc,		&CPU::jp_nz_a16,	&CPU::jp_a16,		&CPU::call_nz_a16,	&CPU::push_bc,		&CPU::add_a_d8,		&CPU::rst_a0,	&CPU::ret_z,		&CPU::ret,			&CPU::jp_z_a16,		&CPU::invalid,		&CPU::call_z_a16,	&CPU::call_z16,		&CPU::adc_a_d8,		&CPU::rst_1,
 			&CPU::ret_nc,		&CPU::pop_de,		&CPU::jp_nc_a16,	&CPU::invalid,		&CPU::call_nc_a16,	&CPU::push_de,		&CPU::sub_d8,		&CPU::rst_2,	&CPU::ret_c,		&CPU::reti,			&CPU::jp_c_a16,		&CPU::invalid,		&CPU::call_c_a16,	&CPU::invalid,		&CPU::sbc_a_d8,		&CPU::rst_3,
@@ -89,13 +89,18 @@ void CPU::execute(){	//dont forget interrupts
 
 
 
-int CPU::ld(uint8_t & reg1, uint8_t data){
+int CPU::ld_reg_addr(uint8_t & reg1, uint8_t data){
 	cycles=2;
 	reg1=data;
 	return 0;
 }
 
 
+int CPU::ld_reg_reg(uint8_t & reg1, uint8_t reg2){
+	cycles=1;
+	reg1=reg2;
+	return 0;
+}
 
 
 int CPU::ld_reg_d8(uint8_t & reg){
@@ -179,7 +184,12 @@ int CPU::inc_reg(uint8_t & reg){
 }
 
 int CPU::add(uint8_t & reg1, uint8_t & reg2){
-
+	cycles=1;
+	uint16_t result=reg1+reg2;
+	regs.halfCarry=(reg1&0x0F)+(reg2&0x0F);
+	regs.carry=result>0xff;
+	regs.negative=0;
+	return 0;
 }
 
 
@@ -285,6 +295,7 @@ int CPU::cp(uint16_t & reg1, uint16_t & reg2){
 	regs.zero=(reg1==reg2);
 	regs.carry=(reg2>reg1);
 	regs.halfCarry=((reg2&0x0FF)>(reg1&0x0FF));
+	return 0;
 
 }
 int CPU::cp(uint8_t & reg1, uint8_t & reg2){	//doesnt actually store result of subtraction anywhere
@@ -383,7 +394,7 @@ int CPU::add_hl_bc(){	//0x09
 }
 
 int CPU::ld_a_bc(){	//0x0A
-	ld(regs.A,ram.read(regs.BC));
+	ld_reg_addr(regs.A,ram.read(regs.BC));
 	return 0;
 }
 
@@ -479,7 +490,7 @@ int CPU::add_hl_de(){	//0x19
 }
 
 int CPU::ld_a_de(){	//0x1A
-	ld(regs.A,ram.read(regs.DE));
+	ld_reg_addr(regs.A,ram.read(regs.DE));
 	return 0;
 }
 
@@ -567,7 +578,7 @@ int CPU::add_hl_hl(){	//0x29
 
 
 int CPU::ld_a_hlp(){	//0x2A
-	ld(regs.A,ram.read(regs.HL));
+	ld_reg_addr(regs.A,ram.read(regs.HL));
 	regs.HL++;
 	return 0;
 }
@@ -671,7 +682,7 @@ int CPU::add_hl_sp(){	//0x39
 }
 
 int CPU::ld_a_hlm(){	//0x3A
-	ld(regs.A,ram.read(regs.HL));
+	ld_reg_addr(regs.A,ram.read(regs.HL));
 	regs.HL--;
 	return 0;
 }
@@ -706,33 +717,27 @@ int CPU::ccf(){	//0x3F
 
 
 int CPU::ld_b_b(){	//0x40
-	cycles=1;
-	regs.B=regs.B;
+	ld_reg_reg(regs.B,regs.B);
 	return 0;
 }
 int CPU::ld_b_c(){	//0x41
-	cycles=1;
-	regs.B=regs.C;
+	ld_reg_reg(regs.B,regs.C);
 	return 0;
 }
 int CPU::ld_b_d(){	//0x42
-	cycles=1;
-	regs.B=regs.D;
+	ld_reg_reg(regs.B,regs.D);
 	return 0;
 }	
 int CPU::ld_b_e(){	//0x43
-	cycles=1;
-	regs.B=regs.E;
+	ld_reg_reg(regs.B,regs.E);
 	return 0;
 }
 int CPU::ld_b_h(){	//0x44
-	cycles=1;
-	regs.B=regs.H;
+	ld_reg_reg(regs.B,regs.H);
 	return 0;
 }
 int CPU::ld_b_l(){	//0x45
-	cycles=1;
-	regs.B=regs.L;
+	ld_reg_reg(regs.B,regs.L);
 	return 0;
 }
 int CPU::ld_b_hl(){	//0x46
@@ -743,38 +748,31 @@ int CPU::ld_b_hl(){	//0x46
 
 }
 int CPU::ld_b_a(){	//0x47
-	cycles=1;
-	regs.B=regs.A;
+	ld_reg_reg(regs.B,regs.A);
 	return 0;
 }
 int CPU::ld_c_b(){	//0x48
-	cycles=1;
-	regs.C=regs.B;
+	ld_reg_reg(regs.C,regs.B);
 	return 0;
 }
 int CPU::ld_c_c(){	//0x49
-	cycles=1;
-	regs.C=regs.C;
+	ld_reg_reg(regs.C,regs.C);
 	return 0;
 }
 int CPU::ld_c_d(){	//0x4A
-	cycles=1;
-	regs.C=regs.C;
+	ld_reg_reg(regs.C,regs.D);
 	return 0;
 }
 int CPU::ld_c_e(){	//0x4B
-	cycles=1;
-	regs.C=regs.E;
+	ld_reg_reg(regs.C,regs.E);
 	return 0;
 }
 int CPU::ld_c_h(){	//0x4C
-	cycles=1;
-	regs.C=regs.H;
+	ld_reg_reg(regs.C,regs.H);
 	return 0;
 }
 int CPU::ld_c_l(){	//0x4D
-	cycles=1;
-	regs.C=regs.L;
+	ld_reg_reg(regs.C,regs.L);
 	return 0;
 }
 int CPU::ld_c_hl(){	//0x4E
@@ -784,8 +782,7 @@ int CPU::ld_c_hl(){	//0x4E
 	return 0;
 }
 int CPU::ld_c_a(){	//0x4F
-	cycles=1;
-	regs.C=regs.A;
+	ld_reg_reg(regs.C,regs.A);
 	return 0;
 }
 
@@ -793,33 +790,27 @@ int CPU::ld_c_a(){	//0x4F
 
 /*0x50 instructions*/
 int CPU::ld_d_b(){	//0x50
-	cycles=1;
-	regs.D=regs.B;
+	ld_reg_reg(regs.D,regs.B);
 	return 0;
 }
 int CPU::ld_d_c(){	//0x51
-	cycles=1;
-	regs.D=regs.C;
+	ld_reg_reg(regs.D,regs.C);
 	return 0;
 }
 int CPU::ld_d_d(){	//0x52
-	cycles=1;
-	regs.D=regs.D;
+	ld_reg_reg(regs.D,regs.D);
 	return 0;
 }
 int CPU::ld_d_e(){	//0x53
-	cycles=1;
-	regs.D=regs.E;
+	ld_reg_reg(regs.D,regs.E);
 	return 0;
 }
 int CPU::ld_d_h(){	//0x54
-	cycles=1;
-	regs.D=regs.H;
+	ld_reg_reg(regs.D,regs.H);
 	return 0;
 }
 int CPU::ld_d_l(){	//0x55
-	cycles=1;
-	regs.D=regs.L;
+	ld_reg_reg(regs.D,regs.L);
 	return 0;
 }
 int CPU::ld_d_hl(){	//0x56
@@ -829,38 +820,31 @@ int CPU::ld_d_hl(){	//0x56
 	return 0;
 }	
 int CPU::ld_d_a(){	//0x57
-	cycles=1;
-	regs.D=regs.A;
+	ld_reg_reg(regs.D,regs.A);
 	return 0;
 }
 int CPU::ld_e_b(){	//0x58
-	cycles=1;
-	regs.E=regs.B;
+	ld_reg_reg(regs.E,regs.B);
 	return 0;
 }
 int CPU::ld_e_c(){	//0x59
-	cycles=1;
-	regs.E=regs.C;
+	ld_reg_reg(regs.E,regs.C);
 	return 0;
 }
 int CPU::ld_e_d(){	//0x5A
-	cycles=1;
-	regs.E=regs.D;
+	ld_reg_reg(regs.E,regs.D);
 	return 0;
 }
 int CPU::ld_e_e(){	//0x5B
-	cycles=1;
-	regs.E=regs.E;
+	ld_reg_reg(regs.E,regs.E);
 	return 0;
 }
 int CPU::ld_e_h(){	//0x5C
-	cycles=1;
-	regs.E=regs.H;
+	ld_reg_reg(regs.E,regs.H);
 	return 0;
 }	
 int CPU::ld_e_l(){	//0x5D
-	cycles=1;
-	regs.E=regs.L;
+	ld_reg_reg(regs.E,regs.L);
 	return 0;
 } 	
 int CPU::ld_e_hl(){	//0x5E
@@ -870,92 +854,77 @@ int CPU::ld_e_hl(){	//0x5E
 	return 0;
 }	
 int CPU::ld_e_a(){	//0x5F
-	cycles=1;
-	regs.E=regs.A;
+	ld_reg_reg(regs.E,regs.A);
 	return 0;
 }
 
 /*0x60 instructions*/
-int CPU::ld_h_b(){
-	cycles=1;
-	regs.H=regs.B;
+int CPU::ld_h_b(){	//0x60
+	ld_reg_reg(regs.H,regs.B);
 	return 0;
 }	
-int CPU::ld_h_c(){
-	cycles=1;
-	regs.H=regs.C;
+int CPU::ld_h_c(){	//0x61
+	ld_reg_reg(regs.H,regs.C);
 	return 0;
 }	
-int CPU::ld_h_d(){
-	cycles=1;
-	regs.H=regs.D;
+int CPU::ld_h_d(){	//0x62
+	ld_reg_reg(regs.H,regs.D);
 	return 0;
 }	
-int CPU::ld_h_e(){
-	cycles=1;
-	regs.H=regs.E;
+int CPU::ld_h_e(){	//0x63
+	ld_reg_reg(regs.H,regs.E);
 	return 0;
 }	
-int CPU::ld_h_h(){
-	cycles=1;
-	regs.H=regs.H;
+int CPU::ld_h_h(){	//0x64
+	ld_reg_reg(regs.H,regs.H);
 	return 0;
 }	
-int CPU::ld_h_l(){
-	cycles=1;
-	regs.H=regs.L;
+int CPU::ld_h_l(){	//0x65
+	ld_reg_reg(regs.H,regs.L);
 	return 0;
 }	
-int CPU::ld_h_hl(){
+int CPU::ld_h_hl(){	//0x66
 	cycles=2;
 	uint8_t operand=ram.read(regs.HL);
 	regs.H=operand;
 	return 0;
 }	
-int CPU::ld_h_a(){
-	cycles=1;
-	regs.H=regs.A;
+int CPU::ld_h_a(){	//0x67
+	ld_reg_reg(regs.H,regs.A);
 	return 0;
 }	
-int CPU::ld_l_b(){
-	cycles=1;
-	regs.L=regs.B;
+int CPU::ld_l_b(){	//0x68
+	ld_reg_reg(regs.L,regs.B);
 	return 0;
 }	
-int CPU::ld_l_c(){
-	cycles=1;
-	regs.L=regs.C;
+int CPU::ld_l_c(){	//0x69
+	ld_reg_reg(regs.L,regs.C);
 	return 0;
 }	
-int CPU::ld_l_d(){
-	cycles=1;
-	regs.L=regs.D;
+int CPU::ld_l_d(){	//0x6A
+	ld_reg_reg(regs.L,regs.D);
 	return 0;
 }	
-int CPU::ld_l_e(){
-	cycles=1;
-	regs.L=regs.E;
+int CPU::ld_l_e(){	//0x6B
+	ld_reg_reg(regs.L,regs.E);
 	return 0;
 }	
-int CPU::ld_l_h(){
-	cycles=1;
-	regs.L=regs.H;
+int CPU::ld_l_h(){	//0x6C
+	ld_reg_reg(regs.L,regs.H);
 	return 0;
 }	
-int CPU::ld_l_l(){
-	cycles=1;
-	regs.L=regs.L;
+int CPU::ld_l_l(){	//0x6D
+	ld_reg_reg(regs.L,regs.L);
 	return 0;
 } 	
-int CPU::ld_l_hl(){
+int CPU::ld_l_hl(){	//0x6E
 	cycles=2;
 	uint8_t operand=ram.read(regs.HL);
 	regs.L=operand;
 	return 0;
 }	
-int CPU::ld_l_a(){
-	cycles=1;
-	regs.L=regs.A;
+int CPU::ld_l_a(){	//0x6F
+	ld_reg_reg(regs.L,regs.A);
 	return 0;
 }
 
@@ -963,7 +932,6 @@ int CPU::ld_l_a(){
 int CPU::ld_hl_b(){
 	cycles=2;
 	ram.write(regs.HL,regs.B);
-
 }	
 int CPU::ld_hl_c(){
 	cycles=2;
@@ -993,33 +961,27 @@ int CPU::ld_hl_a(){
 	ram.write(regs.HL,regs.A);
 }	
 int CPU::ld_a_b(){
-	cycles=1;
-	regs.A=regs.B;
+	ld_reg_reg(regs.A,regs.B);
 	return 0;
 }	
 int CPU::ld_a_c(){
-	cycles=1;
-	regs.A=regs.C;
+	ld_reg_reg(regs.A,regs.C);
 	return 0;
 }	
 int CPU::ld_a_d(){
-	cycles=1;
-	regs.A=regs.D;
+	ld_reg_reg(regs.A,regs.D);
 	return 0;
 }	
 int CPU::ld_a_e(){
-	cycles=1;
-	regs.A=regs.D;
+	ld_reg_reg(regs.A,regs.E);
 	return 0;
 }	
 int CPU::ld_a_h(){
-	cycles=1;
-	regs.A=regs.H;
+	ld_reg_reg(regs.A,regs.H);
 	return 0;
 }	
 int CPU::ld_a_l(){
-	cycles=1;
-	regs.A=regs.L;
+	ld_reg_reg(regs.A,regs.L);
 	return 0;
 } 	
 int CPU::ld_a_hl(){
@@ -1029,59 +991,34 @@ int CPU::ld_a_hl(){
 	return 0;
 }	
 int CPU::ld_a_a(){
-	cycles=1;
-	regs.A=regs.A;
+	ld_reg_reg(regs.A,regs.A);
 	return 0;
 };
 
 
 /*0x80 instructions*/
 int CPU::add_a_b(){	//0x80
-	cycles=1;
-	uint16_t result=regs.A+regs.B;
-	regs.halfCarry=(regs.A&0x0F)+(regs.B&0x0F);
-	regs.carry=result>0xff;
-	regs.negative=0;
+	add(regs.A,regs.B);
 	return 0;
-}	
+}
 int CPU::add_a_c(){	//0x81
-	cycles=1;
-	uint16_t result=regs.A+regs.C;
-	regs.halfCarry=(regs.A&0x0F)+(regs.C&0x0F);
-	regs.carry=result>0xff;
-	regs.negative=0;
+	add(regs.A,regs.C);
 	return 0;
 }	
 int CPU::add_a_d(){	//0x82
-	cycles=1;
-	uint16_t result=regs.A+regs.D;
-	regs.halfCarry=(regs.A&0x0F)+(regs.D&0x0F);
-	regs.carry=result>0xff;
-	regs.negative=0;
+	add(regs.A,regs.D);
 	return 0;
 }	
 int CPU::add_a_e(){	//0x83
-	cycles=1;
-	uint16_t result=regs.A+regs.E;
-	regs.halfCarry=(regs.A&0x0F)+(regs.E&0x0F);
-	regs.carry=result>0xff;
-	regs.negative=0;
+	add(regs.A,regs.E);
 	return 0;
 }	
 int CPU::add_a_h(){	//0x84
-	cycles=1;
-	uint16_t result=regs.A+regs.H;
-	regs.halfCarry=(regs.A&0x0F)+(regs.H&0x0F);
-	regs.carry=result>0xff;
-	regs.negative=0;
+	add(regs.A,regs.H);
 	return 0;
 }	
 int CPU::add_a_l(){	//0x85
-	cycles=1;
-	uint16_t result=regs.A+regs.L;
-	regs.halfCarry=(regs.A&0x0F)+(regs.L&0x0F);
-	regs.carry=result>0xff;
-	regs.negative=0;
+	add(regs.A,regs.L);
 	return 0;
 }	
 int CPU::add_a_hl(){	//0x86
@@ -1093,187 +1030,232 @@ int CPU::add_a_hl(){	//0x86
 	return 0;
 }	
 int CPU::add_a_a(){	//0x87
-	cycles=1;
-	uint16_t result=regs.A+regs.A;
-	regs.halfCarry=(regs.A&0x0F)+(regs.A&0x0F);
-	regs.carry=result>0xff;
-	regs.negative=0;
+	add(regs.A,regs.A);
 	return 0;
 }
 int CPU::adc_a_b(){	//0x88
-
+	adc(regs.A,regs.A);
+	return 0;
 }	
 int CPU::adc_a_c(){	//0x89
-
+	adc(regs.A,regs.C);
+	return 0;
 }	
 int CPU::adc_a_d(){	//0x8A
-
+	adc(regs.A,regs.D);
+	return 0;
 }	
 int CPU::adc_a_e(){	//0x8B
-
+	adc(regs.A,regs.E);
+	return 0;
 }	
 int CPU::adc_a_h(){	//0x8C
-
+	adc(regs.A,regs.H);
+	return 0;
 }	
 int CPU::adc_a_l(){	//0x8D
-
+	adc(regs.A,regs.L);
+	return 0;
 }
 int CPU::adc_a_hl(){	//0x8E
 
 }	
 int CPU::adc_a_a(){	//0x8F
-
+	adc(regs.A,regs.A);
+	return 0;
 }
 
 /*0x90 instructions*/
 int CPU::sub_b(){	//0x90
-
+	sub(regs.A, regs.B);
+	return 0;
 }	
 int CPU::sub_c(){	//0x91
-
+	sub(regs.A, regs.C);
+	return 0;
 }	
 int CPU::sub_d(){	//0x92
-
+	sub(regs.A, regs.D);
+	return 0;
 }	
 int CPU::sub_e(){	//0x93
-
+	sub(regs.A, regs.E);
+	return 0;
 }	
 int CPU::sub_h(){	//0x94
-
+	sub(regs.A, regs.H);
+	return 0;
 }	
 int CPU::sub_l(){	//0x95
-
+	sub(regs.A, regs.L);
+	return 0;
 }	
 int CPU::sub_hl(){	//0x96
 
 }	
 int CPU::sub_a(){	//0x97
-
+	sub(regs.A, regs.A);
+	return 0;
 }
 int CPU::sbc_a_b(){	//0x98
-
+	sbc(regs.A, regs.B);
+	return 0;
 }	
 int CPU::sbc_a_c(){	//0x99
-
+	sbc(regs.A, regs.C);
+	return 0;
 }	
 int CPU::sbc_a_d(){	//0x9A
-
+	sbc(regs.A, regs.D);
+	return 0;
 }	
 int CPU::sbc_a_e(){	//0x9B
-
+	sbc(regs.A, regs.E);
+	return 0;
 }	
 int CPU::sbc_a_h(){	//0x9C
-
+	sbc(regs.A, regs.H);
+	return 0;
 }	
 int CPU::sbc_a_l(){	//0x9D
-
+	sbc(regs.A, regs.L);
+	return 0;
 }	
 int CPU::sbc_a_hl(){	//0x9E
 
 }	
 int CPU::sbc_a_a(){	//0x9F
-
+	sbc(regs.A, regs.A);
+	return 0;
 }
 
 
 /*0xA0 instructions*/
-int CPU::add_b(){	//0xA0
+int CPU::and_b(){	//0xA0
+	_and(regs.A, regs.B);
+	return 0;
+}	
+int CPU::and_c(){	//0xA1
+	_and(regs.A, regs.C);
+	return 0;
+}	
+int CPU::and_d(){	//0xA2
+	_and(regs.A, regs.D);
+	return 0;
+}	
+int CPU::and_e(){	//0xA3
+	_and(regs.A, regs.E);
+	return 0;
+}	
+int CPU::and_h(){	//0xA4
+	_and(regs.A, regs.H);
+}	
+int CPU::and_l(){	//0xA5
+	_and(regs.A, regs.L);
+	return 0;
+}	
+int CPU::and_hl(){	//0xA6
 
 }	
-int CPU::add_c(){	//0xA1
-
-}	
-int CPU::add_d(){	//0xA2
-
-}	
-int CPU::add_e(){	//0xA3
-
-}	
-int CPU::add_h(){	//0xA4
-
-}	
-int CPU::add_l(){	//0xA5
-
-}	
-int CPU::add_hl(){	//0xA6
-
-}	
-int CPU::add_a(){	//0xA7
-
+int CPU::and_a(){	//0xA7
+	_and(regs.A, regs.A);
+	return 0;
 }
 int CPU::xor_b(){	//0xA8
-
+	_xor(regs.A, regs.B);
+	return 0;
 }	
 int CPU::xor_c(){	//0xA9
-
+	_xor(regs.A, regs.B);
+	return 0;
 }	
 int CPU::xor_d(){	//0xAA
-
+	_xor(regs.A, regs.B);
+	return 0;
 }	
 int CPU::xor_e(){	//0xAB
-
+	_xor(regs.A, regs.B);
+	return 0;
 }	
 int CPU::xor_h(){	//0xAC
-
+	_xor(regs.A, regs.B);
+	return 0;
 }	
 int CPU::xor_l(){	//0xAD
-
+	_xor(regs.A, regs.B);
+	return 0;
 }	
 int CPU::xor_hl(){	//0xAE
-
+	_xor(regs.A, regs.B);
+	return 0;
 }
 int CPU::xor_a(){	//0xAF
-
+	_xor(regs.A, regs.B);
+	return 0;
 }
 
 /*0xB0 instructions*/
 int CPU::or_b(){	//0xB0
-
+	_or(regs.A, regs.B);
+	return 0;
 }	
 int CPU::or_c(){	//0xB1
-
+	_or(regs.A, regs.C);
+	return 0;
 }
 int CPU::or_d(){	//0xB2
-
+	_or(regs.A, regs.D);
+	return 0;
 }	
 int CPU::or_e(){	//0xB3
-
+	_or(regs.A, regs.E);
+	return 0;
 }	
 int CPU::or_h(){	//0xB0
-
+	_or(regs.A, regs.H);
+	return 0;
 }	
 int CPU::or_l(){	//0xB0
-
+	_or(regs.A, regs.L);
+	return 0;
 }	
 int CPU::or_hl(){	//0xB0
 
 }
 int CPU::or_a(){	//0xB0
-
+	_or(regs.A, regs.A);
+	return 0;
 }
 int CPU::cp_b(){	//0xB0
-
+	cp(regs.A, regs.B);
+	return 0;
 }	
 int CPU::cp_c(){	//0xB0
-
+	cp(regs.A, regs.C);
+	return 0;
 }	
 int CPU::cp_d(){	//0xB0
-
+	cp(regs.A, regs.D);
+	return 0;
 }	
 int CPU::cp_e(){	//0xB0
-
+	cp(regs.A, regs.E);
+	return 0;
 }	
 int CPU::cp_h(){	//0xB0
-
+	cp(regs.A, regs.H);
+	return 0;
 }	
 int CPU::cp_l(){	//0xB0
-
+	cp(regs.A, regs.L);
+	return 0;
 }	
 int CPU::cp_hl(){	//0xB0
 
 }
 int CPU::cp_a(){	//0xB0
-
+	cp(regs.A, regs.A);
+	return 0;
 }
 
 
