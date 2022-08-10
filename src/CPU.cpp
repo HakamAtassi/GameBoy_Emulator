@@ -57,16 +57,16 @@ CPU::CPU() {
       &CPU::ret_nz,      &CPU::pop_bc,     &CPU::jp_nz_a16, &CPU::jp_a16,
       &CPU::call_nz_a16, &CPU::push_bc,    &CPU::add_a_d8,  &CPU::rst_0,
       &CPU::ret_z,       &CPU::ret,        &CPU::jp_z_a16,  &CPU::invalid,
-      &CPU::call_z_a16,  &CPU::call_z16,   &CPU::adc_a_d8,  &CPU::rst_1,
+      &CPU::call_z_a16,  &CPU::call_a16,   &CPU::adc_a_d8,  &CPU::rst_1,
       &CPU::ret_nc,      &CPU::pop_de,     &CPU::jp_nc_a16, &CPU::invalid,
       &CPU::call_nc_a16, &CPU::push_de,    &CPU::sub_d8,    &CPU::rst_2,
       &CPU::ret_c,       &CPU::reti,       &CPU::jp_c_a16,  &CPU::invalid,
       &CPU::call_c_a16,  &CPU::invalid,    &CPU::sbc_a_d8,  &CPU::rst_3,
-      &CPU::ld_a8_a,     &CPU::pop_hl,     &CPU::ld_c_a,    &CPU::invalid,
+      &CPU::ld_a8_a,     &CPU::pop_hl,     &CPU::ld_c_mem_a,&CPU::invalid,
       &CPU::invalid,     &CPU::push_hl,    &CPU::and_d8,    &CPU::rst_4,
       &CPU::add_sp_s8,   &CPU::jp_hl,      &CPU::ld_a16_a,  &CPU::invalid,
       &CPU::invalid,     &CPU::invalid,    &CPU::xor_d8,    &CPU::rst_5,
-      &CPU::ld_a_a8,     &CPU::pop_af,     &CPU::ld_a_c,    &CPU::di,
+      &CPU::ld_a_a8,     &CPU::pop_af,     &CPU::ld_a_c_mem,&CPU::di,
       &CPU::invalid,     &CPU::push_af,    &CPU::or_d8,     &CPU::rst_6,
       &CPU::ld_hl_sp_s8, &CPU::ld_sp_hl,   &CPU::ld_a_a16,  &CPU::ei,
       &CPU::invalid,     &CPU::invalid,    &CPU::cp_d8,     &CPU::rst_7};
@@ -432,6 +432,30 @@ int CPU::_ret(bool condition) {
     cycles = 2;
   }
 }
+
+int CPU::call(bool condition){	
+	if(condition){
+		cycles=6;
+		//get call address
+		int _PC=ram.read(PC);
+		PC++;
+		_PC |= ram.read(PC) << 8;
+		PC++;
+
+		//push pc to stack then jump
+		ram.write(SP,(PC&0xFF00)>>8);
+		SP--;
+		ram.write(SP,(PC&0x00FF));
+		SP--;
+		PC=_PC;
+
+	}
+	else{
+		cycles=3;
+	}
+}
+
+
 
 /******implementation of core instructions above******/
 
@@ -1344,7 +1368,10 @@ int CPU::pop_bc() {
 }
 int CPU::jp_nz_a16() {}
 int CPU::jp_a16() {}
-int CPU::call_nz_a16() {}
+int CPU::call_nz_a16() {
+	call(regs.zero!=0);
+	return 0;
+}
 int CPU::push_bc() {
 	push(regs.BC);
 	return 0;
@@ -1363,8 +1390,14 @@ int CPU::ret() {
   return 1;
 }
 int CPU::jp_z_a16() {}
-int CPU::call_z_a16() {}
-int CPU::call_z16() {}
+int CPU::call_z_a16() {
+	call(regs.zero==0);
+	return 0;
+}
+int CPU::call_a16() {	
+	call(1);
+	return 0;
+}
 int CPU::adc_a_d8() {}
 int CPU::rst_1() {
   rst(1);
@@ -1383,6 +1416,8 @@ int CPU::pop_de() { // 0xD1
 int CPU::jp_nc_a16() { // 0xD2
 }
 int CPU::call_nc_a16() { // 0xD4
+	call(regs.carry!=0);
+	return 0;
 }
 int CPU::push_de() { // 0xD4
 	push(regs.DE);
@@ -1403,6 +1438,9 @@ int CPU::reti() { // 0xD8
 int CPU::jp_c_a16() { // 0xDA
 }
 int CPU::call_c_a16() { // 0xDC
+	call(regs.carry==0);
+	return 0;
+
 }
 int CPU::sbc_a_d8() { // 0xDE
 }
@@ -1424,7 +1462,7 @@ int CPU::pop_hl() {	//0xE1
 	pop(regs.HL);
 	return 0;
 }
-int CPU::ld_c_a() {	//0xE2
+int CPU::ld_c_mem_a() {	//0xE2
 	cycles=2;
 	uint16_t addr=(regs.C|0xFF00);
 	PC++;
@@ -1450,7 +1488,7 @@ int CPU::rst_5() {
 }
 
 /*0xF0*/
-int CPU::ld_a_a8() {
+int CPU::ld_a_a8() {	//0xF0
 	cycles=3;
 	uint16_t addr=ram.read(PC);
 	PC++;
@@ -1458,11 +1496,11 @@ int CPU::ld_a_a8() {
 	regs.A=ram.read(addr);
 	return 0;
 }
-int CPU::pop_af() {
+int CPU::pop_af() {	//0xF1
 	pop(regs.AF);
 	return 0;
 }
-int CPU::ld_a_c() {
+int CPU::ld_a_c_mem() {	//0xF2
 	cycles=2;
 	uint16_t addr=regs.C|0xFF00;
 	regs.A=ram.read(addr);

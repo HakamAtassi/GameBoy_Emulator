@@ -271,7 +271,7 @@ private:
   int ret();
   int jp_z_a16();
   int call_z_a16();
-  int call_z16();
+  int call_a16();
   int adc_a_d8();
   int rst_1();
 
@@ -293,7 +293,7 @@ private:
   /*0xE0*/
   int ld_a8_a();
   int pop_hl();
-  int ld_c_a();
+  int ld_c_mem_a();
   int push_hl();
   int and_d8();
   int rst_4();
@@ -306,7 +306,7 @@ private:
   /*0xF0*/
   int ld_a_a8();
   int pop_af();
-  int ld_a_c();
+  int ld_a_c_mem();
   int di();
   int push_af();
   int or_d8();
@@ -617,7 +617,7 @@ private:
 
 
   //  ld_destination_source  //
-  int ld_reg_addr(uint8_t &reg1, uint8_t data);
+  int ld_reg_addr(uint8_t &reg1, uint8_t data);	//load data to reg1. Helper function
   int ld_reg_reg(uint8_t &reg1, uint8_t reg2); // load contents of reg2 into reg1
   int ld_reg_d8(uint8_t &reg);    // load 8 bit immediate into register
   int ld_reg_d16(uint16_t &reg1); // load 16 bit immediate into register
@@ -655,11 +655,14 @@ private:
   int cp(uint16_t &reg1, uint16_t &reg2);
   int cp(uint8_t &reg1, uint8_t &reg2);
 
-  int pop(uint16_t &reg1);
-  int push(uint16_t &reg1);
-  int retZC(bool condition);
-  int rst(int index);
+  int pop(uint16_t &reg1);	//pop from stack
+  int push(uint16_t &reg1);	//push to stack
+  int retZC(bool condition);	//ret based on Z or C condition
+  int rst(int index);	
   int _ret(bool condition); // there is already an opcode called RET.
+
+  int call(bool condition);	//pushes next instruction to stack, jumps, then returns controll
+
 };
 } // namespace GameBoy
 
