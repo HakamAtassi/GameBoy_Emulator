@@ -1,21 +1,39 @@
 #include "CPU.h"
 #include <cstdint>
 #include <iostream>
+#include <fstream>
+#include <string>
 
 using namespace GameBoy;
 
+
 CPU::CPU() {
 
-	PC=0x100;	//start up value
+	PC=0x100;	//start up values
+	regs.A=0x01;
+	regs.B=0x00;
+	regs.C=0x13;
+	regs.D=0x00;
+	regs.E=0xD8;
+	regs.L=0x4D;
+	regs.H=0x01;
 
+	regs.zero=1;
+	regs.negative=0;
+
+
+	regs.halfCarry=!(checksum==0);
+	regs.carry=!(checksum==0);
+
+
+	SP=0xFFFE;
 	//initialize registers
 
-	regs.AF=0;
-	regs.BC=0;
-	regs.DE=0;
+
+
 
 	opcodeLUT = std::vector<int (CPU::*)(void)>{
-		&CPU::nop,         &CPU::ld_bc_d16,  &CPU::ld_bc_a,   &CPU::inc_bc,
+			&CPU::nop,         &CPU::ld_bc_d16,  &CPU::ld_bc_a,   &CPU::inc_bc,
 			&CPU::inc_b,       &CPU::dec_b,      &CPU::ld_b_d8,   &CPU::rlca,
 			&CPU::ld_a16_sp,   &CPU::add_hl_bc,  &CPU::ld_a_bc,   &CPU::dec_bc,
 			&CPU::inc_c,       &CPU::dec_c,      &CPU::ld_c_d8,   &CPU::rrca,
@@ -149,7 +167,7 @@ void CPU::write(uint16_t addr, uint8_t data){
 
 }
 void CPU::read(uint16_t addr){
-	printf("%X : %X\n", addr, ram.read(addr));
+	printf("%X: %X  ",addr,ram.read(addr));
 }
 
 void CPU::getRegs(){
@@ -159,6 +177,75 @@ void CPU::getRegs(){
 	printf("HL: %X\n",regs.HL);
 
 }
+
+void CPU::initCartHeader(){
+
+
+	cartridgeType=ram.read(0x147);
+	romSize=32 * (ram.read(0x148)<<1);
+
+	switch (ram.read(0x149))	
+	{
+	case 0x00:
+		//no ram on cartridge
+		ramSize=0;
+		break;
+	case 0x01:
+		//unused
+		break;
+	case 0x02:
+		ramSize=8;
+		break;
+	case 0x03:
+		ramSize=32;
+		break;
+	case 0x04:
+		ramSize=128;
+		break;
+	case 0x05:
+		ramSize=64;
+		break;
+	default:
+		break;
+	}
+
+
+	for (uint16_t address = 0x0134; address <= 0x014C; address++) {
+		checksum = checksum - ram.read(address) - 1;
+	}
+
+	for (uint16_t address = 0x0134; address <= 0x0142; address++) {
+		Title.push_back((char)ram.read(address));
+	}
+	CGBFlag=ram.read(0x143);
+	SGBFlag=ram.read(0x146);
+
+}
+
+
+void CPU::loadRom(std::string rom){
+    std::ifstream file(rom, std::ios::binary | std::ios::ate);
+
+	if (file.is_open())
+	{
+		std::streampos size = file.tellg();
+		char* buffer = new char[size];
+
+		file.seekg(0, std::ios::beg);
+		file.read(buffer, size);
+		file.close();
+
+		for (long i = 0; i < size; ++i)
+		{
+			ram.write(i,buffer[i]);
+		}
+		delete[] buffer;
+	}
+
+	initCartHeader();
+
+}
+
 
 /******implementation of core instructions below******/
 

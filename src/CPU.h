@@ -20,6 +20,7 @@ namespace GameBoy {
 			void write(uint16_t addr, uint8_t data); 
 			void read(uint16_t addr); 
 			void getRegs();
+			void loadRom(std::string rom);
 
 		private:
 			// registers
@@ -29,7 +30,7 @@ namespace GameBoy {
 			uint8_t instruction = 0;
 			RAM ram;
 
-			// LUTs for opcodes
+			//LUTs for opcodes
 			std::vector<int (CPU::*)(void)> opcodeLUT;
 			std::vector<int (CPU::*)(void)> opcodeLUTCB; // functions for CB indext instructions
 
@@ -42,6 +43,26 @@ namespace GameBoy {
 
 							 // cycle count (CPU is multicycle. A new instruction is executed only when
 							 // this is 0)
+
+
+		private:
+			//ROM header data
+			uint8_t checksum=0;
+			uint8_t cartridgeType=0;	//defines the cartridges mapper
+										//0x00: ROM only
+										//0x01 MBC1...
+			uint8_t romSize=0;			//"This byte indicates how much ROM is present on the cartridge."
+			  							//rom size in KB (1024 bits)
+			
+			uint8_t ramSize=0;			//amount of additional ram on cartridge
+			std::string Title;
+			uint8_t CGBFlag=0;
+			uint8_t SGBFlag=0;
+
+			
+			void initCartHeader();	//rom containens important information from 0x0100 to 0x14F
+									//initilize those values and set correct values (like checksum and flags)
+
 
 		private:
 			// base instructions
