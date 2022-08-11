@@ -5,6 +5,8 @@
             "label": "C/C++: g++ build active file",
             "command": "/usr/bin/g++",
             "args": [
+                "../src/CPU.cpp",
+                "../src/RAM.cpp",
                 "-fdiagnostics-color=always",
                 "-g",
                 "${file}",
