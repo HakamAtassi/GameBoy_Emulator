@@ -1,13 +1,12 @@
-#include "CPU.h"
+#include "headers/CPU.h"
 #include <cstdint>
 #include <iostream>
 #include <fstream>
 #include <string>
 
-using namespace GameBoy;
 
 
-CPU::CPU() {
+CPU::CPU(RAM * _ram):ram(_ram) {
 
 	PC=0x100;	//start up values
 	regs.A=0x01;
@@ -21,7 +20,6 @@ CPU::CPU() {
 	regs.zero=1;
 	regs.negative=0;
 
-
 	regs.halfCarry=!(checksum==0);
 	regs.carry=!(checksum==0);
 
@@ -29,77 +27,27 @@ CPU::CPU() {
 	SP=0xFFFE;
 	//initialize registers
 
-
-
-
 	opcodeLUT = std::vector<int (CPU::*)(void)>{
-			&CPU::nop,         &CPU::ld_bc_d16,  &CPU::ld_bc_a,   &CPU::inc_bc,
-			&CPU::inc_b,       &CPU::dec_b,      &CPU::ld_b_d8,   &CPU::rlca,
-			&CPU::ld_a16_sp,   &CPU::add_hl_bc,  &CPU::ld_a_bc,   &CPU::dec_bc,
-			&CPU::inc_c,       &CPU::dec_c,      &CPU::ld_c_d8,   &CPU::rrca,
-			&CPU::stop,        &CPU::ld_de_d16,  &CPU::ld_de_a,   &CPU::inc_de,
-			&CPU::inc_d,       &CPU::dec_d,      &CPU::ld_d_d8,   &CPU::rla,
-			&CPU::jr_s8,       &CPU::add_hl_de,  &CPU::ld_a_de,   &CPU::dec_de,
-			&CPU::inc_e,       &CPU::dec_e,      &CPU::ld_e_d8,   &CPU::rra,
-			&CPU::jr_nz_s8,    &CPU::ld_hl_d16,  &CPU::ld_hlp_a,  &CPU::inc_hl,
-			&CPU::inc_h,       &CPU::dec_h,      &CPU::ld_h_d8,   &CPU::daa,
-			&CPU::jr_z_s8,     &CPU::add_hl_hl,  &CPU::ld_a_hlp,  &CPU::dec_hl,
-			&CPU::inc_l,       &CPU::dec_l,      &CPU::ld_l_d8,   &CPU::cpl,
-			&CPU::jr_nc_s8,    &CPU::ld_sp_d16,  &CPU::ld_hlm_a,  &CPU::inc_sp,
-			&CPU::inc_hl_mem,  &CPU::dec_hl_mem, &CPU::ld_hl_d8,  &CPU::scf,
-			&CPU::jr_c_s8,     &CPU::add_hl_sp,  &CPU::ld_a_hlm,  &CPU::dec_sp,
-			&CPU::inc_a,       &CPU::dec_a,      &CPU::ld_a_d8,   &CPU::ccf,
-			&CPU::ld_b_b,      &CPU::ld_b_c,     &CPU::ld_b_d,    &CPU::ld_b_e,
-			&CPU::ld_b_h,      &CPU::ld_b_l,     &CPU::ld_b_hl,   &CPU::ld_b_a,
-			&CPU::ld_c_b,      &CPU::ld_c_c,     &CPU::ld_c_d,    &CPU::ld_c_e,
-			&CPU::ld_c_h,      &CPU::ld_c_l,     &CPU::ld_c_hl,   &CPU::ld_c_a,
-			&CPU::ld_d_b,      &CPU::ld_d_c,     &CPU::ld_d_d,    &CPU::ld_d_e,
-			&CPU::ld_d_h,      &CPU::ld_d_l,     &CPU::ld_d_hl,   &CPU::ld_d_a,
-			&CPU::ld_e_b,      &CPU::ld_e_c,     &CPU::ld_e_d,    &CPU::ld_e_e,
-			&CPU::ld_e_h,      &CPU::ld_e_l,     &CPU::ld_e_hl,   &CPU::ld_e_a,
-			&CPU::ld_h_b,      &CPU::ld_h_c,     &CPU::ld_h_d,    &CPU::ld_h_e,
-			&CPU::ld_h_h,      &CPU::ld_h_l,     &CPU::ld_h_hl,   &CPU::ld_h_a,
-			&CPU::ld_l_b,      &CPU::ld_l_c,     &CPU::ld_l_d,    &CPU::ld_l_e,
-			&CPU::ld_l_h,      &CPU::ld_l_l,     &CPU::ld_l_hl,   &CPU::ld_l_a,
-			&CPU::ld_hl_b,     &CPU::ld_hl_c,    &CPU::ld_hl_d,   &CPU::ld_hl_e,
-			&CPU::ld_hl_h,     &CPU::ld_hl_l,    &CPU::HALT,      &CPU::ld_hl_a,
-			&CPU::ld_a_b,      &CPU::ld_a_c,     &CPU::ld_a_d,    &CPU::ld_a_e,
-			&CPU::ld_a_h,      &CPU::ld_a_l,     &CPU::ld_a_hl,   &CPU::ld_a_a,
-			&CPU::add_a_b,     &CPU::add_a_c,    &CPU::add_a_d,   &CPU::add_a_e,
-			&CPU::add_a_h,     &CPU::add_a_l,    &CPU::add_a_hl,  &CPU::add_a_a,
-			&CPU::adc_a_b,     &CPU::adc_a_c,    &CPU::adc_a_d,   &CPU::adc_a_e,
-			&CPU::adc_a_h,     &CPU::adc_a_l,    &CPU::adc_a_hl,  &CPU::adc_a_a,
-			&CPU::sub_b,       &CPU::sub_c,      &CPU::sub_d,     &CPU::sub_e,
-			&CPU::sub_h,       &CPU::sub_l,      &CPU::sub_hl,    &CPU::sub_a,
-			&CPU::sbc_a_b,     &CPU::sbc_a_c,    &CPU::sbc_a_d,   &CPU::sbc_a_e,
-			&CPU::sbc_a_h,     &CPU::sbc_a_l,    &CPU::sbc_a_hl,  &CPU::sbc_a_a,
-			&CPU::and_b,       &CPU::and_c,      &CPU::and_d,     &CPU::and_e,
-			&CPU::and_h,       &CPU::and_l,      &CPU::and_hl,    &CPU::and_a,
-			&CPU::xor_b,       &CPU::xor_c,      &CPU::xor_d,     &CPU::xor_e,
-			&CPU::xor_h,       &CPU::xor_l,      &CPU::xor_hl,    &CPU::xor_a,
-			&CPU::or_b,        &CPU::or_c,       &CPU::or_d,      &CPU::or_e,
-			&CPU::or_h,        &CPU::or_l,       &CPU::or_hl,     &CPU::or_a,
-			&CPU::cp_b,        &CPU::cp_c,       &CPU::cp_d,      &CPU::cp_e,
-			&CPU::cp_h,        &CPU::cp_l,       &CPU::cp_hl,     &CPU::cp_a,
-			&CPU::ret_nz,      &CPU::pop_bc,     &CPU::jp_nz_a16, &CPU::jp_a16,
-			&CPU::call_nz_a16, &CPU::push_bc,    &CPU::add_a_d8,  &CPU::rst_0,
-			&CPU::ret_z,       &CPU::ret,        &CPU::jp_z_a16,  &CPU::invalid,
-			&CPU::call_z_a16,  &CPU::call_a16,   &CPU::adc_a_d8,  &CPU::rst_1,
-			&CPU::ret_nc,      &CPU::pop_de,     &CPU::jp_nc_a16, &CPU::invalid,
-			&CPU::call_nc_a16, &CPU::push_de,    &CPU::sub_d8,    &CPU::rst_2,
-			&CPU::ret_c,       &CPU::reti,       &CPU::jp_c_a16,  &CPU::invalid,
-			&CPU::call_c_a16,  &CPU::invalid,    &CPU::sbc_a_d8,  &CPU::rst_3,
-			&CPU::ld_a8_a,     &CPU::pop_hl,     &CPU::ld_c_mem_a,&CPU::invalid,
-			&CPU::invalid,     &CPU::push_hl,    &CPU::and_d8,    &CPU::rst_4,
-			&CPU::add_sp_s8,   &CPU::jp_hl,      &CPU::ld_a16_a,  &CPU::invalid,
-			&CPU::invalid,     &CPU::invalid,    &CPU::xor_d8,    &CPU::rst_5,
-			&CPU::ld_a_a8,     &CPU::pop_af,     &CPU::ld_a_c_mem,&CPU::di,
-			&CPU::invalid,     &CPU::push_af,    &CPU::or_d8,     &CPU::rst_6,
-			&CPU::ld_hl_sp_s8, &CPU::ld_sp_hl,   &CPU::ld_a_a16,  &CPU::ei,
-			&CPU::invalid,     &CPU::invalid,    &CPU::cp_d8,     &CPU::rst_7};
+			&CPU::nop,         &CPU::ld_bc_d16,  &CPU::ld_bc_a,   &CPU::inc_bc, &CPU::inc_b,       &CPU::dec_b,      &CPU::ld_b_d8,   &CPU::rlca,	&CPU::ld_a16_sp,   &CPU::add_hl_bc,  &CPU::ld_a_bc,   &CPU::dec_bc, &CPU::inc_c,       &CPU::dec_c,      &CPU::ld_c_d8,   &CPU::rrca,
+			&CPU::stop,        &CPU::ld_de_d16,  &CPU::ld_de_a,   &CPU::inc_de,	&CPU::inc_d,       &CPU::dec_d,      &CPU::ld_d_d8,   &CPU::rla,	&CPU::jr_s8,       &CPU::add_hl_de,  &CPU::ld_a_de,   &CPU::dec_de,	&CPU::inc_e,       &CPU::dec_e,      &CPU::ld_e_d8,   &CPU::rra,
+			&CPU::jr_nz_s8,    &CPU::ld_hl_d16,  &CPU::ld_hlp_a,  &CPU::inc_hl,	&CPU::inc_h,       &CPU::dec_h,      &CPU::ld_h_d8,   &CPU::daa,	&CPU::jr_z_s8,     &CPU::add_hl_hl,  &CPU::ld_a_hlp,  &CPU::dec_hl,	&CPU::inc_l,       &CPU::dec_l,      &CPU::ld_l_d8,   &CPU::cpl,
+			&CPU::jr_nc_s8,    &CPU::ld_sp_d16,  &CPU::ld_hlm_a,  &CPU::inc_sp,	&CPU::inc_hl_mem,  &CPU::dec_hl_mem, &CPU::ld_hl_d8,  &CPU::scf,	&CPU::jr_c_s8,     &CPU::add_hl_sp,  &CPU::ld_a_hlm,  &CPU::dec_sp,	&CPU::inc_a,       &CPU::dec_a,      &CPU::ld_a_d8,   &CPU::ccf,
+			&CPU::ld_b_b,      &CPU::ld_b_c,     &CPU::ld_b_d,    &CPU::ld_b_e,	&CPU::ld_b_h,      &CPU::ld_b_l,     &CPU::ld_b_hl,   &CPU::ld_b_a,	&CPU::ld_c_b,      &CPU::ld_c_c,     &CPU::ld_c_d,    &CPU::ld_c_e,	&CPU::ld_c_h,      &CPU::ld_c_l,     &CPU::ld_c_hl,   &CPU::ld_c_a,
+			&CPU::ld_d_b,      &CPU::ld_d_c,     &CPU::ld_d_d,    &CPU::ld_d_e,	&CPU::ld_d_h,      &CPU::ld_d_l,     &CPU::ld_d_hl,   &CPU::ld_d_a,	&CPU::ld_e_b,      &CPU::ld_e_c,     &CPU::ld_e_d,    &CPU::ld_e_e,	&CPU::ld_e_h,      &CPU::ld_e_l,     &CPU::ld_e_hl,   &CPU::ld_e_a,
+			&CPU::ld_h_b,      &CPU::ld_h_c,     &CPU::ld_h_d,    &CPU::ld_h_e,	&CPU::ld_h_h,      &CPU::ld_h_l,     &CPU::ld_h_hl,   &CPU::ld_h_a,	&CPU::ld_l_b,      &CPU::ld_l_c,     &CPU::ld_l_d,    &CPU::ld_l_e,	&CPU::ld_l_h,      &CPU::ld_l_l,     &CPU::ld_l_hl,   &CPU::ld_l_a,
+			&CPU::ld_hl_b,     &CPU::ld_hl_c,    &CPU::ld_hl_d,   &CPU::ld_hl_e,&CPU::ld_hl_h,     &CPU::ld_hl_l,    &CPU::HALT,      &CPU::ld_hl_a,&CPU::ld_a_b,      &CPU::ld_a_c,     &CPU::ld_a_d,    &CPU::ld_a_e,	&CPU::ld_a_h,      &CPU::ld_a_l,     &CPU::ld_a_hl,   &CPU::ld_a_a,
+			&CPU::add_a_b,     &CPU::add_a_c,    &CPU::add_a_d,   &CPU::add_a_e,&CPU::add_a_h,     &CPU::add_a_l,    &CPU::add_a_hl,  &CPU::add_a_a,&CPU::adc_a_b,     &CPU::adc_a_c,    &CPU::adc_a_d,   &CPU::adc_a_e,&CPU::adc_a_h,     &CPU::adc_a_l,    &CPU::adc_a_hl,  &CPU::adc_a_a,
+			&CPU::sub_b,       &CPU::sub_c,      &CPU::sub_d,     &CPU::sub_e,	&CPU::sub_h,       &CPU::sub_l,      &CPU::sub_hl,    &CPU::sub_a,	&CPU::sbc_a_b,     &CPU::sbc_a_c,    &CPU::sbc_a_d,   &CPU::sbc_a_e,&CPU::sbc_a_h,     &CPU::sbc_a_l,    &CPU::sbc_a_hl,  &CPU::sbc_a_a,
+			&CPU::and_b,       &CPU::and_c,      &CPU::and_d,     &CPU::and_e,	&CPU::and_h,       &CPU::and_l,      &CPU::and_hl,    &CPU::and_a,	&CPU::xor_b,       &CPU::xor_c,      &CPU::xor_d,     &CPU::xor_e,	&CPU::xor_h,       &CPU::xor_l,      &CPU::xor_hl,    &CPU::xor_a,
+			&CPU::or_b,        &CPU::or_c,       &CPU::or_d,      &CPU::or_e,	&CPU::or_h,        &CPU::or_l,       &CPU::or_hl,     &CPU::or_a,	&CPU::cp_b,        &CPU::cp_c,       &CPU::cp_d,      &CPU::cp_e,	&CPU::cp_h,        &CPU::cp_l,       &CPU::cp_hl,     &CPU::cp_a,
+			&CPU::ret_nz,      &CPU::pop_bc,     &CPU::jp_nz_a16, &CPU::jp_a16,	&CPU::call_nz_a16, &CPU::push_bc,    &CPU::add_a_d8,  &CPU::rst_0,	&CPU::ret_z,       &CPU::ret,        &CPU::jp_z_a16,  &CPU::invalid,&CPU::call_z_a16,  &CPU::call_a16,   &CPU::adc_a_d8,  &CPU::rst_1,
+			&CPU::ret_nc,      &CPU::pop_de,     &CPU::jp_nc_a16, &CPU::invalid,&CPU::call_nc_a16, &CPU::push_de,    &CPU::sub_d8,    &CPU::rst_2,	&CPU::ret_c,       &CPU::reti,       &CPU::jp_c_a16,  &CPU::invalid,&CPU::call_c_a16,  &CPU::invalid,    &CPU::sbc_a_d8,  &CPU::rst_3,
+			&CPU::ld_a8_a,     &CPU::pop_hl,     &CPU::ld_c_mem_a,&CPU::invalid,&CPU::invalid,     &CPU::push_hl,    &CPU::and_d8,    &CPU::rst_4,	&CPU::add_sp_s8,   &CPU::jp_hl,      &CPU::ld_a16_a,  &CPU::invalid,&CPU::invalid,     &CPU::invalid,    &CPU::xor_d8,    &CPU::rst_5,
+			&CPU::ld_a_a8,     &CPU::pop_af,     &CPU::ld_a_c_mem,&CPU::di,		&CPU::invalid,     &CPU::push_af,    &CPU::or_d8,     &CPU::rst_6,	&CPU::ld_hl_sp_s8, &CPU::ld_sp_hl,   &CPU::ld_a_a16,  &CPU::ei,		&CPU::invalid,     &CPU::invalid,    &CPU::cp_d8,     &CPU::rst_7
+			};
 
 	opcodeLUTCB = std::vector<int (CPU::*)(void)>{
-		&CPU::rlc_b,   &CPU::rlc_c,   &CPU::rlc_d,    &CPU::rlc_e,  &CPU::rlc_h,   &CPU::rlc_l,   &CPU::rlc_hl,   &CPU::rlc_a,  &CPU::rrc_b,   &CPU::rrc_c,   &CPU::rrc_d,    &CPU::rrc_e,  &CPU::rrc_h,   &CPU::rrc_l,   &CPU::rrc_hl,   &CPU::rrc_a,
+			&CPU::rlc_b,   &CPU::rlc_c,   &CPU::rlc_d,    &CPU::rlc_e,  &CPU::rlc_h,   &CPU::rlc_l,   &CPU::rlc_hl,   &CPU::rlc_a,  &CPU::rrc_b,   &CPU::rrc_c,   &CPU::rrc_d,    &CPU::rrc_e,  &CPU::rrc_h,   &CPU::rrc_l,   &CPU::rrc_hl,   &CPU::rrc_a,
 			&CPU::rl_b,    &CPU::rl_c,    &CPU::rl_d,     &CPU::rl_e,   &CPU::rl_h,    &CPU::rl_l,    &CPU::rl_hl,    &CPU::rl_a,   &CPU::rr_b,    &CPU::rr_c,    &CPU::rr_d,     &CPU::rr_e,   &CPU::rr_h,    &CPU::rr_l,    &CPU::rr_hl,    &CPU::rr_a,
 			&CPU::sla_b,   &CPU::sla_c,   &CPU::sla_d,    &CPU::sla_e,  &CPU::sla_h,   &CPU::sla_l,   &CPU::sla_hl,   &CPU::sla_a,  &CPU::sra_b,   &CPU::sra_c,   &CPU::sra_d,    &CPU::sra_e,  &CPU::sra_h,   &CPU::sra_l,   &CPU::sra_hl,   &CPU::sra_a,
 			&CPU::swap_b,  &CPU::swap_c,  &CPU::swap_d,   &CPU::swap_e, &CPU::swap_h,  &CPU::swap_l,  &CPU::swap_hl,  &CPU::swap_a, &CPU::srl_b,   &CPU::srl_c,   &CPU::srl_d,    &CPU::srl_e,  &CPU::srl_h,   &CPU::srl_l,   &CPU::srl_hl,	&CPU::srl_a,
@@ -116,10 +64,11 @@ CPU::CPU() {
 			&CPU::set_4_b, &CPU::set_4_c, &CPU::set_4_f,  &CPU::set_4_e,&CPU::set_4_h, &CPU::set_4_l, &CPU::set_4_hl, &CPU::set_4_a,&CPU::set_5_b, &CPU::set_5_c, &CPU::set_5_f,  &CPU::set_5_e,&CPU::set_5_h, &CPU::set_5_l, &CPU::set_5_hl, &CPU::set_5_a,
 			&CPU::set_6_b, &CPU::set_6_c, &CPU::set_6_f,  &CPU::set_6_e,&CPU::set_6_h, &CPU::set_6_l, &CPU::set_6_hl, &CPU::set_6_a,&CPU::set_7_b, &CPU::set_7_c, &CPU::set_7_f,  &CPU::set_7_e,&CPU::set_7_h, &CPU::set_7_l, &CPU::set_7_hl, &CPU::set_7_a
 	};
+
 }
 
 void CPU::fetch() {
-	instruction = ram.read(PC);
+	instruction = ram->read(PC);
 	PC++;
 
 	// There are 2 types of instructions in the game boy: "regular" and 0xCB
@@ -136,38 +85,37 @@ void CPU::fetch() {
 
 	if (instruction == 0xCB && flagCB == 0) {
 		flagCB = 1;
-		instruction = ram.read(PC);
+		instruction = ram->read(PC);
 		PC++;
 	}
+
 }
 
 void CPU::execute() { // dont forget interrupts
+				// use correct lookup table
+	if (flagCB == 0) {
+		(this->*opcodeLUT[instruction])();
 
-	while(cycles>=0){	//if cylces is non-zero, previous instruction is still executing.
-		if(cycles==0){	//hence, decrement by one and try loop until its 0 for the next insturction to be executed
-						// use correct lookup table
-			if (flagCB == 0) {
-				(this->*opcodeLUT[instruction])();
-				break;
-			} 
-			else {
-				(this->*opcodeLUTCB[instruction])();
-				flagCB=0;
-			}
-		}
-		else{
-			cycles--;
-		}		
+	} 
+	else {
+		(this->*opcodeLUTCB[instruction])();
+		flagCB=0;
 	}
+}
+
+int CPU::fetchExecute(){
+	fetch();
+	execute();
+	return cycles;
 }
 
 
 void CPU::write(uint16_t addr, uint8_t data){
-	ram.write(addr,data);
+	ram->write(addr,data);
 
 }
 void CPU::read(uint16_t addr){
-	printf("%X: %X  ",addr,ram.read(addr));
+	printf("%X: %X  ",addr,ram->read(addr));
 }
 
 void CPU::getRegs(){
@@ -178,110 +126,56 @@ void CPU::getRegs(){
 
 }
 
-void CPU::initCartHeader(){
 
 
-	cartridgeType=ram.read(0x147);
-	romSize=32 * (ram.read(0x148)<<1);
 
-	switch (ram.read(0x149))	
-	{
-	case 0x00:
-		//no ram on cartridge
-		ramSize=0;
-		break;
-	case 0x01:
-		//unused
-		break;
-	case 0x02:
-		ramSize=8;
-		break;
-	case 0x03:
-		ramSize=32;
-		break;
-	case 0x04:
-		ramSize=128;
-		break;
-	case 0x05:
-		ramSize=64;
-		break;
-	default:
-		break;
-	}
-
-
-	for (uint16_t address = 0x0134; address <= 0x014C; address++) {
-		checksum = checksum - ram.read(address) - 1;
-	}
-
-	for (uint16_t address = 0x0134; address <= 0x0142; address++) {
-		Title.push_back((char)ram.read(address));
-	}
-	CGBFlag=ram.read(0x143);
-	SGBFlag=ram.read(0x146);
-
+void CPU::updateTimers(int requiredClocks){
+	//0xFF04	DIV		256 clocks
+	//0xFF05	TIMA	updates at (TAC)Hz
+	//0xFF06	TMA		when TMA overflows, it is set to value in this register
+						//then interrupt is requested
+	//0xFF07	TAC		Timer controll for TIMA
 }
 
-
-void CPU::loadRom(std::string rom){
-    std::ifstream file(rom, std::ios::binary | std::ios::ate);
-
-	if (file.is_open())
-	{
-		std::streampos size = file.tellg();
-		char* buffer = new char[size];
-
-		file.seekg(0, std::ios::beg);
-		file.read(buffer, size);
-		file.close();
-
-		for (long i = 0; i < size; ++i)
-		{
-			ram.write(i,buffer[i]);
-		}
-		delete[] buffer;
-	}
-
-	initCartHeader();
+void CPU::Handleinterrupts(){
 
 }
-
 
 /******implementation of core instructions below******/
 
 /*=============Table 1 below=============*/
 int CPU::ld_reg_addr(uint8_t &reg1, uint8_t data) {
-	cycles = 2;
+	cycles = 8;
 	reg1 = data;
 	return 0;
 }
 
 int CPU::ld_reg_reg(uint8_t &reg1, uint8_t reg2) {
-	cycles = 1;
+	cycles = 4;
 	reg1 = reg2;
 	return 0;
 }
 
 int CPU::ld_reg_d8(uint8_t &reg) {
-	cycles = 2;
-	uint8_t imm = ram.read(PC);
+	cycles = 8;
+	uint8_t imm = ram->read(PC);
 	PC++;
 	reg = imm;
 	return 0;
 }
 
 int CPU::ld_reg_d16(uint16_t &reg1) {
-	cycles = 3;
-	uint16_t data = ram.read(PC);
+	cycles = 12;
+	uint16_t data = ram->read(PC);
 	PC++;
-	data |= ram.read(PC) << 8;
+	data |= ram->read(PC) << 8;
 	PC++;
 	reg1 = data;
 	return 0;
 }
 
 int CPU::inc_reg(uint8_t &reg) {
-	cycles = 1;
+	cycles = 4;
 	regs.halfCarry = ((reg & 0x0F) == 0x0F);
 	reg++;
 	regs.zero = (reg == 0x00);
@@ -291,13 +185,13 @@ int CPU::inc_reg(uint8_t &reg) {
 
 
 int CPU::inc_reg(uint16_t &reg) {
-	cycles = 2;
+	cycles = 8;
 	reg++;
 	return 0;
 }
 
 int CPU::dec_reg(uint8_t &reg) {
-	cycles = 1;
+	cycles = 4;
 	regs.halfCarry = ((reg & 0x0F) == 0x00);
 	reg--;
 	regs.zero = (reg == 0x00);
@@ -306,25 +200,25 @@ int CPU::dec_reg(uint8_t &reg) {
 }
 
 int CPU::dec_reg(uint16_t &reg) {
-	cycles = 2;
+	cycles = 8;
 	regs.BC--;
 	return 0;
 }
 
 int CPU::ld_mem_a(uint16_t &addr) {
-	cycles = 2;
-	ram.write(addr, regs.A);
+	cycles = 8;
+	ram->write(addr, regs.A);
 	return 0;
 }
 
 int CPU::jr(bool condition) {
 	if (condition) {
-		cycles = 3;
-		int8_t s8 = ram.read(PC);
+		cycles = 12;
+		int8_t s8 = ram->read(PC);
 		PC++;
 		PC = PC + s8;
 	} else {
-		cycles = 2;
+		cycles = 8;
 		PC++;
 	}
 	return 0;
@@ -332,7 +226,7 @@ int CPU::jr(bool condition) {
 
 
 int CPU::add(uint8_t &reg1, uint8_t &reg2) {
-	cycles = 1;
+	cycles = 4;
 	uint16_t result = reg1 + reg2;
 	regs.halfCarry = (reg1 & 0x0F) + (reg2 & 0x0F);
 	regs.carry = result > 0xff;
@@ -341,7 +235,7 @@ int CPU::add(uint8_t &reg1, uint8_t &reg2) {
 }
 
 int CPU::add(uint16_t &reg1, uint16_t &reg2) {
-	cycles = 2;
+	cycles = 8;
 	regs.negative = 0;
 	uint32_t result = reg1 + reg2;
 	regs.carry = result > 0xffff;
@@ -351,7 +245,7 @@ int CPU::add(uint16_t &reg1, uint16_t &reg2) {
 }
 
 int CPU::adc(uint8_t &reg1, uint8_t &reg2) {
-
+	cycles=4;
 	int carry = (regs.carry == 1);
 	uint16_t result = reg1 + reg2 + carry;
 	regs.zero = (result == 0);
@@ -370,11 +264,17 @@ int CPU::sub(uint8_t &reg1, uint8_t &reg2) {
 	regs.negative = 1;
 	return 0;
 }
-int CPU::sub(uint16_t &reg1, uint16_t &reg2) {return 0;}
-int CPU::sbc(uint16_t &reg1, uint16_t &reg2) {return 0;}
-int CPU::sbc(uint8_t &reg1, uint8_t &reg2) {
-	int carry = regs.carry;
+int CPU::sub(uint16_t &reg1, uint16_t &reg2) {
+	return 0;
+}
 
+int CPU::sbc(uint16_t &reg1, uint16_t &reg2) {
+	return 0;
+}
+
+int CPU::sbc(uint8_t &reg1, uint8_t &reg2) {
+	cycles=4;
+	int carry = regs.carry;
 	regs.carry = ((reg2 + carry) > reg1);
 	regs.halfCarry = (((reg2 & 0x0F) + carry) > (reg1 & 0x0F));
 
@@ -383,10 +283,7 @@ int CPU::sbc(uint8_t &reg1, uint8_t &reg2) {
 	regs.negative = 1;
 	return 0;
 }
-int CPU::_and(
-		uint16_t &reg1,
-		uint16_t &reg2) { // many of these functions cam be written as templates
-
+int CPU::_and(uint16_t &reg1,uint16_t &reg2) { // many of these functions cam be written as templates
 	reg1 = reg1 & reg2;
 	regs.carry = 0;
 	regs.halfCarry = 1;
@@ -395,6 +292,7 @@ int CPU::_and(
 	return 0;
 }
 int CPU::_and(uint8_t &reg1, uint8_t &reg2) {
+	cycles=4;
 	reg1 = reg1 & reg2;
 	regs.carry = 0;
 	regs.halfCarry = 1;
@@ -411,6 +309,7 @@ int CPU::_xor(uint16_t &reg1, uint16_t &reg2) {
 	return 0;
 }
 int CPU::_xor(uint8_t &reg1, uint8_t &reg2) {
+	cycles=4;
 	reg1 ^= reg2;
 	regs.carry = 0;
 	regs.halfCarry = 0;
@@ -427,6 +326,7 @@ int CPU::_or(uint16_t &reg1, uint16_t &reg2) {
 	return 0;
 }
 int CPU::_or(uint8_t &reg1, uint8_t &reg2) {
+	cycles=4;
 	reg1 |= reg2;
 	regs.carry = 0;
 	regs.halfCarry = 0;
@@ -442,10 +342,8 @@ int CPU::cp(uint16_t &reg1, uint16_t &reg2) {
 	regs.halfCarry = ((reg2 & 0x0FF) > (reg1 & 0x0FF));
 	return 0;
 }
-int CPU::cp(
-		uint8_t &reg1,
-		uint8_t &reg2) { // doesnt actually store result of subtraction anywhere
-
+int CPU::cp(uint8_t &reg1, uint8_t &reg2) { // doesnt actually store result of subtraction anywhere
+	cycles=4;
 	regs.negative = 1;
 	regs.zero = (reg1 == reg2);
 	regs.carry = (reg2 > reg1);
@@ -453,74 +351,73 @@ int CPU::cp(
 	return 0;
 }
 int CPU::pop(uint16_t &reg1) {
-	cycles=3;
-	reg1 = ram.read(SP);
+	cycles=12;
+	reg1 = ram->read(SP);
 	SP++;
-	reg1 |= ram.read(SP) << 8;
+	reg1 |= ram->read(SP) << 8;
 	SP++;
 	return 0;
 }
 
 int CPU::push(uint16_t &reg1) {
+	cycles=16;
+
 	SP--;
-	ram.write(SP, (reg1 & 0xFF00) >> 8);
+	ram->write(SP, (reg1 & 0xFF00) >> 8);
 	SP--;
-	ram.write(SP, (reg1 & 0x00FF) >> 8);
+	ram->write(SP, (reg1 & 0x00FF) >> 8);
 	return 0;
 }
 int CPU::retZC(bool condition) {
 	if (condition) {
-		cycles = 5;
+		cycles = 20;
 		uint16_t _PC = 0x00;
-		_PC = ram.read(SP);
+		_PC = ram->read(SP);
 		SP++;
-		_PC |= ram.read(SP) << 8;
+		_PC |= ram->read(SP) << 8;
 		SP++;
 		PC = _PC;
 	} else {
-		cycles = 2;
+		cycles = 8;
 	}
 	return 0;
 }
 
 int CPU::rst(int index) {
-	cycles = 4;
+	cycles = 16;
 	SP--;
-	ram.write(SP, (PC & 0xFF00) >> 8);
+	ram->write(SP, (PC & 0xFF00) >> 8);
 	SP--;
-	ram.write(SP, PC & 0x00FF);
-	PC = ram.read(0x00) << 8;
-	PC |= ram.read(0x8 * index);
+	ram->write(SP, PC & 0x00FF);
+	PC = ram->read(0x00) << 8;
+	PC |= ram->read(0x8 * index);
 	return 0;
 }
 
-int CPU::_ret(bool condition) {
+int CPU::_ret() {
 
-	if (condition) {
-		cycles = 5;
-		PC = ram.read(SP);
+		cycles = 16;
+		PC = ram->read(SP);
 		SP++;
-		PC |= ram.read(SP) << 8;
+		PC |= ram->read(SP) << 8;
 		SP++;
-	} else {
-		cycles = 2;
-	}
+
 	return 0;
 }
 
 int CPU::jp_a16(bool condition){
 
 	if(condition){
-		cycles=4;
-		uint16_t a16=ram.read(PC);
+		cycles=16;
+		uint16_t a16=ram->read(PC);
 		PC++;
-		a16|=ram.read(PC)<<8;
+		a16|=ram->read(PC)<<8;
 		PC++;
 		PC=a16;
 
 	}
 	else{
-		cycles=3;
+		cycles=12;
 		PC++;
 		PC++;
 	}
@@ -531,23 +428,23 @@ int CPU::jp_a16(bool condition){
 
 int CPU::call(bool condition){	
 	if(condition){
-		cycles=6;
+		cycles=24;
 		//get call address
-		int _PC=ram.read(PC);
+		int _PC=ram->read(PC);
 		PC++;
-		_PC |= ram.read(PC) << 8;
+		_PC |= ram->read(PC) << 8;
 		PC++;
 
 		//push pc to stack then jump
-		ram.write(SP,(PC&0xFF00)>>8);
+		ram->write(SP,(PC&0xFF00)>>8);
 		SP--;
-		ram.write(SP,(PC&0x00FF));
+		ram->write(SP,(PC&0x00FF));
 		SP--;
 		PC=_PC;
 
 	}
 	else{
-		cycles=3;
+		cycles=12;
 	}
 	return 0;
 }
@@ -573,12 +470,14 @@ int CPU::bit(){
 	return 0;
 }
 int CPU::res(uint8_t & reg, int pos){	//reset bit at offset
+	cycles=8;
 	int offsetBin=1<<pos;
 	offsetBin=~offsetBin;
 	reg=reg&offsetBin;	//and reg with the inverse of its "offset"
 	return 0;
 }
 int CPU::set(uint8_t & reg, int pos){ //set bit at offset
+	cycles=8;
 	int offsetBin=1<<pos;
 	reg=reg|offsetBin;	//and reg with the inverse of its "offset"
 	return 0;
@@ -589,11 +488,12 @@ int CPU::set(uint8_t & reg, int pos){ //set bit at offset
 /******implementation of core instructions above******/
 
 int CPU::nop() { // 0x00
-	cycles = 1;
+	cycles = 4;
 	return 0;
 }
-int CPU::invalid() { // 0x00
-	cycles = 1;
+int CPU::invalid() {	//illegal opcodes. 
+						//for now they do nothing. 
+	cycles = 4;
 	return 0;
 }
 
@@ -628,7 +528,7 @@ int CPU::ld_b_d8() { // 0x06
 }
 
 int CPU::rlca() { // 0x07
-	cycles = 1;
+	cycles = 4;
 	regs.zero = 0;
 	regs.negative = 0;
 	regs.halfCarry = 0;
@@ -641,13 +541,13 @@ int CPU::rlca() { // 0x07
 }
 
 int CPU::ld_a16_sp() { // 0x08
-	int cycles = 5;
-	uint16_t a16 = ram.read(PC);
+	int cycles = 20;
+	uint16_t a16 = ram->read(PC);
 	PC++;
-	a16 |= ram.read(PC) << 8;
+	a16 |= ram->read(PC) << 8;
 	PC++;
-	ram.write(a16, SP & 0x00FF);
-	ram.write(a16 + 1, (SP & 0xFF00) >> 8);
+	ram->write(a16, SP & 0x00FF);
+	ram->write(a16 + 1, (SP & 0xFF00) >> 8);
 	return 0;
 }
 
@@ -657,7 +557,7 @@ int CPU::add_hl_bc() { // 0x09
 }
 
 int CPU::ld_a_bc() { // 0x0A
-	ld_reg_addr(regs.A, ram.read(regs.BC));
+	ld_reg_addr(regs.A, ram->read(regs.BC));
 	return 0;
 }
 
@@ -682,7 +582,7 @@ int CPU::ld_c_d8() { // 0x0E
 }
 
 int CPU::rrca() { // 0x0F
-	cycles = 1;
+	cycles = 4;
 	regs.zero = 0;
 	regs.negative = 0;
 	regs.halfCarry = 0;
@@ -728,6 +628,7 @@ int CPU::ld_d_d8() { // 0x16
 
 int CPU::rla() { // 0x17
 				 // possible error
+	cycles=4;
 	regs.zero = 0;
 	regs.negative = 0;
 	regs.halfCarry = 0;
@@ -752,7 +653,7 @@ int CPU::add_hl_de() { // 0x19
 }
 
 int CPU::ld_a_de() { // 0x1A
-	ld_reg_addr(regs.A, ram.read(regs.DE));
+	ld_reg_addr(regs.A, ram->read(regs.DE));
 	return 0;
 }
 
@@ -777,6 +678,7 @@ int CPU::ld_e_d8() { // 0x1E
 }
 
 int CPU::rra() { // 0x1F
+	cycles=4;
 	int temp = regs.A & 0x01;
 	regs.A = regs.A >> 1;
 	regs.A |= regs.carry << 8;
@@ -835,7 +737,7 @@ int CPU::add_hl_hl() { // 0x29
 }
 
 int CPU::ld_a_hlp() { // 0x2A
-	ld_reg_addr(regs.A, ram.read(regs.HL));
+	ld_reg_addr(regs.A, ram->read(regs.HL));
 	regs.HL++;
 	return 0;
 }
@@ -861,7 +763,7 @@ int CPU::ld_l_d8() { // 0x2E
 }
 
 int CPU::cpl() { // 0x2F
-	cycles = 1;
+	cycles = 4;
 	regs.A = ~regs.A;
 	regs.negative = 1;
 	regs.halfCarry = 1;
@@ -869,7 +771,6 @@ int CPU::cpl() { // 0x2F
 }
 
 int CPU::jr_nc_s8() { // 0x30
-
 	jr(regs.carry != 1);
 	return 0;
 }
@@ -891,34 +792,34 @@ int CPU::inc_sp() { // 0x33
 }
 
 int CPU::inc_hl_mem() { // 0x34
-	uint8_t contents = ram.read(regs.HL);
-	cycles = 1;
+	uint8_t contents = ram->read(regs.HL);
+	cycles = 4;
 	regs.halfCarry = ((contents & 0x0F) == 0x0F);
 	regs.negative = 0;
 	regs.zero = (contents == 0xFF);
-	ram.write(regs.HL, contents++);
+	ram->write(regs.HL, contents++);
 	return 0;
 }
 
 int CPU::dec_hl_mem() { // 0x35
-	uint8_t contents = ram.read(regs.HL);
+	uint8_t contents = ram->read(regs.HL);
 	regs.halfCarry = ((contents & 0x0F) == 0x00);
 	regs.negative = 1;
 	regs.zero = (contents == 0x01);
-	ram.write(regs.HL, contents--);
+	ram->write(regs.HL, contents--);
 	return 0;
 }
 
 int CPU::ld_hl_d8() { // 0x36
-	cycles = 2;
-	uint8_t imm = ram.read(PC);
+	cycles = 8;
+	uint8_t imm = ram->read(PC);
 	PC++;
-	ram.write(regs.HL, imm);
+	ram->write(regs.HL, imm);
 	return 0;
 }
 
 int CPU::scf() { // 0x37
-	cycles = 1;
+	cycles = 4;
 
 	regs.carry = 1;
 	regs.halfCarry = 0;
@@ -939,7 +840,7 @@ int CPU::add_hl_sp() { // 0x39
 }
 
 int CPU::ld_a_hlm() { // 0x3A
-	ld_reg_addr(regs.A, ram.read(regs.HL));
+	ld_reg_addr(regs.A, ram->read(regs.HL));
 	regs.HL--;
 	return 0;
 }
@@ -965,7 +866,7 @@ int CPU::ld_a_d8() { // 0x3E
 }
 
 int CPU::ccf() { // 0x3F
-	cycles = 1;
+	cycles = 4;
 	regs.negative = 0;
 	regs.halfCarry = 0;
 	regs.carry = ~regs.carry;
@@ -997,8 +898,8 @@ int CPU::ld_b_l() { // 0x45
 	return 0;
 }
 int CPU::ld_b_hl() { // 0x46
-	cycles = 2;
-	uint8_t operand = ram.read(regs.HL);
+	cycles = 8;
+	uint8_t operand = ram->read(regs.HL);
 	regs.B = operand;
 	return 0;
 }
@@ -1031,8 +932,8 @@ int CPU::ld_c_l() { // 0x4D
 	return 0;
 }
 int CPU::ld_c_hl() { // 0x4E
-	cycles = 2;
-	uint8_t operand = ram.read(regs.HL);
+	cycles = 4;
+	uint8_t operand = ram->read(regs.HL);
 	regs.C = operand;
 	return 0;
 }
@@ -1067,8 +968,8 @@ int CPU::ld_d_l() { // 0x55
 	return 0;
 }
 int CPU::ld_d_hl() { // 0x56
-	cycles = 2;
-	uint8_t operand = ram.read(regs.HL);
+	cycles = 8;
+	uint8_t operand = ram->read(regs.HL);
 	regs.D = operand;
 	return 0;
 }
@@ -1101,8 +1002,8 @@ int CPU::ld_e_l() { // 0x5D
 	return 0;
 }
 int CPU::ld_e_hl() { // 0x5E
-	cycles = 2;
-	uint8_t operand = ram.read(regs.HL);
+	cycles = 8;
+	uint8_t operand = ram->read(regs.HL);
 	regs.E = operand;
 	return 0;
 }
@@ -1137,8 +1038,8 @@ int CPU::ld_h_l() { // 0x65
 	return 0;
 }
 int CPU::ld_h_hl() { // 0x66
-	cycles = 2;
-	uint8_t operand = ram.read(regs.HL);
+	cycles = 8;
+	uint8_t operand = ram->read(regs.HL);
 	regs.H = operand;
 	return 0;
 }
@@ -1171,8 +1072,8 @@ int CPU::ld_l_l() { // 0x6D
 	return 0;
 }
 int CPU::ld_l_hl() { // 0x6E
-	cycles = 2;
-	uint8_t operand = ram.read(regs.HL);
+	cycles = 8;
+	uint8_t operand = ram->read(regs.HL);
 	regs.L = operand;
 	return 0;
 }
@@ -1183,39 +1084,39 @@ int CPU::ld_l_a() { // 0x6F
 
 /*0x70 instructions*/
 int CPU::ld_hl_b() {
-	cycles = 2;
-	ram.write(regs.HL, regs.B);
+	cycles = 8;
+	ram->write(regs.HL, regs.B);
 	return 0;
 }
 int CPU::ld_hl_c() {
-	cycles = 2;
-	ram.write(regs.HL, regs.C);
+	cycles = 8;
+	ram->write(regs.HL, regs.C);
 	return 0;
 }
 int CPU::ld_hl_d() {
-	cycles = 2;
-	ram.write(regs.HL, regs.D);
+	cycles = 8;
+	ram->write(regs.HL, regs.D);
 	return 0;
 }
 int CPU::ld_hl_e() {
-	cycles = 2;
-	ram.write(regs.HL, regs.E);
+	cycles = 8;
+	ram->write(regs.HL, regs.E);
 	return 0;
 }
 int CPU::ld_hl_h() {
-	cycles = 2;
-	ram.write(regs.HL, regs.H);
+	cycles = 8;
+	ram->write(regs.HL, regs.H);
 	return 0;
 }
 int CPU::ld_hl_l() {
-	cycles = 2;
-	ram.write(regs.HL, regs.L);
+	cycles = 8;
+	ram->write(regs.HL, regs.L);
 	return 0;
 }
 int CPU::HALT() {return 0;}
 int CPU::ld_hl_a() {
-	cycles = 2;
-	ram.write(regs.HL, regs.A);
+	cycles = 8;
+	ram->write(regs.HL, regs.A);
 	return 0;
 }
 int CPU::ld_a_b() {
@@ -1243,8 +1144,8 @@ int CPU::ld_a_l() {
 	return 0;
 }
 int CPU::ld_a_hl() {
-	cycles = 2;
-	uint8_t operand = ram.read(regs.HL);
+	cycles = 8;
+	uint8_t operand = ram->read(regs.HL);
 	regs.A = operand;
 	return 0;
 }
@@ -1279,9 +1180,9 @@ int CPU::add_a_l() { // 0x85
 	return 0;
 }
 int CPU::add_a_hl() { // 0x86
-	cycles = 1;
-	uint16_t result = regs.A + ram.read(regs.HL);
-	regs.halfCarry = (regs.A & 0x0F) + (ram.read(regs.HL) & 0x0F);
+	cycles = 4;
+	uint16_t result = regs.A + ram->read(regs.HL);
+	regs.halfCarry = (regs.A & 0x0F) + (ram->read(regs.HL) & 0x0F);
 	regs.carry = result > 0xff;
 	regs.negative = 0;
 	return 0;
@@ -1547,11 +1448,11 @@ int CPU::rst_0() {
 	return 0;
 }
 int CPU::ret_z() {
-	_ret(regs.zero == 1);
+	retZC(regs.zero == 1);
 	return 1;
 }
 int CPU::ret() {
-	_ret(1);
+	_ret();
 	return 1;
 }
 int CPU::jp_z_a16() {
@@ -1601,7 +1502,7 @@ int CPU::rst_2() { // 0xD6
 	return 0;
 }
 int CPU::ret_c() { // 0xD7
-	_ret(regs.carry == 1);
+	retZC(regs.carry == 1);
 	return 1;
 }
 int CPU::reti() { // 0xD8
@@ -1625,11 +1526,11 @@ int CPU::rst_3() { // 0xDF
 
 /*0xE0*/
 int CPU::ld_a8_a() {	//0xE0
-	cycles=3;
-	uint8_t a8=ram.read(PC);
+	cycles=12;
+	uint8_t a8=ram->read(PC);
 	uint16_t addr=(a8|0xFF00);
 	PC++;
-	ram.write(addr,regs.A);
+	ram->write(addr,regs.A);
 	return 0;
 }
 int CPU::pop_hl() {	//0xE1
@@ -1637,7 +1538,7 @@ int CPU::pop_hl() {	//0xE1
 	return 0;
 }
 int CPU::ld_c_mem_a() {	//0xE2
-	cycles=2;
+	cycles=8;
 	uint16_t addr=(regs.C|0xFF00);
 	PC++;
 	ld_mem_a(addr);
@@ -1667,11 +1568,11 @@ int CPU::rst_5() {
 
 /*0xF0*/
 int CPU::ld_a_a8() {	//0xF0
-	cycles=3;
-	uint16_t addr=ram.read(PC);
+	cycles=12;
+	uint16_t addr=ram->read(PC);
 	PC++;
 	addr=addr|0xFF00;
-	regs.A=ram.read(addr);
+	regs.A=ram->read(addr);
 	return 0;
 }
 int CPU::pop_af() {	//0xF1
@@ -1679,9 +1580,9 @@ int CPU::pop_af() {	//0xF1
 	return 0;
 }
 int CPU::ld_a_c_mem() {	//0xF2
-	cycles=2;
+	cycles=8;
 	uint16_t addr=regs.C|0xFF00;
-	regs.A=ram.read(addr);
+	regs.A=ram->read(addr);
 	return 0;
 }
 int CPU::di() {return 0;}

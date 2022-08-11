@@ -11,6 +11,4 @@ int main(){
 	cpu.read(0x00FF);
 	cpu.write(0x00FF,0x80);
 	cpu.read(0x00FF);
-
-
 }

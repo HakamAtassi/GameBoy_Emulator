@@ -1,9 +1,9 @@
-#include "RAM.h"
+#include "headers/RAM.h"
 #include <cstdint>
 #include <string>
 
 
-using namespace GameBoy;
+
 
 RAM::RAM(){
     memory=std::vector<uint8_t>(0xFFFF,0);   
