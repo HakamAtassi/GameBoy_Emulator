@@ -9,8 +9,6 @@
 #include <memory>
 
 class CPU {
-
-
 	public:
 		CPU();
 		CPU(RAM * _ram);
@@ -21,14 +19,13 @@ class CPU {
 
 		void loadRom(std::string rom);
 		int fetchExecute();
-		void updateTimers(int requiredClocks);
-		void Handleinterrupts();
-
+		uint16_t getPC();
+		void setPC(uint16_t _PC);
 
 
 	private:
 
-		std::unique_ptr<RAM> ram;
+		RAM * ram;
 		// registers
 		Registers regs;
 		uint16_t PC = 0; // program counter
@@ -46,8 +43,7 @@ class CPU {
 
 							// cycle count (CPU is multicycle. A new instruction is executed only when
 							// this is 0)
-		void fetch();
-		void execute();
+
 		//ROM header data
 		uint8_t checksum=0;
 		uint8_t cartridgeType=0;	//defines the cartridges mapper
@@ -61,7 +57,17 @@ class CPU {
 		uint8_t CGBFlag=0;
 		uint8_t SGBFlag=0;
 
+
+
 		
+		/*Helpers*/
+		bool testBit(uint8_t data, int bit);	
+
+		void fetch();
+		void execute();
+
+		void requestInterrupt(int interrupt);	//set interrupt bit after timing, joystick, etc events
+
 		void initCartHeader();	//rom containens important information from 0x0100 to 0x14F
 								//initilize those values and set correct values (like checksum and flags)
 

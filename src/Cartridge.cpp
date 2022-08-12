@@ -10,6 +10,7 @@ uint8_t Cartridge::read(uint16_t addr){
     return cartridgeData[addr];
 }
 
+Cartridge::Cartridge(){};
 
 void Cartridge::loadRom(std::string rom){
     std::ifstream file(rom, std::ios::binary | std::ios::ate);
@@ -32,6 +33,7 @@ void Cartridge::loadRom(std::string rom){
 }
 
 Cartridge::Cartridge(std::string rom){
+	cartridgeData=std::vector<uint8_t>(0xFFFF,0);
     loadRom(rom);
 
 	cartridgeType=read(0x147);

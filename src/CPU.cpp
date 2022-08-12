@@ -4,9 +4,16 @@
 #include <fstream>
 #include <string>
 
+ 
+#define INTERRUPT_ENABLE 0xFFFF
+#define INTERRUPT_FLAGS 0xFF0F
 
 
-CPU::CPU(RAM * _ram):ram(_ram) {
+CPU::CPU(){};
+
+
+CPU::CPU(RAM * _ram):ram(_ram){
+
 
 	PC=0x100;	//start up values
 	regs.A=0x01;
@@ -64,8 +71,9 @@ CPU::CPU(RAM * _ram):ram(_ram) {
 			&CPU::set_4_b, &CPU::set_4_c, &CPU::set_4_f,  &CPU::set_4_e,&CPU::set_4_h, &CPU::set_4_l, &CPU::set_4_hl, &CPU::set_4_a,&CPU::set_5_b, &CPU::set_5_c, &CPU::set_5_f,  &CPU::set_5_e,&CPU::set_5_h, &CPU::set_5_l, &CPU::set_5_hl, &CPU::set_5_a,
 			&CPU::set_6_b, &CPU::set_6_c, &CPU::set_6_f,  &CPU::set_6_e,&CPU::set_6_h, &CPU::set_6_l, &CPU::set_6_hl, &CPU::set_6_a,&CPU::set_7_b, &CPU::set_7_c, &CPU::set_7_f,  &CPU::set_7_e,&CPU::set_7_h, &CPU::set_7_l, &CPU::set_7_hl, &CPU::set_7_a
 	};
-
 }
+
+
 
 void CPU::fetch() {
 	instruction = ram->read(PC);
@@ -110,10 +118,19 @@ int CPU::fetchExecute(){
 }
 
 
+
+uint16_t CPU::getPC(){
+	return PC;
+}
+
+void CPU::setPC(uint16_t _PC){
+	PC=_PC;
+}
+
 void CPU::write(uint16_t addr, uint8_t data){
 	ram->write(addr,data);
-
 }
+
 void CPU::read(uint16_t addr){
 	printf("%X: %X  ",addr,ram->read(addr));
 }
@@ -127,19 +144,6 @@ void CPU::getRegs(){
 }
 
 
-
-
-void CPU::updateTimers(int requiredClocks){
-	//0xFF04	DIV		256 clocks
-	//0xFF05	TIMA	updates at (TAC)Hz
-	//0xFF06	TMA		when TMA overflows, it is set to value in this register
-						//then interrupt is requested
-	//0xFF07	TAC		Timer controll for TIMA
-}
-
-void CPU::Handleinterrupts(){
-
-}
 
 /******implementation of core instructions below******/
 
