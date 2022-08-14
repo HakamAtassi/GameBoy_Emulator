@@ -22,11 +22,12 @@ GameBoy::GameBoy(Cartridge _cartridge):ram(new RAM){
 		ram->write(i,_cartridge.read(i));
 	}
 	timers=Timers(ram);
-	CPU cpu(ram);
+	CPU cpu(ram,IME);
 }
 
 GameBoy::~GameBoy(){
-	free(ram);
+	delete ram;
+	delete IME;
 }
 
 void GameBoy::pushPC(uint16_t addr){	//TODO:a Implement this function
@@ -45,7 +46,7 @@ void GameBoy::requestInterrupt(int interruptVal){    //sets bit corresponding to
 }
 
 void GameBoy::handleInterrupts(){
-	if(IME==true){
+	if(*IME==true){
 		uint8_t interruptRequests=ram->read(INTERRUPT_FLAGS);
 		uint8_t interruptEnable=ram->read(INTERRUPT_ENABLE);
 		if(interruptRequests>0){	//dont handel interrupts if they are all 0
@@ -53,7 +54,6 @@ void GameBoy::handleInterrupts(){
 				if(testBit<uint8_t>(interruptEnable,i)==true){	//is that intr. enabled
 					if(testBit<uint8_t>(interruptRequests,i)==true){	//is that intr. requested
 						ISR(i);	//run isr for that interrupt
-
 					}
 				}
 			}
@@ -64,7 +64,7 @@ void GameBoy::handleInterrupts(){
 void GameBoy::ISR(int interruptVal){
 	pushPC(cpu.getPC());	//save current state
 
-	IME=false;
+	*IME=false;
 	uint8_t interruptRequests=ram->read(INTERRUPT_FLAGS);
 	uint8_t interruptEnable=ram->read(INTERRUPT_ENABLE);
 
@@ -83,7 +83,6 @@ void GameBoy::ISR(int interruptVal){
 	case 2:	//TIMER
 		setPC(TIMER);
 		break;
-
 	case 3:	//SERIAL
 		setPC(SERIAL);
 		break;

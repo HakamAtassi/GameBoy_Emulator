@@ -17,7 +17,7 @@ class GameBoy
         CPU cpu;
         PPU ppu;
         Cartridge cartridge;
-        bool IME=false;	//Inetrrupt Master Enable, seperate from the Inerrupt Enable
+        bool * IME=new bool(false);	//Inetrrupt Master Enable, seperate from the Inerrupt Enable
 
     
         template<typename T> //such that it works with 8 and 16 bit uint
@@ -36,7 +36,7 @@ class GameBoy
 		*	Bit 4 | Joypad	|	int 0x60
 		*/
         void requestInterrupt(int interruptVal);    //sets bit corresponding to interrupt type
-        void handelInterrupts(); //checks if ISR should be called
+        void handleInterrupts(); //checks if ISR should be called
         void ISR(int interruptVal);    //calls interrupt service routine
 
 
@@ -50,8 +50,6 @@ class GameBoy
 		void refreshDisplay(); 
         void printRam(int maxAddr);
         void printTitle();
-
-
 };
 
 

@@ -17,8 +17,8 @@
 
 	//since F is a flag register, it consists of several variables
 	//bit 7 is Zero flag,
-	//bit 6 is sub flag (BCD)
-	//bit 5 is half carry flag (BCD)
+	//bit 6 is sub flag 
+	//bit 5 is half carry flag
 	//bit 4 is carry flag
 
 

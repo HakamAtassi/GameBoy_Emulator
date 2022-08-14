@@ -11,7 +11,7 @@
 class CPU {
 	public:
 		CPU();
-		CPU(RAM * _ram);
+		CPU(RAM * _ram, bool * IME);
 		
 		void write(uint16_t addr, uint8_t data); 
 		void read(uint16_t addr); 
@@ -31,6 +31,10 @@ class CPU {
 		uint16_t PC = 0; // program counter
 		uint16_t SP = 0; // stack pointer
 		uint8_t instruction = 0;
+		bool * IME;	//Interrupt master switch. 
+					//since the GameBoy class handels intrrupts but CPU instructions can 
+					//toggle the IME
+
 		//LUTs for opcodes
 		std::vector<int (CPU::*)(void)> opcodeLUT;
 		std::vector<int (CPU::*)(void)> opcodeLUTCB; // functions for CB indext instructions
@@ -58,10 +62,11 @@ class CPU {
 		uint8_t SGBFlag=0;
 
 
-
 		
 		/*Helpers*/
 		bool testBit(uint8_t data, int bit);	
+		uint8_t bitSet(uint8_t data, int bit);	
+
 
 		void fetch();
 		void execute();
@@ -96,7 +101,6 @@ class CPU {
 		int adc(uint16_t &reg1, uint16_t &reg2);
 
 		int sub(uint8_t &reg1, uint8_t &reg2);
-		int sub(uint16_t &reg1, uint16_t &reg2);
 
 		int sbc(uint16_t &reg1, uint16_t &reg2);
 		int sbc(uint8_t &reg1, uint8_t &reg2);
@@ -113,6 +117,22 @@ class CPU {
 		int cp(uint16_t &reg1, uint16_t &reg2);
 		int cp(uint8_t &reg1, uint8_t &reg2);
 
+		int BIT(int bit, uint8_t & reg);
+
+		int rlc(uint8_t & reg);
+		int rrc(uint8_t & reg);
+
+
+		int rl(uint8_t & reg);
+		int rr(uint8_t & reg);
+
+		int sla(uint8_t & reg);
+		int sra(uint8_t & reg);
+
+		int swap(uint8_t & reg);
+
+		int srl(uint8_t & reg);
+
 		int pop(uint16_t &reg1);	//pop from stack
 		int push(uint16_t &reg1);	//push to stack
 		int retZC(bool condition);	//ret based on Z or C condition
@@ -122,21 +142,17 @@ class CPU {
 		int jp_a16(bool condition);	//jump to immediate
 		int call(bool condition);	//pushes next instruction to stack, jumps, then returns controll
 
+		int rlc(uint8_t & reg);
+		int rrc(uint8_t & reg);
+		int rl(uint8_t & reg);
+		int rr(uint8_t & reg);
 
-
-		//table 2 instructiton helpers below
-		int rlc();
-		int rrc();
-		int rl();
-		int rr();
-
-		int sla();
-		int sra();
+		int sla(uint8_t & reg);
+		int sra(uint8_t & reg);
 		
-		int swap();
-		int srl();
+		int swap(uint8_t & reg);
+		int srl(uint8_t & reg);
 
-		int bit();
 
 		int res(uint8_t & reg, int pos);
 		int set(uint8_t & reg, int pos);
