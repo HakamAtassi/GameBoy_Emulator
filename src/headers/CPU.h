@@ -142,6 +142,7 @@ class CPU {
 		int jp_a16(bool condition);	//jump to immediate
 		int call(bool condition);	//pushes next instruction to stack, jumps, then returns controll
 
+/*
 		int rlc(uint8_t & reg);
 		int rrc(uint8_t & reg);
 		int rl(uint8_t & reg);
@@ -152,7 +153,7 @@ class CPU {
 		
 		int swap(uint8_t & reg);
 		int srl(uint8_t & reg);
-
+*/
 
 		int res(uint8_t & reg, int pos);
 		int set(uint8_t & reg, int pos);

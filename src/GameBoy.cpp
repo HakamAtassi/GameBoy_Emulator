@@ -22,7 +22,7 @@ GameBoy::GameBoy(Cartridge _cartridge):ram(new RAM){
 		ram->write(i,_cartridge.read(i));
 	}
 	timers=Timers(ram);
-	CPU cpu(ram,IME);
+	cpu=CPU(ram,IME);
 }
 
 GameBoy::~GameBoy(){
@@ -112,6 +112,10 @@ void GameBoy::update(){
 	//60 updates per second (to achive a refresh rate of 60hz)
 	//results in 4194304/60 = 69905 updates per second
 
+	cpu.fetchExecute();
+
+	/*
+
 	int clocks=0;
 	while(clocks<69905){	//this function is called 60 times a second. Hence, this is done at a rate of 4 mHz
         int requiredClocks=cpu.fetchExecute();
@@ -121,6 +125,7 @@ void GameBoy::update(){
 		clocks+=requiredClocks;
 	}
 	refreshDisplay();	//since this function is called 60 times a second, refresh rate with be 60Hz. 
+	*/
 }
 
 void GameBoy::printRam(int maxAddr){

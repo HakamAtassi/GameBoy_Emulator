@@ -17,7 +17,7 @@ class GameBoy
         CPU cpu;
         PPU ppu;
         Cartridge cartridge;
-        bool * IME=new bool(false);	//Inetrrupt Master Enable, seperate from the Inerrupt Enable
+        bool * IME=new bool;	//Inetrrupt Master Enable, seperate from the Inerrupt Enable
 
     
         template<typename T> //such that it works with 8 and 16 bit uint
