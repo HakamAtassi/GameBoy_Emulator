@@ -14,7 +14,12 @@
 #define JOYPAD 0x60
 
 
-GameBoy::GameBoy(){};
+
+
+GameBoy::GameBoy():ram(new RAM){	//no cartridge... manually writing to ram
+	timers=Timers(ram);
+	cpu=CPU(ram,IME);
+};
 
 GameBoy::GameBoy(Cartridge _cartridge):ram(new RAM){
 	cartridge=_cartridge;
@@ -137,4 +142,31 @@ void GameBoy::printRam(int maxAddr){
 
 void GameBoy::printTitle(){
 	std::cout<<"Cartridge title: "<<cartridge.Title<<"\n";
+}
+
+
+uint8_t GameBoy::read(uint16_t addr){
+	return ram->read(addr);
+}
+
+void GameBoy::write(uint16_t addr, uint8_t data){	//for testing
+	return ram->write(addr,data);
+}
+
+void GameBoy::getRegs(){
+	cpu.getRegs();
+}
+uint8_t GameBoy::getInstruction(){
+	return cpu.getInstruction();
+}
+
+uint16_t GameBoy::getPC(){
+	cpu.getPC();
+}
+
+void GameBoy::printRamRange(uint16_t begin, uint16_t end){
+	printf("dumping ram from %X to %X\n",begin,end);
+	for(uint16_t i=begin;i<=end;i++){
+		printf("%X: %X\n",i,ram->read(i));
+	}
 }

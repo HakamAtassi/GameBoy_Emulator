@@ -50,6 +50,19 @@ class GameBoy
 		void refreshDisplay(); 
         void printRam(int maxAddr);
         void printTitle();
+
+        uint8_t read(uint16_t addr);
+        void write(uint16_t addr,uint8_t data);    //for testing
+        void getRegs();    //for testing
+        void printRamRange(uint16_t begin, uint16_t end);   //for testing
+
+
+        uint8_t getInstruction();    //return the next instruction to be executed
+        uint16_t getPC();
+
+        //TODO: read SB
+
+
 };
 
 

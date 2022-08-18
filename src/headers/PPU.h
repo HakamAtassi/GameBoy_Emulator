@@ -21,13 +21,19 @@ class PPU
 		//	The result is the exact color each pixel should be once rendered. 
 		//	Note that the right bit is the MSB for each pixel. first byte is LSB. 
 		//	(remember, 4 possible colors for each pixel (gray scale))
+		/*===========================================================================*/
+		/*Total video memory is from 0x8000 to 0x9FFF*/
+		/*Tile Data from 0x8000 to 0x97FF*/
+		/*Tile Map 1 is from 0x9800 to 0x9BFF*/
+		/*Tile Map 2 is from 0x9C00 to 0x9FFF*/
+
 
     public:
         PPU();
         void updateGraphics(int requiredClocks);
 
 	private:
-		uint16_t combineTileBytes(uint8_t left, uint8_t right);	//combines the two bytes of vram
+		uint16_t combineTileBytes(uint8_t left, uint8_t right);	//combines the two bytes of vram to draw an 8 pixel line
 };
 
 

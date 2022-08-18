@@ -1,0 +1,23 @@
+ld_r_r_gb_txt instructions
+
+
+PC      opcode    instruction   output (actual)     output (expected) 
+0x100   0x00      nop           NA                  NA
+0x101   0xC3      jp a16        PC=0x213            
+0x213   0x21      ld, hl, d16   hl=0x4000           hl=0x4000
+0x216   0xC3      jp a16        PC=0x200            PC=0x200
+0x200   0x47      ld b, a      
+0x201   0x11      ld, DE, d16   DE=0xC000           DE=0xC000
+0x204   0x0E      ld, c, d8     C=0x10     
+0x206   0x2A      ld, A, (HL+)
+0x207   0x12      ld, (DE), a
+0x208   0x1C      INC E
+0x209   0x20      jr NZ, s8     PC=PC-5
+; This copies contents from 0x4000 to 0xC000
+
+... [repeat till E = 0 (overflow)]
+0x20B   0x14      inc D
+0x20C   0x0D      dec C 
+0x20D   0x20      jp NZ, S8     PC=PC-9
+0x20F   0x78      LD A, B       
+0x210   0xC3      jp a16        0xC000

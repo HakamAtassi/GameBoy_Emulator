@@ -20,6 +20,8 @@ class CPU {
 		void loadRom(std::string rom);
 		int fetchExecute();
 		uint16_t getPC();
+		uint16_t getInstruction();
+
 		void setPC(uint16_t _PC);
 
 
