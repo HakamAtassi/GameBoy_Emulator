@@ -30,12 +30,10 @@ int main(){
         printf("Instruction: %X\n",gameboy.read(gameboy.getPC()));
         gameboy.update();
         std::cout<<"\n";
-        if(gameboy.getPC()==0xC000){
+        if(gameboy.getPC()==0xC06A){
             printf("Executing Wram Tests\n");
         }
-        if(gameboy.read(SC)==0x81){
-            printf("SB: %X\n",gameboy.read(SB));
-        }
+
     }
     gameboy.printRamRange(0xC000,0xCC70);
     gameboy.getRegs();
