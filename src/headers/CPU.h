@@ -86,8 +86,10 @@ class CPU {
 		int ld_reg_reg(uint8_t &reg1, uint8_t reg2); // load contents of reg2 into reg1
 		int ld_reg_d8(uint8_t &reg);    // load 8 bit immediate into register
 		int ld_reg_d16(uint16_t &reg1); // load 16 bit immediate into register
-		int ld_mem_a(uint16_t &addr);   // load A into memory address
-
+		int ld_mem_a(uint16_t &addr);   // load A into memory address (reg)
+										//ie: ld (BC) a
+		
+		
 		int jr(bool condition);
 
 		int inc_reg(uint8_t &reg);

@@ -692,12 +692,14 @@ int CPU::rlca() { // 0x07
 
 int CPU::ld_a16_sp() { // 0x08
 	int cycles = 20;
-	uint16_t a16 = ram->read(PC);
+	printf("==LOAD SP INTO MEM==\n");
+	uint16_t addr=ram->read(PC);
 	PC++;
-	a16 |= ram->read(PC) << 8;
+	addr=ram->read(PC)<<8;
 	PC++;
-	ram->write(a16, SP & 0x00FF);
-	ram->write(a16 + 1, (SP & 0xFF00) >> 8);
+	printf("Before: %X\n",ram->read(addr));
+	ram->write(addr,SP);
+	printf("After: %X\n",ram->read(addr));
 	return 0;
 }
 
@@ -1727,10 +1729,12 @@ int CPU::rst_3() { // 0xDF
 /*0xE0*/
 int CPU::ld_a8_a() {	//0xE0
 	cycles=12;
-	uint8_t a8=ram->read(PC);
-	uint16_t addr=(a8|0xFF00);
+	printf("==LOAD A INTO MEM==\n");
+	uint8_t addr=ram->read(PC);
 	PC++;
+	printf("Before: %X\n",ram->read(addr));
 	ram->write(addr,regs.A);
+	printf("After: %X\n",ram->read(addr));
 	return 0;
 }
 int CPU::pop_hl() {	//0xE1
@@ -1767,12 +1771,17 @@ int CPU::jp_hl() {	//0xE7
 	PC=regs.HL;
 	return 0;
 }
-int CPU::ld_a16_a() {	//0xEA
+int CPU::ld_a16_a() {	//0xEA	TODO: add prints to test instruction
 	cycles=16;
-	ram->write(PC, regs.A&0x00FF);
+	printf("==LOAD A INTO MEM==\n");
+	uint16_t addr=ram->read(PC);
 	PC++;
-	ram->write(PC, (regs.A&0xFF00)>>8);
+	addr=ram->read(PC)<<8;
 	PC++;
+	printf("Before: %X\n",ram->read(addr));
+	ram->write(addr,regs.A);
+	printf("After: %X\n",ram->read(addr));
+
 	return 0;
 }
 int CPU::xor_d8() {	//0xEE
