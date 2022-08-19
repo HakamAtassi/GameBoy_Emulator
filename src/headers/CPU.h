@@ -118,8 +118,8 @@ class CPU {
 		int _or(uint16_t &reg1, uint16_t &reg2);
 		int _or(uint8_t &reg1, uint8_t &reg2);
 
-		int cp(uint16_t &reg1, uint16_t &reg2);
-		int cp(uint8_t &reg1, uint8_t &reg2);
+		int cp(uint16_t reg1, uint16_t reg2);
+		int cp(uint8_t reg1, uint8_t reg2);
 
 		int BIT(int bit, uint8_t & reg);
 
@@ -139,9 +139,8 @@ class CPU {
 
 		int pop(uint16_t &reg1);	//pop from stack
 		int push(uint16_t &reg1);	//push to stack
-		int retZC(bool condition);	//ret based on Z or C condition
 		int rst(int index);	
-		int _ret(); // there is already an opcode called RET.
+		int _ret(bool condition); // there is already an opcode called RET.
 
 		int jp_a16(bool condition);	//jump to immediate
 		int call(bool condition);	//pushes next instruction to stack, jumps, then returns controll

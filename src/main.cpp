@@ -3,6 +3,8 @@
 #include <iostream>
 
 #define SB 0xFF01
+#define SC 0xFF02
+
 
 
 int main(){
@@ -19,8 +21,8 @@ int main(){
         //load (a16/a8) A/SP
 
     //things to look at:
-        //CALL
-        //RET
+        //CALL a16
+        //RET and its variations
 
     while(1){
 
@@ -30,6 +32,9 @@ int main(){
         std::cout<<"\n";
         if(gameboy.getPC()==0xC000){
             printf("Executing Wram Tests\n");
+        }
+        if(gameboy.read(SC)==0x81){
+            printf("SB: %X\n",gameboy.read(SB));
         }
     }
     gameboy.printRamRange(0xC000,0xCC70);
