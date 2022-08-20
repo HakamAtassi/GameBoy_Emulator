@@ -9,44 +9,53 @@
 #include <memory>
 
 class CPU {
+
+	/*System interface*/
 	public:
 		CPU();
 		CPU(RAM * _ram, bool * IME);
-		
-		void write(uint16_t addr, uint8_t data); 
-		void read(uint16_t addr); 
-		void getRegs();
-
-		void loadRom(std::string rom);
 		int fetchExecute();
+
+	/*For testing*/
+	public:
+		void setPC(uint16_t _PC);
 		uint16_t getPC();
 		uint16_t getInstruction();
-		void pushWordToStack(uint16_t data);
-		uint16_t PopWordOffStack();
-		uint16_t readWord() const;
-
-
-		void setPC(uint16_t _PC);
+		void getRegs();
 
 
 	private:
-
+		/*Shared system memory*/
 		RAM * ram;
-		// registers
+
+
+		/*Registers*/
 		Registers regs;
 		uint16_t PC = 0; // program counter
 		uint16_t SP = 0; // stack pointer
 		uint8_t instruction = 0;
-		bool * IME;	//Interrupt master switch. 
-					//since the GameBoy class handels intrrupts but CPU instructions can 
-					//toggle the IME
 
-		//LUTs for opcodes
-		std::vector<int (CPU::*)(void)> opcodeLUT;
-		std::vector<int (CPU::*)(void)> opcodeLUTCB; // functions for CB indext instructions
 
+		/*Interrupt Master Switch*/
+		bool * IME;
+
+
+		/*ROM Header info*/
+		uint8_t checksum=0;
+		uint8_t cartridgeType=0;	//defines the cartridges mapper
+									//0x00: ROM only
+									//0x01 MBC1...
+		uint8_t romSize=0;			//"This byte indicates how much ROM is present on the cartridge."
+									//rom size in KB (1024 bits)
+		uint8_t ramSize=0;			//amount of additional ram on cartridge
+		std::string Title;			//Cartridge name (ie: Tetris, Dr.Mario, etc...)
+		uint8_t CGBFlag=0;
+		uint8_t SGBFlag=0;
+
+
+		/*Non physical headers*/
 		int cycles=0;	//number of cycles to wait for current instruction
-		bool flagCB = 0; // flag is set when 0xCB is read as an instruction
+		bool flagCB=0; // flag is set when 0xCB is read as an instruction
 							// set, => use CB indexed instruction
 							// unset
 							// interrupts not enabled when this value is set
@@ -54,45 +63,35 @@ class CPU {
 							// cycle count (CPU is multicycle. A new instruction is executed only when
 							// this is 0)
 
-		//ROM header data
-		uint8_t checksum=0;
-		uint8_t cartridgeType=0;	//defines the cartridges mapper
-									//0x00: ROM only
-									//0x01 MBC1...
-		uint8_t romSize=0;			//"This byte indicates how much ROM is present on the cartridge."
-									//rom size in KB (1024 bits)
-		
-		uint8_t ramSize=0;			//amount of additional ram on cartridge
-		std::string Title;
-		uint8_t CGBFlag=0;
-		uint8_t SGBFlag=0;
+		/*Look up tables*/
+		std::vector<int (CPU::*)(void)> opcodeLUT;
+		std::vector<int (CPU::*)(void)> opcodeLUTCB; // functions for CB indexed instructions
 
 
-		
+		/*Execution*/
+		void fetch();
+		void execute();
+
+
+		/*Interrupts*/
+		void requestInterrupt(int interrupt);	//set interrupt bit after timing, joystick, etc events
+
+
 		/*Helpers*/
+		void pushWordToStack(uint16_t data);
+		uint16_t popWordOffStack();
+		uint16_t readWord() const;
 		bool testBit(uint8_t data, int bit);	
 		uint8_t bitSet(uint8_t data, int bit);	
 
 
-		void fetch();
-		void execute();
-
-		void requestInterrupt(int interrupt);	//set interrupt bit after timing, joystick, etc events
-
-		void initCartHeader();	//rom containens important information from 0x0100 to 0x14F
-								//initilize those values and set correct values (like checksum and flags)
-
-		// base instructions
-		// these instructions form the bases of (almost) all the opcodes.
-		//table 1 instruction helpers below
-		//  ld_destination_source  //
+	/*Instruction "templates"*/
+	private:
 		int ld_reg_addr(uint8_t &reg1, uint8_t data);	//load data to reg1. Helper function
 		int ld_reg_reg(uint8_t &reg1, uint8_t reg2); // load contents of reg2 into reg1
 		int ld_reg_d8(uint8_t &reg);    // load 8 bit immediate into register
 		int ld_reg_d16(uint16_t &reg1); // load 16 bit immediate into register
 		int ld_mem_a(uint16_t &addr);   // load A into memory address (reg)
-										//ie: ld (BC) a
-		
 		
 		int jr(bool condition);
 
@@ -130,7 +129,6 @@ class CPU {
 		int rlc(uint8_t & reg);
 		int rrc(uint8_t & reg);
 
-
 		int rl(uint8_t & reg);
 		int rr(uint8_t & reg);
 
@@ -143,29 +141,20 @@ class CPU {
 
 		int pop(uint16_t &reg1);	//pop from stack
 		int push(uint16_t &reg1);	//push to stack
+
+		
 		int rst(int index);	
 		int _ret(bool condition); // there is already an opcode called RET.
 
 		int jp_a16(bool condition);	//jump to immediate
 		int call(bool condition);	//pushes next instruction to stack, jumps, then returns controll
 
-/*
-		int rlc(uint8_t & reg);
-		int rrc(uint8_t & reg);
-		int rl(uint8_t & reg);
-		int rr(uint8_t & reg);
-
-		int sla(uint8_t & reg);
-		int sra(uint8_t & reg);
-		
-		int swap(uint8_t & reg);
-		int srl(uint8_t & reg);
-*/
-
 		int res(uint8_t & reg, int pos);
 		int set(uint8_t & reg, int pos);
 
-		// 8 bit opcodes
+
+	/*Instructions*/
+	private:
 		/*0x00*/
 		int nop();
 		int ld_bc_d16();
@@ -733,7 +722,6 @@ class CPU {
 		int set_7_l();
 		int set_7_hl();
 		int set_7_a();
-
 };
 
 #endif

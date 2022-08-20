@@ -9,6 +9,8 @@
 #define INTERRUPT_FLAGS 0xFF0F
 
 
+
+/*System interface*/
 CPU::CPU(){};
 
 
@@ -69,41 +71,30 @@ CPU::CPU(RAM * _ram, bool * _IME):ram(_ram),IME(_IME){
 			&CPU::set_6_b, &CPU::set_6_c, &CPU::set_6_f,  &CPU::set_6_e,&CPU::set_6_h, &CPU::set_6_l, &CPU::set_6_hl, &CPU::set_6_a,&CPU::set_7_b, &CPU::set_7_c, &CPU::set_7_f,  &CPU::set_7_e,&CPU::set_7_h, &CPU::set_7_l, &CPU::set_7_hl, &CPU::set_7_a
 	};
 }
-
-bool CPU::testBit(uint8_t data, int bit){
-	return (data&(1<<bit));
+int CPU::fetchExecute(){
+	fetch();
+	execute();
+	return cycles;
 }
-
-uint8_t CPU::bitSet(uint8_t data, int bit){
-	return (data|(1<<bit));
+/*For testing*/
+void CPU::setPC(uint16_t _PC){
+	PC=_PC;
 }
-
-void CPU::pushWordToStack(uint16_t data){
-
-	uint8_t hi = data >> 8 ;
-	uint8_t lo = data & 0xFF;
-	SP-- ;
-	ram->write(SP, hi) ;
-	SP-- ;
-	ram->write(SP,lo) ;
+uint16_t CPU::getPC(){
+	return PC;
 }
-
-uint16_t CPU::PopWordOffStack(){
-	uint16_t word = ram->read(SP+1) << 8 ;
-	word |= ram->read(SP) ;
-	SP+=2 ;
-	return word ;
+uint16_t CPU::getInstruction(){
+	return instruction;
 }
-uint16_t CPU::readWord() const{
-	uint16_t res = ram->read(PC+1) ;
-	res = res << 8 ;
-	res |= ram->read(PC) ;
-	return res ;
+void CPU::getRegs(){
+	printf("AF: %X\n",regs.AF);
+	printf("BC: %X\n",regs.BC);
+	printf("DE: %X\n",regs.DE);
+	printf("HL: %X\n",regs.HL);
 }
 
 
-
-
+/*Execution*/
 void CPU::fetch() {
 	instruction = ram->read(PC);
 	PC++;
@@ -125,14 +116,11 @@ void CPU::fetch() {
 		instruction = ram->read(PC);
 		PC++;
 	}
-
 }
-
 void CPU::execute() { // dont forget interrupts
-				// use correct lookup table
+					// use correct lookup table
 	if (flagCB == 0) {
 		(this->*opcodeLUT[instruction])();
-
 	} 
 	else {
 		(this->*opcodeLUTCB[instruction])();
@@ -140,43 +128,45 @@ void CPU::execute() { // dont forget interrupts
 	}
 }
 
-int CPU::fetchExecute(){
-	fetch();
-	execute();
-	return cycles;
+
+/*Interrupts*/
+void CPU::requestInterrupt(int interrupt){
+
 }
 
-uint16_t CPU::getInstruction(){
-	return instruction;
+
+/*Helpers*/
+void CPU::pushWordToStack(uint16_t data){
+
+	uint8_t hi = data >> 8 ;
+	uint8_t lo = data & 0xFF;
+	SP-- ;
+	ram->write(SP, hi) ;
+	SP-- ;
+	ram->write(SP,lo) ;
 }
-
-uint16_t CPU::getPC(){
-	return PC;
+uint16_t CPU::popWordOffStack(){
+	uint16_t word = ram->read(SP+1) << 8 ;
+	word |= ram->read(SP) ;
+	SP+=2 ;
+	return word ;
 }
-
-void CPU::setPC(uint16_t _PC){
-	PC=_PC;
+uint16_t CPU::readWord() const{
+	uint16_t res = ram->read(PC+1) ;
+	res = res << 8 ;
+	res |= ram->read(PC) ;
+	return res ;
 }
-
-void CPU::write(uint16_t addr, uint8_t data){
-	ram->write(addr,data);
+bool CPU::testBit(uint8_t data, int bit){
+	return (data&(1<<bit));
 }
-
-void CPU::read(uint16_t addr){
-	//printf("%X: %X  ",addr,ram->read(addr));
-}
-
-void CPU::getRegs(){
-	//printf("AF: %X\n",regs.AF);
-	//printf("BC: %X\n",regs.BC);
-	//printf("DE: %X\n",regs.DE);
-	//printf("HL: %X\n",regs.HL);
-
+uint8_t CPU::bitSet(uint8_t data, int bit){
+	return (data|(1<<bit));
 }
 
 
 /*===========================================*/
-/*Implementation of helper instructions below*/
+/***********Instruction "templates"***********/
 /*===========================================*/
 int CPU::ld_reg_addr(uint8_t &reg1, uint8_t data) {	//TODO: misleading name
 	//printf("==LOAD REG FROM MEM==\n");
@@ -184,7 +174,6 @@ int CPU::ld_reg_addr(uint8_t &reg1, uint8_t data) {	//TODO: misleading name
 	reg1 = data;
 	return 0;
 }
-
 int CPU::ld_reg_reg(uint8_t &reg1, uint8_t reg2) {
 	//printf("==LOAD FROM REG==\n");
 	//printf("Before: Reg1: %x, Reg2: %x\n", reg1,reg2);
@@ -193,7 +182,6 @@ int CPU::ld_reg_reg(uint8_t &reg1, uint8_t reg2) {
 	//printf("After: Reg1: %x, Reg2: %x\n",reg1,reg2);
 	return 0;
 }
-
 int CPU::ld_reg_d8(uint8_t &reg) {
 	//printf("==LOAD FROM MEM==\n");
 	//printf("Before: Reg1: %X\n",reg);
@@ -202,14 +190,11 @@ int CPU::ld_reg_d8(uint8_t &reg) {
 	PC++;
 	reg = imm;
 	//printf("After: Reg1: %X\n",reg);
-
 	return 0;
 }
-
 int CPU::ld_reg_d16(uint16_t &reg1) {
 	//printf("==LOAD FROM MEM==\n");
 	//printf("Before: Reg1: %X\n",reg1);
-
 	cycles = 12;
 	uint16_t data = readWord();
 	PC+=2;
@@ -221,7 +206,6 @@ int CPU::ld_reg_d16(uint16_t &reg1) {
 int CPU::inc_reg(uint8_t &reg) {
 	//printf("==INCREMENT REG==\n");
 	uint8_t before = reg ;
-
 	reg++;
 	regs.zero=(reg==0);
 	regs.negative=0;
@@ -229,7 +213,6 @@ int CPU::inc_reg(uint8_t &reg) {
 		regs.halfCarry=1;
 	else
 		regs.halfCarry=0;
-
 	//printf("After Reg1: %X\n",reg);
 }
 
@@ -253,7 +236,6 @@ int CPU::dec_reg(uint8_t &reg) {
 		regs.halfCarry=1;
 	else
 		regs.halfCarry=0;
-
 	//printf("After: reg: %X\n", reg);
 
 }
@@ -332,9 +314,6 @@ int CPU::sub(uint8_t &reg1, uint8_t &reg2) {
 	regs.negative = 1;
 	return 0;
 }
-
-
-
 int CPU::sbc(uint8_t &reg1, uint8_t &reg2) {
 	//printf("==SBC==\n");
 	cycles=4;
@@ -368,7 +347,6 @@ int CPU::_and(uint8_t &reg1, uint8_t &reg2) {
 }
 int CPU::_xor(uint16_t &reg1, uint16_t &reg2) {
 	//printf("==XOR==\n");
-
 	reg1 ^= reg2;
 	regs.carry = 0;
 	regs.halfCarry = 0;
@@ -451,7 +429,7 @@ int CPU::BIT(int bit, uint8_t & reg){
 int CPU::pop(uint16_t &reg1) {
 	cycles=12;
 	//printf("==POP REG FROM STACK==\n");
-	uint16_t data=PopWordOffStack();
+	uint16_t data=popWordOffStack();
 	reg1 =data;
 	//printf("TOS is %X\n",data);
 	return 0;
@@ -459,15 +437,11 @@ int CPU::pop(uint16_t &reg1) {
 
 int CPU::push(uint16_t &reg1) {
 	//printf("==PUSH REG TO STACK==\n");
-
 	cycles=16;
 	//push pc to stack then jump
 	pushWordToStack(reg1);
 	return 0;
 }
-
-
-
 int CPU::rst(int index) {
 	//printf("==RST==\n");
 	cycles = 16;
@@ -479,21 +453,17 @@ int CPU::rst(int index) {
 	PC |= ram->read(0x8 * index);
 	return 0;
 }
-
 int CPU::_ret(bool condition) {
 	cycles = 16;
 	//printf("==RETURNING==\n");
 	if(condition){
-		PC = PopWordOffStack() ;
+		PC = popWordOffStack() ;
 		//printf("Return address=%X\n",PC);
 		return 0;
 	}
 		//printf("Condition false\n");
-
-
 	return 0;
 }
-
 int CPU::jp_a16(bool condition){
 	//printf("==Jump==\n");
 	//printf("PC before: %X\n",PC);
@@ -509,8 +479,6 @@ int CPU::jp_a16(bool condition){
 	//printf("PC after: %X\n",PC);
 	return 0;
 }
-
-
 int CPU::call(bool condition){	
 	//printf("==CALL==\n");
 	cycles+=12 ;
@@ -522,11 +490,8 @@ int CPU::call(bool condition){
 		pushWordToStack(PC) ;
 		PC = nn ;
 	}
-
 	return 0;
 }
-
-
 int CPU::rlc(uint8_t & reg){
 	//printf("==rlc==\n");
 
@@ -538,7 +503,6 @@ int CPU::rlc(uint8_t & reg){
 	regs.negative=0;
 	regs.halfCarry=0;
 	return 0;
-	
 }
 int CPU::rrc(uint8_t & reg){
 	//printf("==rrc==\n");
@@ -554,19 +518,14 @@ int CPU::rrc(uint8_t & reg){
 }
 
 //these next few instructions implementations are stolen from CodeSlinger. 
-
 //TODO: add cycles to these instructions
 int CPU::rl(uint8_t & reg){
 	// WHEN EDITING THIS FUNCTION ALSO EDIT CPU_RL_MEMORY
 	//printf("==rl==\n");
-
 	bool isCarrySet = (regs.carry==1) ;
 	bool isMSBSet = testBit(reg, 7) ;
-
 	regs.F = 0 ;
-
 	reg <<= 1 ;
-
 	if (isMSBSet)
 		regs.carry=1 ;
 
@@ -579,77 +538,54 @@ int CPU::rl(uint8_t & reg){
 int CPU::rr(uint8_t & reg){
 	// WHEN EDITING THIS ALSO EDIT CPU_RR_MEMORY
 	//printf("==rr==\n");
-
 	bool isCarrySet = (regs.carry==1) ;
 	bool isLSBSet = testBit(reg, 0) ;
-
 	regs.F = 0 ;
-
 	reg >>= 1 ;
-
 	if (isLSBSet)
 		regs.carry=1 ;
-
 	if (isCarrySet)
 		reg = bitSet(reg, 7) ;
-
 	if (reg == 0)
 		regs.F = (regs.zero==1) ;
 }
 int CPU::sla(uint8_t & reg){
 	// WHEN EDITING THIS ALSO EDIT CPU_SLA_MEMORY
 	//printf("==SLA==\n");
-
-
 	bool isMSBSet = testBit(reg, 7);
-
 	reg <<= 1;
-
 	regs.F = 0 ;
-
 	if (isMSBSet)
 		regs.carry=1 ;
-
 	if (reg == 0)
 		regs.F = (regs.zero==1) ;
 }
 int CPU::sra(uint8_t & reg){
 	// WHEN EDITING THIS FUNCTION ALSO EDIT CPU_SRA_MEMORY
 	//printf("==SRA==\n");
-
-
 	bool isLSBSet = testBit(reg,0) ;
 	bool isMSBSet = testBit(reg,7) ;
-
 	regs.F = 0 ;
-
 	reg >>= 1;
-
 	if (isMSBSet)
 		reg = bitSet(reg,7) ;
 	if (isLSBSet)
 		regs.carry=1 ;
-
 	if (reg == 0)
 		regs.F = (regs.zero==1) ;
 }
 int CPU::swap(uint8_t & reg){
 	//printf("==swap==\n");
-
+	//TODO: implement this
 }
 int CPU::srl(uint8_t & reg){
 	//WHEN EDITING THIS FUNCTION ALSO EDIT CPU_SRL_MEMORY
 	//printf("==SRL==\n");
-
 	bool isLSBSet = testBit(reg,0) ;
-
 	regs.F = 0 ;
-
 	reg >>= 1;
-
 	if (isLSBSet)
 		regs.carry=1 ;
-
 	if (reg == 0)
 		regs.F = (regs.zero==1) ;
 }
@@ -671,24 +607,10 @@ int CPU::set(uint8_t & reg, int pos){ //set bit at offset
 	return 0;
 }
 
-/*===========================================*/
-/*Implementation of helper instructions above*/
-/*===========================================*/
-///////////////////////////////////////////////////
-/*=========================================*/
-/*Implementation table 1 instructions below*/
-/*=========================================*/
 
-
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
+/*=========================================*/
+/****************Instructions***************/
+/*=========================================*/
 /*===============================LOAD INSTUCTIONS===============================*/
 /*ld reg, d16*/
 int CPU::ld_bc_d16() { // 0x01
@@ -1168,15 +1090,8 @@ int CPU::ld_hl_sp_s8() {	//0xF8
 
 	return 0;
 }
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
+
+
 /*===============================JUMP INSTRUCTIONS===============================*/
 int CPU::jr_s8() { // 0x18
 	jr(1);
@@ -1226,15 +1141,7 @@ int CPU::jp_hl() {	//0xE9
 	return 0;
 }
 
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
+
 /*===============================CALL INSTRUCTIONS===============================*/
 int CPU::call_nz_a16() {	//0xC4
 	call(regs.zero==0);
@@ -1256,15 +1163,8 @@ int CPU::call_c_a16() { // 0xDC
 	call(regs.carry==1);
 	return 0;
 }
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
+
+
 /*===============================RETURN INSTRUCTIONS===============================*/
 int CPU::ret_nz() {	//0xC0
 	_ret(regs.zero==0);
@@ -1293,15 +1193,8 @@ int CPU::reti() { // 0xD8
 	}
 	return 0;
 }
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
+
+
 /*===============================INC INSTRUCTIONS===============================*/
 int CPU::inc_bc() { // 0x03
 	inc_reg(regs.BC);
@@ -1356,15 +1249,7 @@ int CPU::inc_a() { // 0x3C
 	inc_reg(regs.A);
 	return 0;
 }
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
+
 /*===============================DEC INSTRUCTIONS===============================*/
 int CPU::dec_b() { // 0x05
 	dec_reg(regs.B);
@@ -1418,15 +1303,8 @@ int CPU::dec_a() { // 0x3D
 	dec_reg(regs.A);
 	return 0;
 }
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
+
+
 /*===============================PUSH INSTRUCTIONS===============================*/
 int CPU::push_bc() {	//0xC5
 	push(regs.BC);
@@ -1444,15 +1322,8 @@ int CPU::push_af() {	//0xF5
 	push(regs.AF);
 	return 0;
 }
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
+
+
 /*===============================POP INSTRUCTIONS===============================*/
 int CPU::pop_bc() {	//0xC1
 	pop(regs.BC);
@@ -1470,7 +1341,10 @@ int CPU::pop_af() {	//0xF1
 	pop(regs.AF);
 	return 0;
 }
-/////////////////////////
+
+
+/*===============================MISC INSTRUCTIONS===============================*/
+
 int CPU::nop() { // 0x00
 	//printf("NOP\n");
 	cycles = 4;
@@ -1494,20 +1368,10 @@ int CPU::rlca() { // 0x07
 						  // carry bit
 	return 0;
 }
-
-
-
 int CPU::add_hl_bc() { // 0x09
 	add(regs.HL, regs.BC);
 	return 0;
 }
-
-
-
-
-
-
-
 int CPU::rrca() { // 0x0F
 	cycles = 4;
 	regs.zero = 0;
@@ -1518,11 +1382,9 @@ int CPU::rrca() { // 0x0F
 	regs.A |= regs.carry;
 	return 0;
 }
-
 int CPU::stop() { // 0x10
 	return 0;
 }
-
 int CPU::rla() { // 0x17
 				 // possible error
 	cycles=4;
@@ -1537,13 +1399,10 @@ int CPU::rla() { // 0x17
 	regs.A |= carry;
 	return 0;
 }
-
-
 int CPU::add_hl_de() { // 0x19
 	add(regs.HL, regs.DE);
 	return 0;
 }
-
 int CPU::rra() { // 0x1F
 	cycles=4;
 	//printf("===RRA===\n");
@@ -1569,7 +1428,6 @@ int CPU::rra() { // 0x1F
 
 	return 0;
 }
-
 //Stolen from CodeSlinger who stole it from someone else
 int CPU::daa() { // 0x27
 	cycles=4;
@@ -1598,14 +1456,22 @@ int CPU::daa() { // 0x27
 
 	return 0;
 }
-
-
+int CPU::di() {	//0xF3
+	cycles=4;
+	//TODO: probably some waiting I need to do here since change doesnt affect next instruction
+	*IME=false;
+	return 0;
+}
+int CPU::ei() {	//0xFB
+	cycles=4;
+	*IME=true;
+	return 0;
+}
 
 int CPU::add_hl_hl() { // 0x29
 	add(regs.HL, regs.HL);
 	return 0;
 }
-
 int CPU::cpl() { // 0x2F
 	cycles = 4;
 	regs.A = ~regs.A;
@@ -1613,7 +1479,6 @@ int CPU::cpl() { // 0x2F
 	regs.halfCarry = 1;
 	return 0;
 }
-
 int CPU::scf() { // 0x37
 	cycles = 4;
 
@@ -1623,12 +1488,10 @@ int CPU::scf() { // 0x37
 	regs.zero = 0;
 	return 0;
 }
-
 int CPU::add_hl_sp() { // 0x39
 	add(regs.HL, SP);
 	return 0;
 }
-
 int CPU::ccf() { // 0x3F
 	cycles = 4;
 	regs.negative = 0;
@@ -1636,8 +1499,7 @@ int CPU::ccf() { // 0x3F
 	regs.carry = ~regs.carry;
 	return 0;
 }
-
-/*0x80 instructions*/
+/*===============================ADD INSTRUCTIONS===============================*/
 int CPU::add_a_b() { // 0x80
 	add(regs.A, regs.B);
 	return 0;
@@ -1674,6 +1536,19 @@ int CPU::add_a_a() { // 0x87
 	add(regs.A, regs.A);
 	return 0;
 }
+int CPU::add_a_d8() {	//0xC6
+	uint8_t data=ram->read(PC);
+	PC++;
+	add(regs.A,data);
+	cycles=8;	//TODO: dont override the cycles set by the helper function
+	return 0;
+}
+int CPU::add_sp_s8() {	//0xE6
+	//TODO: IMPLEMENT THIS
+	PC++;
+	return 0;
+}
+/*===============================ADC INSTRUCTIONS===============================*/
 int CPU::adc_a_b() { // 0x88
 	adc(regs.A, regs.B);
 	return 0;
@@ -1714,7 +1589,7 @@ int CPU::adc_a_d8() {	//0xCE
 	return 0;
 }
 
-/*0x90 instructions*/
+/*===============================SUB INSTRUCTIONS===============================*/
 int CPU::sub_b() { // 0x90
 	sub(regs.A, regs.B);
 	return 0;
@@ -1748,6 +1623,9 @@ int CPU::sub_a() { // 0x97
 	sub(regs.A, regs.A);
 	return 0;
 }
+
+
+/*===============================SBC INSTRUCTIONS===============================*/
 int CPU::sbc_a_b() { // 0x98
 	sbc(regs.A, regs.B);
 	return 0;
@@ -1781,8 +1659,13 @@ int CPU::sbc_a_a() { // 0x9F
 	sbc(regs.A, regs.A);
 	return 0;
 }
-
-/*0xA0 instructions*/
+int CPU::sbc_a_d8() { // 0xDE
+	uint8_t data=ram->read(PC);
+	PC++;
+	sbc(regs.A,data);
+	return 0;
+}
+/*===============================AND INSTRUCTIONS===============================*/
 int CPU::and_b() { // 0xA0
 	_and(regs.A, regs.B);
 	return 0;
@@ -1824,6 +1707,8 @@ int CPU::and_d8() {	//0xE6
 	return 0;
 }
 
+
+/*===============================XOR INSTRUCTIONS===============================*/
 int CPU::xor_b() { // 0xA8
 	_xor(regs.A, regs.B);
 	return 0;
@@ -1864,7 +1749,9 @@ int CPU::xor_d8() {	//0xEE
 	_xor(regs.A,data);
 	return 0;
 }
-/*0xB0 instructions*/
+
+
+/*===============================OR INSTRUCTIONS===============================*/
 int CPU::or_b() { // 0xB0
 	_or(regs.A, regs.B);
 	return 0;
@@ -1898,6 +1785,15 @@ int CPU::or_a() { // 0xB0
 	_or(regs.A, regs.A);
 	return 0;
 }
+int CPU::or_d8() {	//0xF6
+	uint8_t data=ram->read(PC);
+	PC++;
+	_or(regs.A,data);
+	return 0;
+}
+
+
+/*===============================CP INSTRUCTIONS===============================*/
 int CPU::cp_b() { // 0xB0
 	cp(regs.A, regs.B);
 	return 0;
@@ -1931,24 +1827,24 @@ int CPU::cp_a() { // 0xB0
 	cp(regs.A, regs.A);
 	return 0;
 }
-
-int CPU::add_a_d8() {	//0xC6
+int CPU::cp_d8() {	//0xFE
+	cycles=8;
 	uint8_t data=ram->read(PC);
 	PC++;
-	add(regs.A,data);
-	cycles=8;	//TODO: dont override the cycles set by the helper function
+	cp(regs.A,data);
 	return 0;
 }
+
+
+/*===============================RST INSTRUCTIONS===============================*/
 int CPU::rst_0() {	//0xC7
 	rst(0);
 	return 0;
 }
-
 int CPU::rst_1() {	//0xCF
 	rst(1);
 	return 0;
 }
-
 int CPU::sub_d8() { // 0xD5
 	uint8_t data=ram->read(PC);
 	PC++;
@@ -1959,63 +1855,20 @@ int CPU::rst_2() { // 0xD6
 	rst(2);
 	return 0;
 }
-
-int CPU::sbc_a_d8() { // 0xDE
-	uint8_t data=ram->read(PC);
-	PC++;
-	sbc(regs.A,data);
-	return 0;
-}
 int CPU::rst_3() { // 0xDF
 	rst(3);
 	return 0;
 }
-
 int CPU::rst_4() {	//0xE5
 	rst(4);
 	return 0;
 }
-int CPU::add_sp_s8() {	//0xE6
-	//TODO: IMPLEMENT THIS
-	PC++;
-	return 0;
-}
-
 int CPU::rst_5() {	//0xEF
 	rst(5);
 	return 0;
 }
-
-/*0xF0*/
-
-int CPU::di() {	//0xF3
-	cycles=4;
-	//TODO: probably some waiting I need to do here since change doesnt affect next instruction
-	*IME=false;
-	return 0;
-}
-
-int CPU::or_d8() {	//0xF6
-	uint8_t data=ram->read(PC);
-	PC++;
-	_or(regs.A,data);
-	return 0;
-}
 int CPU::rst_6() {	//0xF7
 	rst(6);
-	return 0;
-}
-
-int CPU::ei() {	//0xFB
-	cycles=4;
-	*IME=true;
-	return 0;
-}
-int CPU::cp_d8() {	//0xFE
-	cycles=8;
-	uint8_t data=ram->read(PC);
-	PC++;
-	cp(regs.A,data);
 	return 0;
 }
 int CPU::rst_7() {	//0xFF
@@ -2023,15 +1876,8 @@ int CPU::rst_7() {	//0xFF
 	return 0;
 }
 
-/*===========================================*/
-/*Implementation of table 1 instructions above*/
-/*===========================================*/
-///////////////////////////////////////////////////
-/*=========================================*/
-/*Implementation table 2 instructions below*/
-/*=========================================*/
 
-/*0x00*/
+/*===============================RLC INSTRUCTIONS===============================*/
 int CPU::rlc_b() {
 	rlc(regs.B);
 	return 0;
@@ -2063,6 +1909,9 @@ int CPU::rlc_a() {
 	rlc(regs.A);
 	return 0;
 }
+
+
+/*===============================RRC INSTRUCTIONS===============================*/
 int CPU::rrc_b() {
 	rrc(regs.B);
 	return 0;
@@ -2097,7 +1946,8 @@ int CPU::rrc_a() {
 	return 0;
 }
 
-/*0x01*/
+
+/*===============================RL INSTRUCTIONS===============================*/
 int CPU::rl_b() {
 	rl(regs.B);
 	return 0;
@@ -2131,6 +1981,9 @@ int CPU::rl_a() {
 	rl(regs.A);
 	return 0;
 }
+
+
+/*===============================RR INSTRUCTIONS===============================*/
 int CPU::rr_b() {
 	rr(regs.B);
 	return 0;
@@ -2165,7 +2018,8 @@ int CPU::rr_a() {
 	return 0;
 }
 
-/*0x02*/
+
+/*===============================SLA INSTRUCTIONS===============================*/
 int CPU::sla_b() {
 	sla(regs.B);
 	return 0;
@@ -2199,6 +2053,9 @@ int CPU::sla_a() {
 	sla(regs.A);
 	return 0;
 }
+
+
+/*===============================SRA INSTRUCTIONS===============================*/
 int CPU::sra_b() {
 	sra(regs.B);
 	return 0;
@@ -2233,7 +2090,8 @@ int CPU::sra_a() {
 	return 0;
 }
 
-/*0x03*/
+
+/*===============================SWAP INSTRUCTIONS===============================*/
 int CPU::swap_b() {
 	swap(regs.B);
 	return 0;
@@ -2267,6 +2125,9 @@ int CPU::swap_a() {
 	swap(regs.A);
 	return 0;
 }
+
+
+/*===============================SRL INSTRUCTIONS===============================*/
 int CPU::srl_b() {
 	srl(regs.B);
 	return 0;
@@ -2301,7 +2162,8 @@ int CPU::srl_a() {
 	return 0;
 }
 
-/*0x04*/
+
+/*===============================BIT INSTRUCTIONS===============================*/
 int CPU::bit_0_b() {
 	BIT(0,regs.B);
 	return 0;
@@ -2368,7 +2230,6 @@ int CPU::bit_1_a() {
 	BIT(1,regs.A);
 	return 0;
 }
-
 /*0x05*/
 int CPU::bit_2_b() {
 	BIT(2,regs.B);
@@ -2436,7 +2297,6 @@ int CPU::bit_3_a() {
 	BIT(3,regs.A);
 	return 0;
 }
-
 /*0x06*/
 int CPU::bit_4_b() {
 	BIT(4,regs.B);
@@ -2504,7 +2364,6 @@ int CPU::bit_5_a() {
 	BIT(5,regs.A);
 	return 0;
 }
-
 /*0x07*/
 int CPU::bit_6_b() {
 	BIT(6,regs.B);
@@ -2573,7 +2432,8 @@ int CPU::bit_7_a() {
 	return 0;
 }
 
-/*0x08*/
+
+/*===============================RES INSTRUCTIONS===============================*/
 int CPU::res_0_b() {
 	res(regs.B,0);
 	return 0;
@@ -2640,7 +2500,6 @@ int CPU::res_1_a() {
 	res(regs.A,1);
 	return 0;
 }
-
 /*0x09*/
 int CPU::res_2_b() {
 	res(regs.B,2);
@@ -2708,7 +2567,6 @@ int CPU::res_3_a() {
 	res(regs.A,3);
 	return 0;
 }
-
 /*0x0A*/
 int CPU::res_4_b() {
 	res(regs.B,4);
@@ -2776,7 +2634,6 @@ int CPU::res_5_a() {
 	res(regs.A,5);
 	return 0;
 }
-
 /*0x0B*/
 int CPU::res_6_b() {
 	res(regs.B,6);
@@ -2842,6 +2699,9 @@ int CPU::res_7_a() {
 	res(regs.A,7);
 	return 0;
 }
+
+
+/*===============================SET INSTRUCTIONS===============================*/
 /*0x0C*/
 int CPU::set_0_b() {
 	set(regs.B,0);
@@ -2907,7 +2767,6 @@ int CPU::set_1_a() {
 	set(regs.A,1);
 	return 0;
 }
-
 /*0x0D*/
 int CPU::set_2_b() {
 	set(regs.B,1);
