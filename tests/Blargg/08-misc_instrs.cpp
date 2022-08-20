@@ -13,7 +13,7 @@ int main(){
     GameBoy gameboy(cartridge);
     printf("Starting test\n\n");
 
-    while(1){
+    for(int i=0;i<1000000;i++){
         gameboy.update();
         if(gameboy.read(SC)==0x81){
             printf("%C",gameboy.read(SB));

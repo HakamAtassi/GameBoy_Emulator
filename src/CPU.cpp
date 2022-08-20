@@ -1033,9 +1033,7 @@ int CPU::ld_l_a() { // 0x6F
 	return 0;
 }
 int CPU::HALT() {	//0x76
-	while(1){
-
-    };
+	printf("HALT\n");
     //TODO: set HALT bool and do something with it
 }
 int CPU::ld_a_b() {	//0x78
@@ -1319,7 +1317,9 @@ int CPU::push_hl() {	//0xE5
 	return 0;
 }
 int CPU::push_af() {	//0xF5
-	push(regs.AF);
+	cycles=16;
+	uint16_t data = regs.AF&0xFFF0;
+	push(data);
 	return 0;
 }
 
