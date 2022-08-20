@@ -26,16 +26,18 @@ int main(){
 
     while(1){
 
-        printf("PC: %X\n",gameboy.getPC());
-        printf("Instruction: %X\n",gameboy.read(gameboy.getPC()));
+//        printf("PC: %X\n",gameboy.getPC());
+//        printf("Instruction: %X\n",gameboy.read(gameboy.getPC()));
         gameboy.update();
-        std::cout<<"\n";
-        if(gameboy.read(SB)!=0){
-            break;
+        //std::cout<<"\n";
+        if(gameboy.read(SC)==0x81){
+            printf("SB: %C\n",gameboy.read(SB));
+            gameboy.write(SC,0);
+            std::cout<<"\n";
         }
     }
 
-    gameboy.printRamRange(0x8000,0x9BFF);
+    //gameboy.printRamRange(0x8000,0x9BFF);
 
 
 
