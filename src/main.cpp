@@ -9,7 +9,7 @@
 
 int main(){
 
-    Cartridge cartridge("../ROMS/blargg_cpu_instrs/individual/ld_r_r.gb");
+    Cartridge cartridge("../ROMS/blargg_cpu_instrs/individual/04-op r,imm.gb");
     GameBoy gameboy(cartridge);
 
     //gameboy.printRam(0x0120);	printf("Before Reg1: %X",regs);
@@ -30,11 +30,12 @@ int main(){
         printf("Instruction: %X\n",gameboy.read(gameboy.getPC()));
         gameboy.update();
         std::cout<<"\n";
-        if(gameboy.getPC()==0xC06A){
-            printf("Executing Wram Tests\n");
+        if(gameboy.read(SC)!=0){
+            break;
         }
-
     }
+
+    
     gameboy.printRamRange(0xC000,0xCC70);
     gameboy.getRegs();
 

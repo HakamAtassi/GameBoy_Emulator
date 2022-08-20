@@ -21,6 +21,10 @@ class CPU {
 		int fetchExecute();
 		uint16_t getPC();
 		uint16_t getInstruction();
+		void pushWordToStack(uint16_t data);
+		uint16_t PopWordOffStack();
+		uint16_t readWord() const;
+
 
 		void setPC(uint16_t _PC);
 
