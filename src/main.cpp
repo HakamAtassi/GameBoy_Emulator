@@ -9,7 +9,7 @@
 
 int main(){
 
-    Cartridge cartridge("../ROMS/blargg_cpu_instrs/individual/ld_r_r.gb");
+    Cartridge cartridge("../ROMS/blargg_cpu_instrs/individual/04-op r,imm.gb");
     GameBoy gameboy(cartridge);
 
     //gameboy.printRam(0x0120);	printf("Before Reg1: %X",regs);
