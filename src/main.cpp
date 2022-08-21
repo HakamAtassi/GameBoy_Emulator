@@ -17,17 +17,9 @@ int main(){
     gameboy.printTitle();
     std::cout<<"\n";
 
-    //know bugs:
-        //load (a16/a8) A/SP
-
-    //things to look at:
-        //CALL a16
-        //RET and its variations
 
     while(1){
 
-//        printf("PC: %X\n",gameboy.getPC());
-//        printf("Instruction: %X\n",gameboy.read(gameboy.getPC()));
         gameboy.update();
         //std::cout<<"\n";
         if(gameboy.read(SC)==0x81){
@@ -37,7 +29,6 @@ int main(){
         }
     }
 
-    //gameboy.printRamRange(0x8000,0x9BFF);
 
 
 

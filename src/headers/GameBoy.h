@@ -22,9 +22,9 @@ class GameBoy
     
         template<typename T> //such that it works with 8 and 16 bit uint
         bool testBit(T data,int bitPos){
-            return (data&bitPos);
+            return (data&(1<<bitPos));
         }
-        void pushPC(uint16_t addr);
+        void pushWordToStack(uint16_t data);
         void setPC(uint16_t _PC);
 
         /**interrupt handeling**/
@@ -37,8 +37,8 @@ class GameBoy
 		*/
         void requestInterrupt(int interruptVal);    //sets bit corresponding to interrupt type
         void handleInterrupts(); //checks if ISR should be called
+        void updateHalt();      //checks halt status
         void ISR(int interruptVal);    //calls interrupt service routine
-
 
     public:
         GameBoy();

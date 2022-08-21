@@ -35,8 +35,8 @@ GameBoy::~GameBoy(){
 	delete IME;
 }
 
-void GameBoy::pushPC(uint16_t addr){	//TODO:a Implement this function
-
+void GameBoy::pushWordToStack(uint16_t data){	//TODO:a Implement this function
+	cpu.pushWordToStack(data);
 }
 
 void GameBoy::setPC(uint16_t _PC){
@@ -51,13 +51,13 @@ void GameBoy::requestInterrupt(int interruptVal){    //sets bit corresponding to
 }
 
 void GameBoy::handleInterrupts(){
-	if(*IME==true){
-		uint8_t interruptRequests=ram->read(INTERRUPT_FLAGS);
+	if((*IME)==true){
+		uint8_t interruptFlags=ram->read(INTERRUPT_FLAGS);
 		uint8_t interruptEnable=ram->read(INTERRUPT_ENABLE);
-		if(interruptRequests>0){	//dont handel interrupts if they are all 0
-			for(int i=0;i<5;i++){	//bit 0 is higest prio.
+		if(interruptFlags>0){	//dont handel interrupts if they are all 0
+			for(int i=0;i<8;i++){	//bit 0 is higest prio.
 				if(testBit<uint8_t>(interruptEnable,i)==true){	//is that intr. enabled
-					if(testBit<uint8_t>(interruptRequests,i)==true){	//is that intr. requested
+					if(testBit<uint8_t>(interruptFlags,i)==true){	//is that intr. requested
 						ISR(i);	//run isr for that interrupt
 					}
 				}
@@ -66,9 +66,17 @@ void GameBoy::handleInterrupts(){
 	}
 }
 
-void GameBoy::ISR(int interruptVal){
-	pushPC(cpu.getPC());	//save current state
+void GameBoy::updateHalt(){
+		uint8_t interruptRequests=ram->read(INTERRUPT_FLAGS);
+		uint8_t interruptEnable=ram->read(INTERRUPT_ENABLE);
+		if((interruptRequests&interruptEnable)>0){	//disable halt even if ime is false
+			cpu.setHalt(false);
+		}
+}
 
+void GameBoy::ISR(int interruptVal){
+	pushWordToStack(cpu.getPC());	//save current state
+	cpu.setHalt(false);
 	*IME=false;
 	uint8_t interruptRequests=ram->read(INTERRUPT_FLAGS);
 	uint8_t interruptEnable=ram->read(INTERRUPT_ENABLE);
@@ -117,20 +125,20 @@ void GameBoy::update(){
 	//60 updates per second (to achive a refresh rate of 60hz)
 	//results in 4194304/60 = 69905 updates per second
 
-	cpu.fetchExecute();
 
-	/*
+
+	
 
 	int clocks=0;
-	while(clocks<69905){	//this function is called 60 times a second. Hence, this is done at a rate of 4 mHz
+	//while(clocks<69905){	//this function is called 60 times a second. Hence, this is done at a rate of 4 mHz
         int requiredClocks=cpu.fetchExecute();
-		updateTimers(requiredClocks);
-		ppu.updateGraphics(requiredClocks);
-		handleInterrupts();
-		clocks+=requiredClocks;
-	}
-	refreshDisplay();	//since this function is called 60 times a second, refresh rate with be 60Hz. 
-	*/
+		//updateTimers(requiredClocks);
+		//ppu.updateGraphics(requiredClocks);
+		//handleInterrupts();
+		//clocks+=requiredClocks;
+	//}
+	//refreshDisplay();	//since this function is called 60 times a second, refresh rate with be 60Hz. 
+	
 }
 
 void GameBoy::printRam(int maxAddr){

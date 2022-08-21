@@ -41,7 +41,7 @@ CPU::CPU(RAM * _ram, bool * _IME):ram(_ram),IME(_IME){
 			&CPU::ld_b_b,      &CPU::ld_b_c,     &CPU::ld_b_d,    &CPU::ld_b_e,	&CPU::ld_b_h,      &CPU::ld_b_l,     &CPU::ld_b_hl,   &CPU::ld_b_a,	&CPU::ld_c_b,      &CPU::ld_c_c,     &CPU::ld_c_d,    &CPU::ld_c_e,	&CPU::ld_c_h,      &CPU::ld_c_l,     &CPU::ld_c_hl,   &CPU::ld_c_a,
 			&CPU::ld_d_b,      &CPU::ld_d_c,     &CPU::ld_d_d,    &CPU::ld_d_e,	&CPU::ld_d_h,      &CPU::ld_d_l,     &CPU::ld_d_hl,   &CPU::ld_d_a,	&CPU::ld_e_b,      &CPU::ld_e_c,     &CPU::ld_e_d,    &CPU::ld_e_e,	&CPU::ld_e_h,      &CPU::ld_e_l,     &CPU::ld_e_hl,   &CPU::ld_e_a,
 			&CPU::ld_h_b,      &CPU::ld_h_c,     &CPU::ld_h_d,    &CPU::ld_h_e,	&CPU::ld_h_h,      &CPU::ld_h_l,     &CPU::ld_h_hl,   &CPU::ld_h_a,	&CPU::ld_l_b,      &CPU::ld_l_c,     &CPU::ld_l_d,    &CPU::ld_l_e,	&CPU::ld_l_h,      &CPU::ld_l_l,     &CPU::ld_l_hl,   &CPU::ld_l_a,
-			&CPU::ld_hl_b,     &CPU::ld_hl_c,    &CPU::ld_hl_d,   &CPU::ld_hl_e,&CPU::ld_hl_h,     &CPU::ld_hl_l,    &CPU::HALT,      &CPU::ld_hl_a,&CPU::ld_a_b,      &CPU::ld_a_c,     &CPU::ld_a_d,    &CPU::ld_a_e,	&CPU::ld_a_h,      &CPU::ld_a_l,     &CPU::ld_a_hl,   &CPU::ld_a_a,
+			&CPU::ld_hl_b,     &CPU::ld_hl_c,    &CPU::ld_hl_d,   &CPU::ld_hl_e,&CPU::ld_hl_h,     &CPU::ld_hl_l,    &CPU::halt,      &CPU::ld_hl_a,&CPU::ld_a_b,      &CPU::ld_a_c,     &CPU::ld_a_d,    &CPU::ld_a_e,	&CPU::ld_a_h,      &CPU::ld_a_l,     &CPU::ld_a_hl,   &CPU::ld_a_a,
 			&CPU::add_a_b,     &CPU::add_a_c,    &CPU::add_a_d,   &CPU::add_a_e,&CPU::add_a_h,     &CPU::add_a_l,    &CPU::add_a_hl,  &CPU::add_a_a,&CPU::adc_a_b,     &CPU::adc_a_c,    &CPU::adc_a_d,   &CPU::adc_a_e,&CPU::adc_a_h,     &CPU::adc_a_l,    &CPU::adc_a_hl,  &CPU::adc_a_a,
 			&CPU::sub_b,       &CPU::sub_c,      &CPU::sub_d,     &CPU::sub_e,	&CPU::sub_h,       &CPU::sub_l,      &CPU::sub_hl,    &CPU::sub_a,	&CPU::sbc_a_b,     &CPU::sbc_a_c,    &CPU::sbc_a_d,   &CPU::sbc_a_e,&CPU::sbc_a_h,     &CPU::sbc_a_l,    &CPU::sbc_a_hl,  &CPU::sbc_a_a,
 			&CPU::and_b,       &CPU::and_c,      &CPU::and_d,     &CPU::and_e,	&CPU::and_h,       &CPU::and_l,      &CPU::and_hl,    &CPU::and_a,	&CPU::xor_b,       &CPU::xor_c,      &CPU::xor_d,     &CPU::xor_e,	&CPU::xor_h,       &CPU::xor_l,      &CPU::xor_hl,    &CPU::xor_a,
@@ -164,6 +164,12 @@ uint8_t CPU::bitSet(uint8_t data, int bit){
 	return (data|(1<<bit));
 }
 
+bool CPU::getHalt(){
+	return HALT;
+}
+void CPU::setHalt(bool _HALT){
+	HALT=_HALT;
+}
 
 /*===========================================*/
 /***********Instruction "templates"***********/
@@ -438,19 +444,16 @@ int CPU::pop(uint16_t &reg1) {
 int CPU::push(uint16_t &reg1) {
 	//printf("==PUSH REG TO STACK==\n");
 	cycles=16;
-	//push pc to stack then jump
 	pushWordToStack(reg1);
 	return 0;
 }
 int CPU::rst(int index) {
 	//printf("==RST==\n");
-	cycles = 16;
-	SP--;
-	ram->write(SP, (PC & 0xFF00) >> 8);
-	SP--;
-	ram->write(SP, PC & 0x00FF);
-	PC = ram->read(0x00) << 8;
-	PC |= ram->read(0x8 * index);
+	cycles+=12 ;
+	pushWordToStack(PC) ;
+	//printf("Jump to %X from %X\n",index*0x08,PC);
+
+	PC=index*0x08;
 	return 0;
 }
 int CPU::_ret(bool condition) {
@@ -459,7 +462,6 @@ int CPU::_ret(bool condition) {
 	if(condition){
 		PC = popWordOffStack() ;
 		//printf("Return address=%X\n",PC);
-		return 0;
 	}
 		//printf("Condition false\n");
 	return 0;
@@ -485,7 +487,6 @@ int CPU::call(bool condition){
 	uint16_t nn = readWord() ;
 	PC += 2;
 	//printf("Jump to %X from %X\n",nn,PC);
-
 	if(condition){
 		pushWordToStack(PC) ;
 		PC = nn ;
@@ -611,6 +612,8 @@ int CPU::set(uint8_t & reg, int pos){ //set bit at offset
 /*=========================================*/
 /****************Instructions***************/
 /*=========================================*/
+
+
 /*===============================LOAD INSTUCTIONS===============================*/
 /*ld reg, d16*/
 int CPU::ld_bc_d16() { // 0x01
@@ -633,66 +636,66 @@ int CPU::ld_sp_d16() { // 0x31
 /*ld reg, (addr)*/
 int CPU::ld_b_hl() { // 0x46
 	//printf("==LOAD from HL==\n");
-	//printf("Before: Reg1: %X, HL: %X",regs.B,regs.HL);
+	//printf("Before: Reg1: %X, HL: %X\n",regs.B,regs.HL);
 	cycles = 8;
 	uint8_t operand = ram->read(regs.HL);
 	regs.B = operand;
-	//printf("After: Reg1: %X, HL: %X",regs.B,regs.HL);
+	//printf("After: Reg1: %X, HL: %X\n",regs.B,regs.HL);
 	return 0;
 }
 int CPU::ld_d_hl() { // 0x56
 	//printf("==LOAD from HL==\n");
-	//printf("Before: Reg1: %X, HL: %X",regs.D,regs.HL);
+	//printf("Before: Reg1: %X, HL: %X\n",regs.D,regs.HL);
 	cycles = 8;
 	uint8_t operand = ram->read(regs.HL);
 	regs.D = operand;
-	//printf("After: Reg1: %X, HL: %X",regs.D,regs.HL);
+	//printf("After: Reg1: %X, HL: %X\n",regs.D,regs.HL);
 	return 0;
 }
 int CPU::ld_h_hl() { // 0x66
 	//printf("==LOAD from HL==\n");
-	//printf("Before: Reg1: %X, HL: %X",regs.H,regs.HL);
+	//printf("Before: Reg1: %X, HL: %X\n",regs.H,regs.HL);
 	cycles = 8;
 	uint8_t operand = ram->read(regs.HL);
 	regs.H = operand;
-	//printf("After: Reg1: %X, HL: %X",regs.H,regs.HL);
+	//printf("After: Reg1: %X, HL: %X\n",regs.H,regs.HL);
 	return 0;
 }
 
 int CPU::ld_c_hl() { // 0x4E
 	//printf("==LOAD from HL==\n");
-	//printf("Before: Reg1: %X, HL: %X",regs.C,regs.HL);
+	//printf("Before: Reg1: %X, HL: %X\n",regs.C,regs.HL);
 	cycles = 8;
 	uint8_t operand = ram->read(regs.HL);
 	regs.C = operand;
-	//printf("After: Reg1: %X, HL: %X",regs.C,regs.HL);
+	//printf("After: Reg1: %X, HL: %X\n",regs.C,regs.HL);
 	return 0;
 }
 int CPU::ld_e_hl() { // 0x5E
 	//printf("==LOAD from HL==\n");
-	//printf("Before: Reg1: %X, HL: %X",regs.E,regs.HL);
+	//printf("Before: Reg1: %X, HL: %X\n",regs.E,regs.HL);
 	cycles = 8;
 	uint8_t operand = ram->read(regs.HL);
 	regs.E = operand;
-	//printf("After: Reg1: %X, HL: %X",regs.E,regs.HL);
+	//printf("After: Reg1: %X, HL: %X\n",regs.E,regs.HL);
 	return 0;
 }
 int CPU::ld_l_hl() { // 0x6E
 	//printf("==LOAD from HL==\n");
-	//printf("Before: Reg1: %X, HL: %X",regs.L,regs.HL);
+	//printf("Before: Reg1: %X, HL: %X\n",regs.L,regs.HL);
 	cycles = 8;
 	uint8_t operand = ram->read(regs.HL);
 	regs.L = operand;
-	//printf("After: Reg1: %X, HL: %X",regs.L,regs.HL);
+	//printf("After: Reg1: %X, HL: %X\n",regs.L,regs.HL);
 	return 0;
 }
 int CPU::ld_a_hl() {	//0x7E
 	//printf("==LOAD from HL==\n");
-	//printf("Before: Reg1: %X, HL: %X",regs.A,regs.HL);
+	//printf("Before: Reg1: %X, HL: %X\n",regs.A,regs.HL);
 	cycles = 8;
 	uint8_t operand = ram->read(regs.HL);
 	regs.A = operand;
-	//printf("After: Reg1: %X, HL: %X",regs.A,regs.HL);
+	//printf("After: Reg1: %X, HL: %X\n",regs.A,regs.HL);
 	return 0;
 }
 int CPU::ld_a_hlp() { // 0x2A
@@ -1032,9 +1035,9 @@ int CPU::ld_l_a() { // 0x6F
 	ld_reg_reg(regs.L, regs.A);
 	return 0;
 }
-int CPU::HALT() {	//0x76
-	printf("HALT\n");
-    //TODO: set HALT bool and do something with it
+int CPU::halt() {	//0x76
+	//printf("halt\n");
+	HALT=true;
 }
 int CPU::ld_a_b() {	//0x78
 	ld_reg_reg(regs.A, regs.B);
@@ -1108,7 +1111,6 @@ int CPU::jr_nc_s8() { // 0x30
 	return 0;
 }
 int CPU::jr_c_s8() { // 0x38
-
 	jr(regs.carry == 1);
 	return 0;
 }
@@ -1185,10 +1187,9 @@ int CPU::ret_c() { // 0xD7
 	return 1;
 }
 int CPU::reti() { // 0xD8
-	//TODO: implement
-	while(1){
-
-	}
+	//TODO: IME must return to its pre interrupt value. 
+	ei();
+	_ret(1);
 	return 0;
 }
 
@@ -1317,12 +1318,12 @@ int CPU::push_hl() {	//0xE5
 	return 0;
 }
 int CPU::push_af() {	//0xF5
+	//must ignore unused bits of regs.F
 	cycles=16;
 	uint16_t data = regs.AF&0xFFF0;
 	push(data);
 	return 0;
 }
-
 
 /*===============================POP INSTRUCTIONS===============================*/
 int CPU::pop_bc() {	//0xC1
@@ -1456,7 +1457,7 @@ int CPU::daa() { // 0x27
 
 	return 0;
 }
-int CPU::di() {	//0xF3
+int CPU::di() {	//0xF3 
 	cycles=4;
 	//TODO: probably some waiting I need to do here since change doesnt affect next instruction
 	*IME=false;
@@ -1481,11 +1482,9 @@ int CPU::cpl() { // 0x2F
 }
 int CPU::scf() { // 0x37
 	cycles = 4;
-
 	regs.carry = 1;
 	regs.halfCarry = 0;
 	regs.negative = 0;
-	regs.zero = 0;
 	return 0;
 }
 int CPU::add_hl_sp() { // 0x39
@@ -1496,7 +1495,7 @@ int CPU::ccf() { // 0x3F
 	cycles = 4;
 	regs.negative = 0;
 	regs.halfCarry = 0;
-	regs.carry = ~regs.carry;
+	regs.carry = regs.carry^1;
 	return 0;
 }
 /*===============================ADD INSTRUCTIONS===============================*/
@@ -1543,9 +1542,11 @@ int CPU::add_a_d8() {	//0xC6
 	cycles=8;	//TODO: dont override the cycles set by the helper function
 	return 0;
 }
-int CPU::add_sp_s8() {	//0xE6
-	//TODO: IMPLEMENT THIS
+int CPU::add_sp_s8() {	//0xE8
+	//TODO: add flags
+	int8_t s8=ram->read(PC);
 	PC++;
+	SP=SP+s8;
 	return 0;
 }
 /*===============================ADC INSTRUCTIONS===============================*/
@@ -1623,7 +1624,12 @@ int CPU::sub_a() { // 0x97
 	sub(regs.A, regs.A);
 	return 0;
 }
-
+int CPU::sub_d8() { // 0xD5
+	uint8_t data=ram->read(PC);
+	PC++;
+	sub(regs.A,data);
+	return 0;
+}
 
 /*===============================SBC INSTRUCTIONS===============================*/
 int CPU::sbc_a_b() { // 0x98
@@ -1845,12 +1851,6 @@ int CPU::rst_1() {	//0xCF
 	rst(1);
 	return 0;
 }
-int CPU::sub_d8() { // 0xD5
-	uint8_t data=ram->read(PC);
-	PC++;
-	sub(regs.A,data);
-	return 0;
-}
 int CPU::rst_2() { // 0xD6
 	rst(2);
 	return 0;
@@ -1903,6 +1903,18 @@ int CPU::rlc_l() {
 	return 0;
 }
 int CPU::rlc_hl() {
+	uint8_t reg=ram->read(regs.HL);
+
+
+	uint8_t prev=reg;
+	reg<<=1;
+	regs.carry=((prev&0x80)==0x80);	//set carry if top bit was one
+	reg=reg|regs.carry;	//put carry into bit 0 of result
+	regs.zero=(reg==0);
+	regs.negative=0;
+	regs.halfCarry=0;
+
+	ram->write(regs.HL,reg);
 	return 0;
 }
 int CPU::rlc_a() {

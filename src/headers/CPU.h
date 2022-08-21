@@ -16,14 +16,20 @@ class CPU {
 		CPU(RAM * _ram, bool * IME);
 		int fetchExecute();
 
-	/*For testing*/
 	public:
 		void setPC(uint16_t _PC);
 		uint16_t getPC();
 		uint16_t getInstruction();
 		void getRegs();
-
-
+		
+		
+		bool getHalt();
+		void setHalt(bool _HALT);
+		void pushWordToStack(uint16_t data);
+		uint16_t popWordOffStack();
+		uint16_t readWord() const;
+		bool testBit(uint8_t data, int bit);	
+		uint8_t bitSet(uint8_t data, int bit);
 	private:
 		/*Shared system memory*/
 		RAM * ram;
@@ -39,6 +45,7 @@ class CPU {
 		/*Interrupt Master Switch*/
 		bool * IME;
 
+		bool HALT=false;
 
 		/*ROM Header info*/
 		uint8_t checksum=0;
@@ -78,11 +85,7 @@ class CPU {
 
 
 		/*Helpers*/
-		void pushWordToStack(uint16_t data);
-		uint16_t popWordOffStack();
-		uint16_t readWord() const;
-		bool testBit(uint8_t data, int bit);	
-		uint8_t bitSet(uint8_t data, int bit);	
+
 
 
 	/*Instruction "templates"*/
@@ -288,7 +291,7 @@ class CPU {
 		int ld_hl_e();
 		int ld_hl_h();
 		int ld_hl_l();
-		int HALT();
+		int halt();
 		int ld_hl_a();
 		int ld_a_b();
 		int ld_a_c();

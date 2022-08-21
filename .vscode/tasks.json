@@ -7,6 +7,7 @@
             "command": "/usr/bin/g++",
             "args": [
                 "../../src/RAM.cpp",
+                "../../src/Debugger.cpp",
                 "../../src/CPU.cpp",
                 "../../src/PPU.cpp",
                 "../../src/Cartridge.cpp",
