@@ -19,7 +19,7 @@ private:
 
     std::vector<string> opcodeLUT;
     std::vector<string> opcodeLUTCB;
-
+    std::string testResult="";
 
     void printRegs();
     void printPC();
@@ -27,6 +27,14 @@ private:
     void printInstruction();
     void printMemory();
     void printStack();
+    void printResult();
+    void printNextWord();
+    void printNextWordSigned();
+    void checkSerialOut();
+    void printFlags();
+
+    void debug();
+
 
 
     void printState();  //prints cpu state

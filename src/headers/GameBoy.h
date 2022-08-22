@@ -59,7 +59,7 @@ class GameBoy
 
         uint8_t getInstruction();    //return the next instruction to be executed
         uint16_t getPC();
-
+        bool getFlag(std::string flag);
         //TODO: read SB
 
 

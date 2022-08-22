@@ -87,10 +87,10 @@ uint16_t CPU::getInstruction(){
 	return instruction;
 }
 void CPU::getRegs(){
-	printf("AF: %X\n",regs.AF);
-	printf("BC: %X\n",regs.BC);
-	printf("DE: %X\n",regs.DE);
-	printf("HL: %X\n",regs.HL);
+	printf("AF: 0x%X\n",regs.AF);
+	printf("BC: 0x%X\n",regs.BC);
+	printf("DE: 0x%X\n",regs.DE);
+	printf("HL: 0x%X\n",regs.HL);
 }
 
 
@@ -170,6 +170,22 @@ bool CPU::getHalt(){
 void CPU::setHalt(bool _HALT){
 	HALT=_HALT;
 }
+
+bool CPU::getFlag(std::string flag){
+	if(flag=="carry"){
+		return regs.carry==1;
+	}
+	else if(flag=="halfCarry"){
+		return regs.halfCarry==1;
+	}
+	else if(flag=="negative"){
+		return regs.negative==1;
+	}
+	else if(flag=="zero"){
+		return regs.zero==1;
+	}
+}
+
 
 /*===========================================*/
 /***********Instruction "templates"***********/
@@ -263,6 +279,7 @@ int CPU::ld_mem_a(uint16_t &addr) {
 int CPU::jr(bool condition) {
 	//printf("==Jump PC==\n");
 	//printf("Before: PC:%X \n",PC);
+	//TODO: change variable name
 	if (condition) {
 		cycles = 12;
 		int8_t s8 = ram->read(PC);

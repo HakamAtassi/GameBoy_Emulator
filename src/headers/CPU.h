@@ -25,6 +25,9 @@ class CPU {
 		
 		bool getHalt();
 		void setHalt(bool _HALT);
+
+		bool getFlag(std::string flag);
+
 		void pushWordToStack(uint16_t data);
 		uint16_t popWordOffStack();
 		uint16_t readWord() const;

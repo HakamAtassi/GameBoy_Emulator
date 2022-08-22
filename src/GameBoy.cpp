@@ -172,6 +172,10 @@ uint16_t GameBoy::getPC(){
 	cpu.getPC();
 }
 
+bool GameBoy::getFlag(std::string flag){
+	return cpu.getFlag(flag);
+}
+
 void GameBoy::printRamRange(uint16_t begin, uint16_t end){
 	printf("dumping ram from %X to %X\n",begin,end);
 	for(uint16_t i=begin;i<=end;i++){

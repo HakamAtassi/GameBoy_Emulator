@@ -1,13 +1,17 @@
 #include "headers/Debugger.h"
 #include <iostream>
 #include <string>
+
+#define SB 0xFF01
+#define SC 0xFF02
+
 using namespace std;
 
 Debugger::Debugger(GameBoy * gameboy):gameboy(gameboy)
 {
     gameboy->printTitle();
 
-    printf("\nAvailable commands (case sensitive): printStack, printMemory. \n");
+    printf("\nAvailable commands (case sensitive):step, nw/nws (next word (signed)). \n");
 
     printf("Press Enter to debug.\n");
 
@@ -59,44 +63,125 @@ Debugger::~Debugger()
 
 void Debugger::printRegs(){
     gameboy->getRegs();
+    printf("\n");
+
 }
 
 void Debugger::printPC(){
-    printf("\nPC: %X => %X\n",prevPC, gameboy->getPC());
+    printf("\nPC: 0x%X => 0x%X\n",prevPC, PC);
 }
 void Debugger::printInterrupts(){
-
+    //print flags
+    //print requests
+    //print ime
 }
 
 void Debugger::printInstruction(){
     if(CBFlag==0){
-        printf("\nOpcode %X => %s",opcode,opcodeLUT[opcode].c_str());
+        printf("\nOpcode: 0x%X => %s",opcode,opcodeLUT[opcode].c_str());
 
     }
     else{
-        printf("\nOpcode %X => %s",opcode,opcodeLUTCB[opcode].c_str());
+        printf("\nOpcode 0x%X => %s",opcode,opcodeLUTCB[opcode].c_str());
     }
 
 
 }
 void Debugger::printMemory(){
+}
 
+void Debugger::printResult(){
+    printf("%s\n",testResult.c_str());
+}
+
+void Debugger::printNextWord(){
+    
+    uint8_t b1=gameboy->read(PC);
+    uint8_t b2=gameboy->read(PC+1);
+
+    printf("Byte 1: 0x%X, Byte 2: 0x%X\n",b1,b2);
+}
+
+
+void Debugger::printFlags(){
+    std::printf("carry flag: %d\n",gameboy->getFlag("carry"));
+    std::printf("halfCarry flag:%d\n",gameboy->getFlag("halfCarry"));
+    std::printf("negative flag: %d\n",gameboy->getFlag("negative"));
+    std::printf("zero flag: %d\n",gameboy->getFlag("zero"));
+}
+
+void Debugger::debug(){
+    system("clear");
+    PC=gameboy->getPC();    //update PC after instruction is executed but before printing
+    opcode=gameboy->read(PC);
+
+    printResult();
+    printPC();
+    printInstruction();
+    printf("\n");
+    printRegs();
+    printFlags();
+}
+
+
+void Debugger::printNextWordSigned(){
+    int8_t b1=gameboy->read(PC);
+    int8_t b2=gameboy->read(PC+1);
+
+    printf("Byte 1: %d, Byte 2: %d\n",b1,b2);
+}
+
+
+void Debugger::checkSerialOut(){
+    if(gameboy->read(SC)==0x81){
+        char resChar=gameboy->read(SB);
+        gameboy->write(SC,0);
+        testResult.push_back(resChar);
+    }
 }
 
 void Debugger::run(){
     //TODO: update CB flag here
+
     prevPC=PC;
-    PC=gameboy->getPC();
-    opcode=gameboy->read(PC);
     //instruction;  use  __func__
-    char input='N';
-    //std::cin>>input;
-    if(getchar()){
-        system("clear");
-        printPC();
-        printInstruction();
+    string input="initial";
+    getline(std::cin,input);
+
+    if(input==""){
+        debug();
         printf("\n");
-        printRegs();
         gameboy->update();
+    }
+    else if(input=="step"){
+        int stepSize=0;
+        std::cout<<"print step number:\n";
+        std::cin>>stepSize;
+        for(int i=0;i<stepSize;i++){
+            gameboy->update();
+            checkSerialOut();
+        }
+        debug();
+    }
+    else if(input=="nw"){
+        printNextWord();
+    }
+    else if(input=="nws"){
+        printNextWordSigned();
+    }
+    else if(input=="PC"){
+        printf("PC: 0x%X\n",PC);
+    }
+    else if(input=="read"){
+        uint16_t addr=0;
+        std::cout<<"address:\n";
+        std::cin>>addr;
+        printf("ram[0x%X]=0x%X\n",addr,gameboy->read(addr));
+        getline(std::cin,input);
+
+    }
+    else{
+        system("clear");
+        debug();
     }
 }

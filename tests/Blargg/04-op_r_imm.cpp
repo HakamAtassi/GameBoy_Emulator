@@ -1,5 +1,7 @@
 #include "../../src/headers/Cartridge.h"
 #include "../../src/headers/GameBoy.h"
+#include "../../src/headers/Debugger.h"
+
 #include <iostream>
 
 #define SB 0xFF01
@@ -7,19 +9,20 @@
 
 
 
+
+
 int main(){
 
     Cartridge cartridge("../../ROMS/blargg_cpu_instrs/individual/04-op r,imm.gb");
-    GameBoy gameboy(cartridge);
-    printf("Starting test\n\n");
+    GameBoy * gameboy= new GameBoy(cartridge);
+    Debugger debugger(gameboy);
+    //printf("Starting test\n\n");
 
-    for(int i=0;i<1000000;i++){
-        gameboy.update();
-        if(gameboy.read(SC)==0x81){
-            printf("%C",gameboy.read(SB));
-            gameboy.write(SC,0);
-        }
+
+    while(1){
+        debugger.run();        
     }
+
 }
 
 //passed
