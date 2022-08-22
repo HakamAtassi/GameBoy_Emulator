@@ -96,8 +96,8 @@ void Debugger::printResult(){
 
 void Debugger::printNextWord(){
     
-    uint8_t b1=gameboy->read(PC);
-    uint8_t b2=gameboy->read(PC+1);
+    uint8_t b1=gameboy->read(PC+1);
+    uint8_t b2=gameboy->read(PC+2);
 
     printf("Byte 1: 0x%X, Byte 2: 0x%X\n",b1,b2);
 }
@@ -125,8 +125,8 @@ void Debugger::debug(){
 
 
 void Debugger::printNextWordSigned(){
-    int8_t b1=gameboy->read(PC);
-    int8_t b2=gameboy->read(PC+1);
+    int8_t b1=gameboy->read(PC+1);
+    int8_t b2=gameboy->read(PC+2);
 
     printf("Byte 1: %d, Byte 2: %d\n",b1,b2);
 }

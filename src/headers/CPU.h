@@ -127,7 +127,6 @@ class CPU {
 		int _or(uint16_t &reg1, uint16_t &reg2);
 		int _or(uint8_t &reg1, uint8_t &reg2);
 
-		int cp(uint16_t reg1, uint16_t reg2);
 		int cp(uint8_t reg1, uint8_t reg2);
 
 		int BIT(int bit, uint8_t & reg);
