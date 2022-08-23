@@ -406,19 +406,30 @@ int CPU::cp(uint8_t reg1, uint8_t reg2) { // doesnt actually store result of sub
 	uint8_t before = reg1 ;
 	uint8_t toSubtract = reg2 ;
 	reg1 -= toSubtract ;
-
+	
+	//regs.zero=(reg1==0);
 	if (reg1 == 0)
 		regs.zero=1;
+	
+	//else{
+	//	regs.zero=0;	//TODO: This is behaving very weird in blargg tests. Pretty sure this is correct though
+	//}
 
 	regs.negative=1;
 	// set if no borrow
 	if (before < toSubtract)
 		regs.carry=1;
+	else{
+		regs.carry=0;
+	}
 	signed short htest = before & 0xF ;
 	htest -= (toSubtract & 0xF) ;
 
 	if (htest < 0)
 		regs.halfCarry=1;
+	else{
+		regs.halfCarry=0;
+	}
 
 	return 0;
 }
@@ -1369,7 +1380,7 @@ int CPU::rlca() { // 0x07
 	regs.negative = 0;
 	regs.halfCarry = 0;
 
-	regs.carry = (regs.A & 0x80) >> 8;
+	regs.carry = ((regs.A & 0x80)>0);
 	regs.A = regs.A << 1;
 	regs.A |= regs.carry; // to rotate, use the same value that was stored in the
 						  // carry bit
@@ -1384,24 +1395,25 @@ int CPU::rrca() { // 0x0F
 	regs.zero = 0;
 	regs.negative = 0;
 	regs.halfCarry = 0;
-	regs.carry = regs.A & 0x01;
+	regs.carry = ((regs.A & 0x01)>0);
 	regs.A = regs.A >> 1;
-	regs.A |= regs.carry;
+	regs.A |= (regs.carry<<7);
 	return 0;
 }
 int CPU::stop() { // 0x10
 	return 0;
 }
 int CPU::rla() { // 0x17
-				 // possible error
 	cycles=4;
 	regs.zero = 0;
 	regs.negative = 0;
 	regs.halfCarry = 0;
 
-	int MSB = (regs.A & 0x80) >> 8;
+
 	int carry = regs.carry;
-	regs.carry = MSB;
+
+	regs.carry = ((regs.A & 0x80)>0);
+
 	regs.A = regs.A << 1;
 	regs.A |= carry;
 	return 0;
@@ -1416,22 +1428,24 @@ int CPU::rra() { // 0x1F
 	//printf("Before: REG.A: %d\n",regs.A);
 
 	bool isCarrySet = regs.carry;
-	bool isLSBSet = testBit(regs.A, 0) ;
+	bool isLSBSet = (regs.A&0x01)>0;
 
-	regs.F = 0;
 	regs.A >>= 1;
 
 	if (isLSBSet)
+		regs.carry=1;
+	else{
 		regs.carry=0;
+	}
 
 	if (isCarrySet)
-		regs.A = bitSet(regs.A, 7) ;
+		regs.A = bitSet(regs.A, 7);
 
-	if (regs.A == 0)
-		regs.zero=0;
+	regs.halfCarry=0;
+	regs.negative=0;
+	regs.zero=0;
 
 	//printf("After: REG.A: %d\n",regs.A);
-
 
 	return 0;
 }
