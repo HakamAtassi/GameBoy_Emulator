@@ -111,7 +111,6 @@ void Debugger::printFlags(){
 }
 
 void Debugger::debug(){
-    system("clear");
     PC=gameboy->getPC();    //update PC after instruction is executed but before printing
     opcode=gameboy->read(PC);
 
@@ -179,6 +178,9 @@ void Debugger::run(){
         printf("ram[0x%X]=0x%X\n",addr,gameboy->read(addr));
         getline(std::cin,input);
 
+    }
+    else if (input=="clear"){
+        system("clear");
     }
     else{
         system("clear");

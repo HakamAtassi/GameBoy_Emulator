@@ -121,7 +121,6 @@ class CPU {
 		int _and(uint16_t &reg1, uint16_t &reg2);
 		int _and(uint8_t &reg1, uint8_t &reg2);
 
-		int _xor(uint16_t &reg1, uint16_t &reg2);
 		int _xor(uint8_t &reg1, uint8_t &reg2);
 
 		int _or(uint16_t &reg1, uint16_t &reg2);

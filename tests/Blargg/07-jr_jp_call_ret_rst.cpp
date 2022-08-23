@@ -26,6 +26,7 @@ int main(){
 }
 */
 
+
 int main(){
     
     Cartridge cartridge("../../ROMS/blargg_cpu_instrs/individual/07-jr,jp,call,ret,rst.gb");
