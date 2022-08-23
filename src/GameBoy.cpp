@@ -51,28 +51,26 @@ void GameBoy::requestInterrupt(int interruptVal){    //sets bit corresponding to
 }
 
 void GameBoy::handleInterrupts(){
-	if((*IME)==true){
 		uint8_t interruptFlags=ram->read(INTERRUPT_FLAGS);
 		uint8_t interruptEnable=ram->read(INTERRUPT_ENABLE);
 		if(interruptFlags>0){	//dont handel interrupts if they are all 0
 			for(int i=0;i<8;i++){	//bit 0 is higest prio.
 				if(testBit<uint8_t>(interruptEnable,i)==true){	//is that intr. enabled
 					if(testBit<uint8_t>(interruptFlags,i)==true){	//is that intr. requested
-						ISR(i);	//run isr for that interrupt
+						if(*IME==true){
+							ISR(i);	//run isr for that interrupt
+
+						}
 					}
 				}
 			}
 		}
-	}
-}
-
-void GameBoy::updateHalt(){
-		uint8_t interruptRequests=ram->read(INTERRUPT_FLAGS);
-		uint8_t interruptEnable=ram->read(INTERRUPT_ENABLE);
-		if((interruptRequests&interruptEnable)>0){	//disable halt even if ime is false
+		if((interruptFlags&interruptEnable)>0){
 			cpu.setHalt(false);
 		}
 }
+
+
 
 void GameBoy::ISR(int interruptVal){
 	pushWordToStack(cpu.getPC());	//save current state
@@ -135,7 +133,7 @@ void GameBoy::update(){
 		//updateTimers(requiredClocks);
 		//ppu.updateGraphics(requiredClocks);
 		//handleInterrupts();
-		//clocks+=requiredClocks;
+		clocks+=requiredClocks;
 	//}
 	//refreshDisplay();	//since this function is called 60 times a second, refresh rate with be 60Hz. 
 	
@@ -175,6 +173,21 @@ uint16_t GameBoy::getPC(){
 bool GameBoy::getFlag(std::string flag){
 	return cpu.getFlag(flag);
 }
+
+
+void GameBoy::getTimers(){
+	uint8_t DIV=ram->read(0xFF04);
+	uint8_t TIMA=ram->read(0xFF05);
+	uint8_t TMA=ram->read(0xFF06);
+	uint8_t TAC=ram->read(0xFF07);
+
+	printf("DIV: 0x%X => %d\n",DIV,DIV);
+	printf("TIMA: 0x%X => %d\n",TIMA,TIMA);
+	printf("TMA: 0x%X => %d\n",TMA,TMA);
+	printf("TAC: 0x%X => %d\n",TAC,TAC);
+
+}
+
 
 void GameBoy::printRamRange(uint16_t begin, uint16_t end){
 	printf("dumping ram from %X to %X\n",begin,end);

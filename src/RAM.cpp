@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <string>
 
-
+#define DIV 0xFF04
 
 
 RAM::RAM(){
@@ -14,6 +14,7 @@ uint8_t RAM::read(uint16_t PC){
 }
 
 void RAM::write(uint16_t PC, uint8_t val){
+
     memory[PC]=val;
     return;
 }

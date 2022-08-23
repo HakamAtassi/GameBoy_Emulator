@@ -72,8 +72,14 @@ CPU::CPU(RAM * _ram, bool * _IME):ram(_ram),IME(_IME){
 	};
 }
 int CPU::fetchExecute(){
-	fetch();
-	execute();
+	//TODO: halt means fetch execture isnt done
+	if(HALT==false){
+		fetch();
+		execute();
+	}
+	else{
+		printf("CPU Halted");
+	}
 	return cycles;
 }
 /*For testing*/
@@ -91,7 +97,9 @@ void CPU::getRegs(){
 	printf("BC: %X\n",regs.BC);
 	printf("DE: %X\n",regs.DE);
 	printf("HL: %X\n",regs.HL);
+	printf("SP: %X\n",SP);
 }
+
 
 
 /*Execution*/
@@ -594,7 +602,16 @@ int CPU::sra(uint8_t & reg){
 }
 int CPU::swap(uint8_t & reg){
 	//printf("==swap==\n");
-	//TODO: implement this
+	//printf("==swap==\n");
+	cycles=8;
+	reg = (((reg & 0xF0) >> 4) | ((reg & 0x0F) << 4));
+
+	if (reg == 0){
+		regs.zero=1;
+	}
+	else{
+		regs.zero=0;
+	}
 }
 int CPU::srl(uint8_t & reg){
 	//WHEN EDITING THIS FUNCTION ALSO EDIT CPU_SRL_MEMORY
@@ -1052,7 +1069,8 @@ int CPU::ld_l_a() { // 0x6F
 }
 int CPU::halt() {	//0x76
 	printf("HALT\n");
-    //TODO: set HALT bool and do something with it
+	HALT=true;
+	return 0;
 }
 int CPU::ld_a_b() {	//0x78
 	ld_reg_reg(regs.A, regs.B);
@@ -1204,9 +1222,8 @@ int CPU::ret_c() { // 0xD7
 }
 int CPU::reti() { // 0xD8
 	//TODO: implement
-	while(1){
-
-	}
+	ei();
+	_ret(1);
 	return 0;
 }
 
