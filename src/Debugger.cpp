@@ -1,6 +1,8 @@
 #include "headers/Debugger.h"
+#include "headers/GameBoy.h"
 #include <iostream>
 #include <string>
+#include <iomanip>
 
 #define SB 0xFF01
 #define SC 0xFF02
@@ -11,7 +13,7 @@ Debugger::Debugger(GameBoy * gameboy):gameboy(gameboy)
 {
     gameboy->printTitle();
 
-    printf("\nAvailable commands (case sensitive):step, nw/nws (next word (signed)). \n");
+    printf("\nAvailable commands (case sensitive):step, nw/nws (next word/signed), setPC\n");
 
     printf("Press Enter to debug.\n");
 
@@ -63,12 +65,11 @@ Debugger::~Debugger()
 
 void Debugger::printRegs(){
     gameboy->getRegs();
-    printf("\n");
 
 }
 
 void Debugger::printPC(){
-    printf("\nPC: 0x%X => 0x%X\n",prevPC, PC);
+    std::cout<<left<<setw(10)<<uppercase<<hex<<PC;
 }
 void Debugger::printInterrupts(){
     //print flags
@@ -78,14 +79,11 @@ void Debugger::printInterrupts(){
 
 void Debugger::printInstruction(){
     if(CBFlag==0){
-        printf("\nOpcode: 0x%X => %s",opcode,opcodeLUT[opcode].c_str());
-
+        std::cout<<left<<setw(30)<<opcodeLUT[opcode];
     }
     else{
-        printf("\nOpcode 0x%X => %s",opcode,opcodeLUTCB[opcode].c_str());
+        std::cout<<left<<setw(30)<<opcodeLUTCB[opcode];
     }
-
-
 }
 void Debugger::printMemory(){
 }
@@ -114,12 +112,12 @@ void Debugger::debug(){
     PC=gameboy->getPC();    //update PC after instruction is executed but before printing
     opcode=gameboy->read(PC);
 
-    printResult();
+    //printResult();
     printPC();
     printInstruction();
-    printf("\n");
     printRegs();
-    printFlags();
+    cout<<"\n";
+    //printFlags();
 }
 
 
@@ -147,12 +145,21 @@ void Debugger::run(){
     string input="initial";
     getline(std::cin,input);
 
-    if(input==""){
+    if(input=="log"){
+        for(int i=0;i<10000000;i++){
+            gameboy->update();
+            checkSerialOut();
+            debug();
+        }
+    }
+
+
+	if(input==""){
         debug();
         printf("\n");
         gameboy->update();
     }
-    else if(input=="step"){
+	else if(input=="step"){
         int stepSize=0;
         std::cout<<"print step number:\n";
         std::cin>>stepSize;
@@ -162,16 +169,16 @@ void Debugger::run(){
         }
         debug();
     }
-    else if(input=="nw"){
+	else if(input=="nw"){
         printNextWord();
     }
-    else if(input=="nws"){
+	else if(input=="nws"){
         printNextWordSigned();
     }
-    else if(input=="PC"){
+	else if(input=="PC"){
         printf("PC: 0x%X\n",PC);
     }
-    else if(input=="read"){
+	else if(input=="read"){
         uint16_t addr=0;
         std::cout<<"address:\n";
         std::cin>>addr;
@@ -179,10 +186,20 @@ void Debugger::run(){
         getline(std::cin,input);
 
     }
-    else if (input=="clear"){
+	else if(input=="setPC"){
+        int PCTarget=0;
+        std::cout<<"skip to PC:\n";
+        std::cin>>hex>>PCTarget;
+       	while(gameboy->getPC()!=PCTarget){
+            gameboy->update();
+            checkSerialOut();
+        }
+        debug();
+    }
+	else if (input=="clear"){
         system("clear");
     }
-    else{
+	else{
         system("clear");
         debug();
     }

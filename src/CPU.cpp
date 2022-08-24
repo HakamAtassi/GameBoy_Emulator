@@ -3,7 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-
+#include <iomanip>
  
 #define INTERRUPT_ENABLE 0xFFFF
 #define INTERRUPT_FLAGS 0xFF0F
@@ -93,11 +93,12 @@ uint16_t CPU::getInstruction(){
 	return instruction;
 }
 void CPU::getRegs(){
-	printf("AF: %X\n",regs.AF);
-	printf("BC: %X\n",regs.BC);
-	printf("DE: %X\n",regs.DE);
-	printf("HL: %X\n",regs.HL);
-	printf("SP: %X\n",SP);
+	std::cout<<"BC="<<std::uppercase<<std::hex<<regs.BC<<" "
+	<<"DE="<<std::uppercase<<std::hex<<regs.DE<<" "
+	<<"HL="<<std::uppercase<<std::hex<<regs.HL<<" "
+	<<"AF="<<std::uppercase<<std::hex<<regs.AF<<" "
+	<<"SP="<<std::uppercase<<std::hex<<SP<<" "
+	<<"PC="<<std::uppercase<<std::hex<<PC<<" ";
 }
 
 
@@ -1111,6 +1112,7 @@ int CPU::ld_hl_sp_s8() {	//0xF8
 	regs.zero=0;
 	regs.negative=0;
 	uint16_t result=SP+s8;
+	regs.HL=result;
 
 	if( result > 0xFFFF )
 		regs.carry=1;

@@ -73,6 +73,8 @@ void GameBoy::handleInterrupts(){
 
 
 void GameBoy::ISR(int interruptVal){
+	//TODO: hacky fix. since a fetch already happened, PC is the next address
+	//but we need to push current address, so sub 1
 	pushWordToStack(cpu.getPC());	//save current state
 	cpu.setHalt(false);
 	*IME=false;
@@ -132,7 +134,7 @@ void GameBoy::update(){
         int requiredClocks=cpu.fetchExecute();
 		//updateTimers(requiredClocks);
 		//ppu.updateGraphics(requiredClocks);
-		//handleInterrupts();
+		handleInterrupts();
 		clocks+=requiredClocks;
 	//}
 	//refreshDisplay();	//since this function is called 60 times a second, refresh rate with be 60Hz. 
