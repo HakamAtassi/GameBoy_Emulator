@@ -13,6 +13,9 @@
                 "../../src/Cartridge.cpp",
                 "../../src/GameBoy.cpp",
                 "../../src/Timers.cpp",
+                "../../src/Instructions.cpp",
+                "../../src/InterruptHandler.cpp",
+
 
                 "-fdiagnostics-color=always",
                 "-g",

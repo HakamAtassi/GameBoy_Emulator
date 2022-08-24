@@ -1,6 +1,8 @@
 #include "headers/GameBoy.h"
 #include "headers/Cartridge.h"
 #include "headers/CPU.h"
+#include "headers/InterruptHandler.h"
+
 #include <iostream>
 
 #define INTERRUPT_ENABLE 0xFFFF
@@ -14,11 +16,9 @@
 #define JOYPAD 0x60
 
 
-
-
 GameBoy::GameBoy():ram(new RAM){	//no cartridge... manually writing to ram
 	timers=Timers(ram);
-	cpu=CPU(ram,IME);
+	cpu=new CPU(ram,IME);
 };
 
 GameBoy::GameBoy(Cartridge _cartridge):ram(new RAM){
@@ -27,7 +27,9 @@ GameBoy::GameBoy(Cartridge _cartridge):ram(new RAM){
 		ram->write(i,_cartridge.read(i));
 	}
 	timers=Timers(ram);
-	cpu=CPU(ram,IME);
+	cpu=new CPU(ram,IME);
+	interruptHander=InterruptHandler(cpu,ram,IME);
+
 }
 
 GameBoy::~GameBoy(){
@@ -35,106 +37,31 @@ GameBoy::~GameBoy(){
 	delete IME;
 }
 
-void GameBoy::pushWordToStack(uint16_t data){	//TODO:a Implement this function
-	cpu.pushWordToStack(data);
+void GameBoy::pushWordToStack(uint16_t data){	
+	cpu->pushWordToStack(data);
 }
 
 void GameBoy::setPC(uint16_t _PC){
-	cpu.setPC(_PC);
+	cpu->setPC(_PC);
 }
-
-
-void GameBoy::requestInterrupt(int interruptVal){    //sets bit corresponding to interrupt type
-	int interruptReg=ram->read(INTERRUPT_FLAGS);
-	interruptReg=interruptReg|(1<<interruptVal);
-	return;
-}
-
-void GameBoy::handleInterrupts(){
-		uint8_t interruptFlags=ram->read(INTERRUPT_FLAGS);
-		uint8_t interruptEnable=ram->read(INTERRUPT_ENABLE);
-		if(interruptFlags>0){	//dont handel interrupts if they are all 0
-			for(int i=0;i<8;i++){	//bit 0 is higest prio.
-				if(testBit<uint8_t>(interruptEnable,i)==true){	//is that intr. enabled
-					if(testBit<uint8_t>(interruptFlags,i)==true){	//is that intr. requested
-						if(*IME==true){
-							ISR(i);	//run isr for that interrupt
-
-						}
-					}
-				}
-			}
-		}
-		if((interruptFlags&interruptEnable)>0){
-			cpu.setHalt(false);
-		}
-}
-
-
-
-void GameBoy::ISR(int interruptVal){
-	//TODO: hacky fix. since a fetch already happened, PC is the next address
-	//but we need to push current address, so sub 1
-	pushWordToStack(cpu.getPC());	//save current state
-	cpu.setHalt(false);
-	*IME=false;
-	uint8_t interruptRequests=ram->read(INTERRUPT_FLAGS);
-	uint8_t interruptEnable=ram->read(INTERRUPT_ENABLE);
-
-	interruptRequests=interruptRequests&(~(1<<interruptVal));	//reset IR bit
-	ram->write(INTERRUPT_FLAGS,interruptRequests);
-
-	//call ISR;
-	switch (interruptVal)
-	{
-	case 0:	//VBLANK
-		setPC(VBlank);
-		break;
-	case 1:	//LCDSTAT
-		setPC(LCDSTAT);
-		break;
-	case 2:	//TIMER
-		setPC(TIMER);
-		break;
-	case 3:	//SERIAL
-		setPC(SERIAL);
-		break;
-	case 4:	//JOYPAD
-		setPC(JOYPAD);
-		break;
-	
-	default:
-		break;
-	}
-
-}
-
 
 void GameBoy::refreshDisplay(){
 };
-
-
 void GameBoy::updateTimers(int requiredClocks){
 	timers.updateTimers(requiredClocks);
 }
-
-
 void GameBoy::update(){
     const int cyclesPerUpdate=69905;
 	//4194304 clocks per second of CPU
 	//60 updates per second (to achive a refresh rate of 60hz)
 	//results in 4194304/60 = 69905 updates per second
 
-
-
-	
-
 	int clocks=0;
 	//while(clocks<69905){	//this function is called 60 times a second. Hence, this is done at a rate of 4 mHz
-        int requiredClocks=cpu.fetchExecute();
+        int requiredClocks=cpu->fetchExecute();
 		//updateTimers(requiredClocks);
 		//ppu.updateGraphics(requiredClocks);
-		handleInterrupts();
+		interruptHander.handleInterrupts();
 		clocks+=requiredClocks;
 	//}
 	//refreshDisplay();	//since this function is called 60 times a second, refresh rate with be 60Hz. 
@@ -162,18 +89,18 @@ void GameBoy::write(uint16_t addr, uint8_t data){	//for testing
 }
 
 void GameBoy::getRegs(){
-	cpu.getRegs();
+	cpu->getRegs();
 }
 uint8_t GameBoy::getInstruction(){
-	return cpu.getInstruction();
+	return cpu->getInstruction();
 }
 
 uint16_t GameBoy::getPC(){
-	cpu.getPC();
+	cpu->getPC();
 }
 
 bool GameBoy::getFlag(std::string flag){
-	return cpu.getFlag(flag);
+	return cpu->getFlag(flag);
 }
 
 
@@ -182,14 +109,12 @@ void GameBoy::getTimers(){
 	uint8_t TIMA=ram->read(0xFF05);
 	uint8_t TMA=ram->read(0xFF06);
 	uint8_t TAC=ram->read(0xFF07);
-
 	printf("DIV: 0x%X => %d\n",DIV,DIV);
 	printf("TIMA: 0x%X => %d\n",TIMA,TIMA);
 	printf("TMA: 0x%X => %d\n",TMA,TMA);
 	printf("TAC: 0x%X => %d\n",TAC,TAC);
 
 }
-
 
 void GameBoy::printRamRange(uint16_t begin, uint16_t end){
 	printf("dumping ram from %X to %X\n",begin,end);

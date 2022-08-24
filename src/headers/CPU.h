@@ -33,10 +33,10 @@ class CPU {
 		uint16_t readWord() const;
 		bool testBit(uint8_t data, int bit);	
 		uint8_t bitSet(uint8_t data, int bit);
+
 	private:
 		/*Shared system memory*/
 		RAM * ram;
-
 
 		/*Registers*/
 		Registers regs;
@@ -87,10 +87,6 @@ class CPU {
 		void requestInterrupt(int interrupt);	//set interrupt bit after timing, joystick, etc events
 
 
-		/*Helpers*/
-
-
-
 	/*Instruction "templates"*/
 	private:
 		int ld_reg_addr(uint8_t &reg1, uint8_t data);	//load data to reg1. Helper function
@@ -110,38 +106,26 @@ class CPU {
 		int add(uint8_t &reg1, uint8_t &reg2);
 		int add(uint16_t &reg1, uint16_t &reg2);
 
-		int adc(uint8_t &reg1, uint8_t &reg2);
-		int adc(uint16_t &reg1, uint16_t &reg2);
-
-		int sub(uint8_t &reg1, uint8_t &reg2);
-
-		int sbc(uint16_t &reg1, uint16_t &reg2);
-		int sbc(uint8_t &reg1, uint8_t &reg2);
-
-		int _and(uint16_t &reg1, uint16_t &reg2);
 		int _and(uint8_t &reg1, uint8_t &reg2);
+		int _and(uint16_t &reg1, uint16_t &reg2);
 
+		int adc(uint8_t &reg1, uint8_t &reg2);
+		int sub(uint8_t &reg1, uint8_t &reg2);
+		int sbc(uint8_t &reg1, uint8_t &reg2);
 		int _xor(uint8_t &reg1, uint8_t &reg2);
-
-		int _or(uint16_t &reg1, uint16_t &reg2);
 		int _or(uint8_t &reg1, uint8_t &reg2);
-
 		int cp(uint8_t reg1, uint8_t reg2);
-
 		int BIT(int bit, uint8_t & reg);
 
 		int rlc(uint8_t & reg);
 		int rrc(uint8_t & reg);
-
 		int rl(uint8_t & reg);
 		int rr(uint8_t & reg);
-
 		int sla(uint8_t & reg);
 		int sra(uint8_t & reg);
+		int srl(uint8_t & reg);
 
 		int swap(uint8_t & reg);
-
-		int srl(uint8_t & reg);
 
 		int pop(uint16_t &reg1);	//pop from stack
 		int push(uint16_t &reg1);	//push to stack

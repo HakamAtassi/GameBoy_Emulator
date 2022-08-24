@@ -7,6 +7,7 @@
 #include "PPU.h"
 #include "Cartridge.h"
 #include "Timers.h"
+#include "InterruptHandler.h"
 
 
 class GameBoy
@@ -14,9 +15,10 @@ class GameBoy
     private:
 		RAM * ram;
         Timers timers;
-        CPU cpu;
+        CPU * cpu;
         PPU ppu;
         Cartridge cartridge;
+        InterruptHandler interruptHander;
         bool * IME=new bool;	//Inetrrupt Master Enable, seperate from the Inerrupt Enable
 
     
