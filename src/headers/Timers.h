@@ -10,23 +10,28 @@ class Timers{
 
         void updateTimers(int requiredClocks);
         
-
     private:
         RAM * ram;
-        int DIVCounter=0;   //keep track of clocks for updating DIV counter
-        int TIMACounter=0;  //keep track of clocks for updating TIMA counter
-        int TIMAStart=0;  
-    
 
-        uint16_t _TIMA=0;   //the value of TIMA is going to be stored here then incremented
-                            //this makes it easy to spot overflows
-                            //slighty hacky, but works very well...
+        uint8_t DIV=0;
+        int DIVCounter=0;
+
+        uint8_t TIMA=0;
+        int TIMACounter=0;
+
+        uint8_t TMA=0;
+        uint8_t TAC=0;
+    
+        bool timersEnabled;
 
         bool TIMAEnable=false;    //Bit 2 of 0xFF07
         int TIMASpeed=0;
 
-        void updateTAC();
+        void updateDIV(int requiredClocks);
+        void updateTIMA(int requiredClocks);
         void updateTMA();
+        void updateTAC();
+
         void requestTimerInterrupt();
 };
 

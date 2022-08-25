@@ -11,15 +11,11 @@
 #define JOYPAD 0x60
 
 InterruptHandler::InterruptHandler(){};
-
 InterruptHandler::InterruptHandler(CPU * cpu, RAM * ram, bool * IME):cpu(cpu), ram(ram),IME(IME)
 {
-
 }
-
 InterruptHandler::~InterruptHandler(){   //do I need to delete cpu?
 }
-
 void InterruptHandler::pushWordToStack(uint16_t data){
     cpu->pushWordToStack(data);
 }

@@ -7,16 +7,21 @@
 #define INTERRUPT_ENABLE 0xFFFF
 #define INTERRUPT_FLAGS 0xFF0F
 
+#define DIV_ADDRESS 0xFF04
+#define TIMA_ADDRESS 0xFF05
+#define TMA_ADDRESS 0xFF06
+#define TAC_ADDRESS 0xFF07 
+
 int main(){ 
 	GameBoy gameboy;    //initialize CPU
 
+    gameboy.write(TAC_ADDRESS,0x04);
     gameboy.write(0x100,0xFB);
     gameboy.write(0x101,0x21);
     gameboy.write(0x102,0xFF);
     gameboy.write(0x103,0xFF);
     gameboy.write(0x104,0x36);
     gameboy.write(0x105,0x4);
-
 
 
     printf("\n===Update 1===\n");
@@ -34,8 +39,11 @@ int main(){
     printf("\n===Update 5===\n");
     gameboy.update();  
 	gameboy.getTimers();
-	/*
+	
 
+
+
+    /*
     gameboy.write(0x100,0x3E);  //ld A, d8
     gameboy.write(0x101,0b10000001);  //ld A, d8
 

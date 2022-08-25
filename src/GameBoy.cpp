@@ -19,6 +19,8 @@
 GameBoy::GameBoy():ram(new RAM){	//no cartridge... manually writing to ram
 	timers=Timers(ram);
 	cpu=new CPU(ram,IME);
+	interruptHander=InterruptHandler(cpu,ram,IME);
+
 };
 
 GameBoy::GameBoy(Cartridge _cartridge):ram(new RAM){
@@ -59,7 +61,7 @@ void GameBoy::update(){
 	int clocks=0;
 	//while(clocks<69905){	//this function is called 60 times a second. Hence, this is done at a rate of 4 mHz
         int requiredClocks=cpu->fetchExecute();
-		//updateTimers(requiredClocks);
+		updateTimers(requiredClocks);
 		//ppu.updateGraphics(requiredClocks);
 		interruptHander.handleInterrupts();
 		clocks+=requiredClocks;

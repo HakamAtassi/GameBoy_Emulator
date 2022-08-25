@@ -76,9 +76,6 @@ int CPU::fetchExecute(){
 		fetch();
 		execute();
 	}
-	else{
-		printf("CPU Halted");
-	}
 	return cycles;
 }
 

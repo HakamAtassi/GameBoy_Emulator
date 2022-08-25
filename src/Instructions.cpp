@@ -426,7 +426,6 @@ int CPU::ld_l_a() { // 0x6F
 	return 0;
 }
 int CPU::halt() {	//0x76
-	printf("HALT\n");
 	HALT=true;
 	return 0;
 }

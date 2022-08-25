@@ -35,7 +35,7 @@ int main(){
         }
     }
 
-        printf("=============\n");
+    printf("=============\n");
 
     Cartridge cartridge_03("../../ROMS/blargg_cpu_instrs/individual/03-op sp, hl.gb");
     GameBoy gameboy_03(cartridge_03);
