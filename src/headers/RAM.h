@@ -8,6 +8,7 @@
     class RAM{
         private:
             std::vector<uint8_t> memory;    
+            void DMATransfer(uint8_t data); //runs when writing to 0xFF46, as per pandocs
 
         public:
             RAM();

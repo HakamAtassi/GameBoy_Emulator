@@ -35,7 +35,8 @@ class PPU
 		/*Tile Map 2 is from 0x9C00 to 0x9FFF*/
 
 		RAM * ram;
-		
+		uint8_t m_ScreenData[144][160][3] ;
+
 	
 		union{
 			struct{
@@ -66,7 +67,14 @@ class PPU
 			};
 			uint8_t LCDStatusRegister;
 		};//0xFF41
-		
+
+		enum COLOUR
+		{
+			WHITE,
+			LIGHT_GRAY,
+			DARK_GRAY,
+			BLACK
+		};
 
 		int scanlineCounter=456;	//each scanline takes 456 cycles to complete. draw scanline 
 									//once <=0; 
@@ -83,6 +91,16 @@ class PPU
 													//Note: interrupt handler is not needed to set interrupt
 		void updateStatusRegister();
 		void updateControlRegister();
+		COLOUR getColor(uint8_t colourNum, uint16_t address);
+		void renderBG();
+		void renderSprite();
+
+	template< typename typeData >
+	typeData BitGetVal( typeData inData, size_t inBitPosition )
+	{
+		typeData lMsk = 1 << inBitPosition ;
+		return ( inData & lMsk ) ? 1 : 0 ;
+	}
 
 };
 
