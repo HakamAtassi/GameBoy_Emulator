@@ -107,13 +107,19 @@ class PPU
 		void renderBG();
 		void renderSprite();
 
-	template< typename typeData >
-	typeData BitGetVal( typeData inData, size_t inBitPosition )
-	{
-		typeData lMsk = 1 << inBitPosition;
-		return (inData & lMsk) ? 1 : 0 ;
-	}
 
+		template< typename typeData >
+		typeData BitGetVal( typeData inData, size_t inBitPosition )
+		{
+			typeData lMsk = 1 << inBitPosition;
+			return (inData & lMsk) ? 1 : 0 ;
+		}
+		template< typename typeData >
+		bool TestBit( typeData inData, size_t inBitPosition )
+		{
+			typeData lMsk = 1 << inBitPosition ;
+			return ( inData & lMsk ) ? true : false ;
+		}
 };
 
 

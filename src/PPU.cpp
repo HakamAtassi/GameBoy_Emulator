@@ -22,7 +22,7 @@ PPU::PPU(){
 PPU::PPU(RAM * ram):ram(ram){
 	LCDControlRegister=0;
 	LCDStatusRegister=0x80;	//unused always 1
-
+	uint8_t screenData[144][160][3]={};
 }
 
 void PPU::requestInterrupt(int interruptNum){
@@ -271,9 +271,9 @@ void PPU::renderBG(){
 			continue;
 		}
 
-			screenData[pixel][finaly][0] = red ;
-			screenData[pixel][finaly][1] = green ;
-			screenData[pixel][finaly][2] = blue ;
+			screenData[finaly][pixel][0] = red ;
+			screenData[finaly][pixel][1] = green ;
+			screenData[finaly][pixel][2] = blue ;
 		}
 
 }
@@ -362,9 +362,9 @@ void PPU::renderSprite(){
 					continue ;
 				}
 				
-				screenData[pixel][scanline][0] = red ;
-				screenData[pixel][scanline][1] = green ;
-				screenData[pixel][scanline][2] = blue ;
+				screenData[scanline][pixel][0] = red ;
+				screenData[scanline][pixel][1] = green ;
+				screenData[scanline][pixel][2] = blue ;
 			}
 		}
 	}
@@ -375,8 +375,8 @@ void PPU::updateControlRegister(){
 }
 
 void PPU::drawScanline(){
-	LCDStatusRegister=ram->read(LCDStatusRegister_Address);
-	LCDControlRegister=ram->read(LCDControlRegister_Address);
+//	LCDStatusRegister=ram->read(LCDStatusRegister_Address);
+//	LCDControlRegister=ram->read(LCDControlRegister_Address);
 
 	if(BGWindowEnable==1){
 		renderBG();
@@ -392,8 +392,8 @@ void PPU::drawScanline(){
 //A scanline takes 456 cycles to complete. 
 //only draw a scanline once the counter is <=0
 void PPU::updateGraphics(int requiredClocks){
-	int LY=ram->read(LY_Address);
 	updateStatusRegister();
+	int LY=ram->read(LY_Address);
 
 	if(LCDDisplayEnable==1){
 		scanlineCounter-=requiredClocks;

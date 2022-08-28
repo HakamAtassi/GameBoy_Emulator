@@ -31,6 +31,7 @@ GameBoy::GameBoy(Cartridge _cartridge):ram(new RAM){
 	timers=Timers(ram);
 	cpu=new CPU(ram,IME);
 	interruptHander=InterruptHandler(cpu,ram,IME);
+	ppu=PPU(ram);
 
 }
 
