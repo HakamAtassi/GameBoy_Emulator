@@ -57,9 +57,9 @@ class PPU
 			struct{
 				uint8_t PPUMode:2;				//BIT 0//0=>H-Blank, 1=>V-Blank, 2=> OAM Scan, 3=> Drawing
 				uint8_t CoincidenceFlag:1;		//LY==LYC
-				uint8_t Mode0SttInterrupt:1;	//1 => enables mode 0 condition to trigger a stat interrupt
-				uint8_t Mode1SttInterrupt:1;	//1 => enables mode 1 condition to trigger a stat interrupt
-				uint8_t Mode2SttInterrupt:1;	//1 => enables mode 2 condition to trigger a stat interrupt
+				uint8_t Mode0StatInterrupt:1;	//1 => enables mode 0 condition to trigger a stat interrupt
+				uint8_t Mode1StatInterrupt:1;	//1 => enables mode 1 condition to trigger a stat interrupt
+				uint8_t Mode2StatInterrupt:1;	//1 => enables mode 2 condition to trigger a stat interrupt
 				uint8_t LYCLYStatInterrupt:1;	//LY==LYC triggers an interrupt
 				uint8_t Unused:1;				//BIT 7//unused, always 0
 	
@@ -67,8 +67,6 @@ class PPU
 			uint8_t LCDStatusRegister;
 		};//0xFF41
 		
-
-
 
 		int scanlineCounter=456;	//each scanline takes 456 cycles to complete. draw scanline 
 									//once <=0; 
@@ -80,10 +78,12 @@ class PPU
 
 	private:
 		uint16_t combineTileBytes(uint8_t left, uint8_t right);	//combines the two bytes of vram to draw an 8 pixel line
-		void updateRegs();	//update PPU regs
 		void drawScanline();
 		void requestInterrupt(int interruptNum);	//sets interrupt reg in memory. 
 													//Note: interrupt handler is not needed to set interrupt
+		void updateStatusRegister();
+		void updateControlRegister();
+
 };
 
 
