@@ -2,7 +2,7 @@
 
 ### Compile and run 
 ```
-g++ <file>.cpp ../../src/RAM.cpp ../../src/Debugger.cpp ../../src/CPU.cpp ../../src/PPU.cpp ../../src/Cartridge.cpp ../../src/GameBoy.cpp ../../src/Timers.cpp ../../src/InterruptHandler.cpp ../../src/Instructions.cpp 
+g++ <file>.cpp ../../src/RAM.cpp ../../src/Debugger.cpp ../../src/CPU.cpp ../../src/PPU.cpp ../../src/Cartridge.cpp ../../src/GameBoy.cpp ../../src/Timers.cpp ../../src/InterruptHandler.cpp ../../src/Instructions.cpp `pkg-config --cflags --libs sdl2`
 ```
 
 ### Useful resources: 
