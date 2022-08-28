@@ -35,7 +35,8 @@ class PPU
 		/*Tile Map 2 is from 0x9C00 to 0x9FFF*/
 
 		RAM * ram;
-		uint8_t m_ScreenData[144][160][3] ;
+		uint8_t screenData[144][160][3];
+		//3 colors, 144x160
 
 	
 		union{
@@ -68,6 +69,17 @@ class PPU
 			uint8_t LCDStatusRegister;
 		};//0xFF41
 
+		union{
+			struct{
+				uint8_t CBGOnly:4;			//color game boy only
+				uint8_t PalletteNumber:1;	//0=> OBP0, 1=> OBP1
+				uint8_t xFlip:1;	//flip sprite across x
+				uint8_t yFlip:1;	//flip sprite across y
+				uint8_t OBJ_BG_Prio:1;
+			};
+			uint8_t spriteAttributes;
+		};//0xFF41
+
 		enum COLOUR
 		{
 			WHITE,
@@ -98,8 +110,8 @@ class PPU
 	template< typename typeData >
 	typeData BitGetVal( typeData inData, size_t inBitPosition )
 	{
-		typeData lMsk = 1 << inBitPosition ;
-		return ( inData & lMsk ) ? 1 : 0 ;
+		typeData lMsk = 1 << inBitPosition;
+		return (inData & lMsk) ? 1 : 0 ;
 	}
 
 };

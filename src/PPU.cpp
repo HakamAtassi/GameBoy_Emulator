@@ -278,7 +278,96 @@ void PPU::renderBG(){
 
 }
 void PPU::renderSprite(){
-	//TODO: 
+	LCDControlRegister=ram->read(LCDControlRegister_Address);
+	uint8_t LY=ram->read(LY_Address);
+
+	bool use8x16 = false ;
+	if (SpriteSize==1){
+		use8x16 = true ;
+	}
+
+	for (int sprite = 0 ; sprite < 40; sprite++){
+		// sprite occupies 4 bytes in the sprite attributes table
+		uint8_t index = sprite*4 ;
+		uint8_t yPos = ram->read(0xFE00+index) - 16;
+		uint8_t xPos = ram->read(0xFE00+index+1)-8;
+		uint8_t tileLocation = ram->read(0xFE00+index+2) ;
+		spriteAttributes = ram->read(0xFE00+index+3) ;
+
+
+		int scanline = ram->read(0xFF44);
+
+		int ysize = 8;
+		if (use8x16){
+			ysize = 16;
+		}
+
+		// does this sprite intercept with the scanline?
+		if ((scanline >= yPos) && (scanline < (yPos+ysize))){
+			int line = scanline - yPos ;
+
+			// read the sprite in backwards in the y axis
+			if (yFlip)
+		{
+			line -= ysize ;
+			line *= -1 ;
+		}
+
+			line *= 2; // same as for tiles
+			uint16_t dataAddress = (0x8000 + (tileLocation * 16)) + line;
+			uint8_t data1 = ram->read( dataAddress );
+			uint8_t data2 = ram->read( dataAddress +1 );
+
+			// its easier to read in from right to left as pixel 0 is
+			// bit 7 in the colour data, pixel 1 is bit 6 etc...
+			for (int tilePixel = 7; tilePixel >= 0; tilePixel--){
+				int colourbit = tilePixel ;
+				// read the sprite in backwards for the x axis
+				if (xFlip)
+				{
+					colourbit -= 7 ;
+					colourbit *= -1 ;
+				}
+
+				// the rest is the same as for tiles
+				int colourNum = BitGetVal(data2,colourbit) ;
+				colourNum <<= 1;
+				colourNum |= BitGetVal(data1,colourbit) ;
+
+				uint16_t colourAddress = PalletteNumber?0xFF49:0xFF48 ;
+				COLOUR col=getColor(colourNum, colourAddress ) ;
+
+				// white is transparent for sprites.
+				if (col == WHITE)
+				continue ;
+
+				int red = 0;
+				int green = 0;
+				int blue = 0;
+
+				switch(col)
+				{
+					case WHITE: red =255;green=255;blue=255;break ;
+					case LIGHT_GRAY:red =0xCC;green=0xCC ;blue=0xCC;break ;
+					case DARK_GRAY:red=0x77;green=0x77;blue=0x77;break ;
+				}
+
+				int xPix = 0 - tilePixel ;
+				xPix += 7 ;
+
+				int pixel = xPos+xPix ;
+
+				// sanity check
+				if ((scanline<0)||(scanline>143)||(pixel<0)||(pixel>159)){
+					continue ;
+				}
+				
+				screenData[pixel][scanline][0] = red ;
+				screenData[pixel][scanline][1] = green ;
+				screenData[pixel][scanline][2] = blue ;
+			}
+		}
+	}
 }
 
 void PPU::updateControlRegister(){
@@ -304,11 +393,8 @@ void PPU::drawScanline(){
 //only draw a scanline once the counter is <=0
 void PPU::updateGraphics(int requiredClocks){
 	int LY=ram->read(LY_Address);
-	LCDStatusRegister=ram->read(LCDStatusRegister_Address);
-	LCDControlRegister=ram->read(LCDControlRegister_Address);
+	updateStatusRegister();
 
-
-	LCDStatusRegister=ram->read(LCDStatusRegister_Address); 
 	if(LCDDisplayEnable==1){
 		scanlineCounter-=requiredClocks;
 	}
@@ -337,7 +423,6 @@ void PPU::updateGraphics(int requiredClocks){
 		//if scanline is invisible, do nothing (just accept clocks for timing purposes)
 		//no need to actually draw an invisible scanline...
 	}
-
 };
 
 uint16_t PPU::combineTileBytes(uint8_t left, uint8_t right){

@@ -62,7 +62,7 @@ void GameBoy::update(){
 	//while(clocks<69905){	//this function is called 60 times a second. Hence, this is done at a rate of 4 mHz
         int requiredClocks=cpu->fetchExecute();
 		updateTimers(requiredClocks);
-		//ppu.updateGraphics(requiredClocks);
+		ppu.updateGraphics(requiredClocks);
 		interruptHander.handleInterrupts();
 		clocks+=requiredClocks;
 	//}
