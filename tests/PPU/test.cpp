@@ -14,8 +14,26 @@ int main(){
     using the ppu*/
     Cartridge cartridge("04-op r,imm.dump");
     PPU ppu(cartridge);
+    //ppu.dumpVram();
+   // ppu.dumpPixelbuffer();
 
-    ppu.dumpVram();
+/*
+    for(int i=0;i<500;i++){
+        ppu.drawVram();
+    }
+*/
+    ppu.createWindow();
 
 
+
+	SDL_Event eventMain;
+
+	while(1){
+        ppu.drawVram();
+        ppu.drawPixelBuffer();
+		SDL_PollEvent(&eventMain);
+		if(eventMain.type == SDL_QUIT)
+				break;
+	}
+    
 }

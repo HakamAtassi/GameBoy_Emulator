@@ -1,100 +1,43 @@
-#include <SDL/SDL.h>
-#include <SDL/SDL_opengl.h>
+#include "SDL2/SDL.h"
+#include <SDL2/SDL_events.h>
+#include <SDL2/SDL_render.h>
 
-
-static const int WIDTH = 160;
-static const int HEIGHT = 144;
-
-void InitGL(){
-	glViewport(0, 0, WIDTH, HEIGHT);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glOrtho(0, WIDTH, HEIGHT, 0, -1.0, 1.0);
-	glClearColor(0, 0, 0, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-	glShadeModel(GL_FLAT);
-
-	glEnable(GL_TEXTURE_2D);
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DITHER);
-	glDisable(GL_BLEND);
-}
-
-bool createSDLWindow(){
-	if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 )
-	{
-		return false ;
-	}
-	if( SDL_SetVideoMode( WIDTH, HEIGHT, 8, SDL_OPENGL ) == NULL )
-	{
-		return false ;
-	}
-
-	InitGL();
-
-	SDL_WM_SetCaption( "OpenGL Test", NULL );
-	return true ;
-}
-
-
-void renderGame(uint8_t screenData[144][160][3]){
-	//EmulationLoop() ;
- 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
- 	glLoadIdentity();
- 	glRasterPos2i(-1, 1);
-	glPixelZoom(1, -1);
- 	glDrawPixels(160, 144, GL_RGB, GL_UNSIGNED_BYTE, screenData);
-	SDL_GL_SwapBuffers( ) ;
-}
-
-
-
+#define WIDTH 160
+#define HEIGHT 144
 
 int main(){
-    createSDLWindow();
-    uint8_t screenData[144][160][3];
 
-    for(int i=0;i<144;i++){
-        for(int j=0;j<160;j++){
-            for(int l=0;l<3;l++){
-                screenData[i][j][l]=255;
-            }
-        }
-    }
+    uint8_t pixelBuffer[WIDTH*HEIGHT*3]={};
+	SDL_Window *window;
+	SDL_Event event;
+	SDL_Renderer *renderer;
+	SDL_Texture *texture;
 
+    window = SDL_CreateWindow("GameBoy",
+                    SDL_WINDOWPOS_UNDEFINED,
+                    SDL_WINDOWPOS_UNDEFINED,
+                    WIDTH, HEIGHT,SDL_WINDOW_RESIZABLE);
 
-    for(int i=0;i<144;i++){
-        for(int j=0;j<160;j++){
-            for(int l=0;l<3;l++){
-                screenData[i][j][l]=255;
-            }
-        }
-    }
+    renderer = SDL_CreateRenderer(window, -1, 0);
 
+    texture = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_TARGET,WIDTH,HEIGHT);
+    SDL_SetRenderTarget(renderer, NULL);
 
-    bool quit = false ;
-    SDL_Event event;
+//    SDL_RenderClear();
+    SDL_UpdateTexture(texture,
+					  NULL,
+					  pixelBuffer, 
+					  WIDTH*3);
 
-    float fps = 59.73 ;
-    float interval = 1000 ;
-    interval /= fps ;
+	SDL_RenderCopy(renderer, texture, NULL, NULL);
+	SDL_RenderPresent(renderer);
 
-    unsigned int time2 = SDL_GetTicks( ) ;
+	SDL_Event eventMain;
 
-    while (!quit)
-    {
-        while( SDL_PollEvent( &event ) )
-        {
-            if( event.type == SDL_QUIT )
-            {
-                quit = true;
-            }
-        }
+	while(1){
+		SDL_PollEvent(&eventMain);
+		if(eventMain.type == SDL_QUIT)
+				break;
+	}
 
-        renderGame(screenData);
-
-    }
-    SDL_Quit() ;
-    
 }

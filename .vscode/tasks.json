@@ -15,8 +15,7 @@
                 "../../src/Timers.cpp",
                 "../../src/Instructions.cpp",
                 "../../src/InterruptHandler.cpp",
-                "`pkg-config --cflags --libs sdl`",
-                "`pkg-config --cflags --libs gl`",
+                "`pkg-config --cflags --libs sdl2`",
 
 
 
