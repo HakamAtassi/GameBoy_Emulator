@@ -130,7 +130,7 @@ void PPU::updateStatusReg(){
 
 void PPU::drawScanline(){
 	uint8_t LY=ram->read(0xFF44);
-	uint16_t tileNumber=0x8000 + LY*2;	//the location of the tile whose first 8 pixels are being drawn in vram
+	uint16_t tileNumber=0x8000 + LY*2+0x100*(LY/8);	//the location of the tile whose first 8 pixels are being drawn in vram
 
 
 	for(int i=0;i<20;i++){	//scanline is 160 pixels wide, which is 18 tiles
@@ -139,14 +139,14 @@ void PPU::drawScanline(){
 		uint8_t byte0=ram->read(tileNumber+i*16);
 		uint8_t byte1=ram->read(tileNumber+i*16+1);
 		//combine data, add coloring, store.
-		printf("Byte0: %X, Byte1: %X\n", byte0,byte1);
+		//printf("Byte0: %X, Byte1: %X\n", byte0,byte1);
 
 		uint16_t combinedData=combineTileBytes(byte0,byte1);
-		printf("combined bytes: %X\n", combinedData);
+		//printf("combined bytes: %X\n", combinedData);
 		//draw combined data to pixel buffer
 		drawToPixelData(combinedData);
 	}
-	printf("============\n\n\n", tileNumber);
+	printf("============\n\n\n");
 
 	LY++;
 	ram->write(0xFF44,LY);
@@ -159,18 +159,18 @@ void PPU::drawToPixelData(uint16_t lineSegment){
 	pixelNumber%=(WIDTH*HEIGHT*3);
 
 	for(int i=0;i<8;i++){
-		printf("pixel %d: ",i);
+		//printf("pixel %d: ",i);
 		uint8_t pixel=0;
 		pixel=((lineSegment&0x8000)>0);
 		lineSegment=lineSegment<<1;
-		printf("%d",pixel);
+		//printf("%d",pixel);
 
 		pixel|=((lineSegment&0x8000)>0);
 		lineSegment=lineSegment<<1;
-		printf("%d \n",pixel);
+		//printf("%d \n",pixel);
 
 		/*dont worry about coloring yet*/
-		printf("pixelBuffer index=%d\n", pixelNumber);
+		//printf("pixelBuffer index=%d\n", pixelNumber);
 
 		pixelBuffer[pixelNumber]=pixel*80;
 		pixelNumber++;	//red

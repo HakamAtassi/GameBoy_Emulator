@@ -17,11 +17,11 @@ int main(){
     //ppu.dumpVram();
    // ppu.dumpPixelbuffer();
 
-/*
-    for(int i=0;i<500;i++){
+
+    for(int i=0;i<144;i++){
         ppu.drawVram();
     }
-*/
+
     ppu.createWindow();
 
 
@@ -29,7 +29,6 @@ int main(){
 	SDL_Event eventMain;
 
 	while(1){
-        ppu.drawVram();
         ppu.drawPixelBuffer();
 		SDL_PollEvent(&eventMain);
 		if(eventMain.type == SDL_QUIT)
