@@ -1,6 +1,6 @@
-#include "../../src/headers/Cartridge.h"
-#include "../../src/headers/GameBoy.h"
-#include "../../src/headers/Debugger.h"
+#include "../../../src/headers/Cartridge.h"
+#include "../../../src/headers/GameBoy.h"
+#include "../../../src/headers/Debugger.h"
 
 #include <iostream>
 
@@ -13,7 +13,7 @@
 
 int main(){
 
-    Cartridge cartridge("../../ROMS/blargg_cpu_instrs/individual/04-op r,imm.gb");
+    Cartridge cartridge("../../../ROMS/blargg_cpu_instrs/individual/04-op r,imm.gb");
     GameBoy * gameboy= new GameBoy(cartridge);
     Debugger debugger(gameboy);
     //printf("Starting test\n\n");

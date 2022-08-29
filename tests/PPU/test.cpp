@@ -1,22 +1,21 @@
 #include "../../src/headers/Cartridge.h"
-#include "../../src/headers/GameBoy.h"
+#include "../../src/headers/PPU.h"
+
 #include <iostream>
+#include <vector>
 
 #define SB 0xFF01
 #define SC 0xFF02
 
+using namespace std;
 int main(){
 
-   Cartridge cartridge_01("../../ROMS/blargg_cpu_instrs/individual/01-special.gb");
-    //Cartridge cartridge_01("../../ROMS/Tetris.gb");
+    /*the data in the dump is everything I need to generate a single frame 
+    using the ppu*/
+    Cartridge cartridge("04-op r,imm.dump");
+    PPU ppu(cartridge);
 
-    GameBoy gameboy_01(cartridge_01);
-    gameboy_01.printTitle();
-    for(int i=0;i<19999999;i++){
-        gameboy_01.update();
-        if(gameboy_01.read(SC)==0x81){
-            printf("%C",gameboy_01.read(SB));
-            gameboy_01.write(SC,0);
-        }
-    }
+    ppu.dumpVram();
+
+
 }

@@ -2,6 +2,7 @@
 #define CARTRIDGE_H_
 
 #include "RAM.h"
+#include <fstream>
 #include <cstdint>
 #include <string> 
 #include <vector>

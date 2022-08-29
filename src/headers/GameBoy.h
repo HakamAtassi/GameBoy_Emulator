@@ -8,7 +8,9 @@
 #include "Cartridge.h"
 #include "Timers.h"
 #include "InterruptHandler.h"
-
+#include <SDL2/SDL_events.h>
+#include <SDL2/SDL_render.h>
+#include "SDL2/SDL.h"
 
 class GameBoy
 {
@@ -19,6 +21,13 @@ class GameBoy
         PPU ppu;
         Cartridge cartridge;
         InterruptHandler interruptHander;
+
+        SDL_Window *window;
+        SDL_Event event;
+        SDL_Renderer *renderer;
+        SDL_Texture *texture;
+
+
         bool * IME=new bool;	//Inetrrupt Master Enable, seperate from the Inerrupt Enable
 
     
@@ -41,6 +50,8 @@ class GameBoy
         void handleInterrupts(); //checks if ISR should be called
         void ISR(int interruptVal);    //calls interrupt service routine
 
+
+
     public:
         GameBoy();
         GameBoy(Cartridge cartridge);
@@ -51,6 +62,9 @@ class GameBoy
 		void refreshDisplay(); 
         void printRam(int maxAddr);
         void printTitle();
+        void createWindow();
+        void renderGame();
+        void run();
 
         uint8_t read(uint16_t addr);
         void write(uint16_t addr,uint8_t data);    //for testing
@@ -62,7 +76,7 @@ class GameBoy
         uint16_t getPC();
         bool getFlag(std::string flag);
 		void getTimers();
-        //TODO: read SB
+        void dumpVmem();
 
 
 };

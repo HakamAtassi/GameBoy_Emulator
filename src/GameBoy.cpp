@@ -3,6 +3,8 @@
 #include "headers/CPU.h"
 #include "headers/InterruptHandler.h"
 
+
+
 #include <iostream>
 
 #define INTERRUPT_ENABLE 0xFFFF
@@ -63,7 +65,7 @@ void GameBoy::update(){
 	//while(clocks<69905){	//this function is called 60 times a second. Hence, this is done at a rate of 4 mHz
         int requiredClocks=cpu->fetchExecute();
 		updateTimers(requiredClocks);
-		ppu.updateGraphics(requiredClocks);
+		//ppu.DoGraphics(requiredClocks);
 		interruptHander.handleInterrupts();
 		clocks+=requiredClocks;
 	//}
@@ -125,3 +127,10 @@ void GameBoy::printRamRange(uint16_t begin, uint16_t end){
 		printf("%X: %X\n",i,ram->read(i));
 	}
 }
+
+
+
+void GameBoy::run(){
+
+}
+
