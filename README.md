@@ -12,3 +12,9 @@ g++ <file>.cpp ../../src/RAM.cpp ../../src/Debugger.cpp ../../src/CPU.cpp ../../
   *  The megane sulli website has a few innacuracies
 * Timers: http://www.codeslinger.co.uk/pages/projects/gameboy/timers.html
 
+### Printing vRam 
+
+<p align="center">
+ <img src="https://user-images.githubusercontent.com/83780720/187287426-22f4fe4a-7963-41bf-8f49-ada1544be4da.png"/>
+</p>
+
