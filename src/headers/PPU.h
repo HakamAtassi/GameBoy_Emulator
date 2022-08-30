@@ -64,11 +64,10 @@ private:
 
 public:
 	PPU();	//default constructor
-	PPU(RAM * ram);	//for integration with system
+	PPU(RAM * _ram);	//for integration with system
 	PPU(Cartridge cartridge);	//for integration with system
 
 	~PPU();
-
 
 	/*im going to implement the ppu with a varified correct PPU dump
 	then integrate with the rest of the system...*/
@@ -84,6 +83,7 @@ public:
 	void drawVram();
 
 	void updateGraphics();	//The actual update grpahics function
+
 
 
 private:

@@ -61,9 +61,11 @@ class GameBoy
         void updateTimers(int requiredClocks);
 		void refreshDisplay(); 
         void printRam(int maxAddr);
+        void dumpVram();
         void printTitle();
+        void updateGraphics();
         void createWindow();
-        void renderGame();
+        void drawPixelBuffer();
         void run();
 
         uint8_t read(uint16_t addr);

@@ -6,7 +6,6 @@
 #define SC 0xFF02
 
 
-
 int main(){
 
     Cartridge cartridge("../../ROMS/blargg_cpu_instrs/individual/09-op r,r.gb");

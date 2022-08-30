@@ -12,9 +12,12 @@ PPU::PPU(){
 	ram=new RAM;
 }
 
-PPU::PPU(RAM * ram):ram(ram){
+PPU::PPU(RAM * _ram){
+	ram=_ram;
+	ram->write(0xFF44,0);
 
 }
+
 
 
 PPU::PPU(Cartridge _cartridge){
@@ -26,9 +29,7 @@ PPU::PPU(Cartridge _cartridge){
 	for(int i=0;i<0xFFFF;i++){
 		ram->write(i,_cartridge.read(i));
 	}
-	for (auto& it : pixelBuffer) {
-		it=150;
-	}
+
 	ram->write(0xFF44,0);
 }
 
@@ -128,6 +129,8 @@ void PPU::renderTiles(){
 	int windowX=ram->read(0xFF4B)-7;
 	bool unsig=true;
 
+	//what tile map and tile data to use
+	//both based on the values of ppu registers set by the game
 	int tileDataBaseAddress=0;
 	if(TileDataSelect==1){
 		tileDataBaseAddress=0x8000;
@@ -145,8 +148,15 @@ void PPU::renderTiles(){
 		tileMapBaseAddress=0x9800;
 	}
 
-	uint8_t yPos=scrollY+ram->read(0xFF44);	//scrollY + LY regsiter
+	//scrollY is the number of pixels offset from the top of the screen
+	uint8_t yPos=scrollY+ram->read(0xFF44);	//where do the rendered pixels go?
+	//Y axis of the pixel currently being drawn
+	//both in pixels, not tiles
+
 	uint16_t tileRow=(((uint8_t)(yPos/8))*32);
+	//what number tile is currently being rendered? include all tiles
+	//remember, the background is actually 32x32
+
 
 	//each scanline draws 160 pixels
 	//20 tiles wide...
@@ -165,6 +175,8 @@ void PPU::renderTiles(){
 		}
 		uint16_t tileLocation=tileDataBaseAddress;
 
+		//get the final, absolute index of the tile that needs to be rendered in
+		//depends on 8000 vs 8800 addressing
 		if(unsig==true){
 			tileLocation+=tileNum*16;
 		}
@@ -172,28 +184,33 @@ void PPU::renderTiles(){
 			tileLocation+=((tileNum+128)*16);
 		}
 
+		//the relative line number of the window
+		//y pos is the line number relative to the 32x32 window
 		uint8_t line=yPos%8;
 		line*=2;
 		
 		uint8_t byte0=ram->read(tileLocation+line);
 		uint8_t byte1=ram->read(tileLocation+line+1);
+		if(byte0!=0){
+			printf("Byte0: %X, Byte1: %X\n", byte0, byte1);
+		}
 
-		int colourBit = xPos % 8 ;
-		colourBit -= 7 ;
-		colourBit *= -1 ;
+		int colorBit = xPos % 8 ;
+		colorBit -= 7 ;
+		colorBit *= -1 ;
 
-		int colourNum = ((byte1&(1<<colourBit))>0) ;
-			colourNum <<= 1;
-			colourNum |= ((byte0&(1<<colourBit))>0) ;
+		int colorNum = ((byte1&(1<<colorBit))>0) ;
+		colorNum <<= 1;
+		colorNum |= ((byte0&(1<<colorBit))>0) ;
 
 		int finaly = ram->read(0xFF44) ;
 
 
-		pixelBuffer[pixelNumber] = colourNum*50 ;
+		pixelBuffer[pixelNumber] = colorNum*50 ;
 		pixelNumber++;
-		pixelBuffer[pixelNumber] = colourNum*50  ;
+		pixelBuffer[pixelNumber] = colorNum*50  ;
 		pixelNumber++;
-		pixelBuffer[pixelNumber] = colourNum*50  ;
+		pixelBuffer[pixelNumber] = colorNum*50  ;
 		pixelNumber++;
 
 	}

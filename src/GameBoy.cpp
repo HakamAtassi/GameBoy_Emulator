@@ -3,8 +3,6 @@
 #include "headers/CPU.h"
 #include "headers/InterruptHandler.h"
 
-
-
 #include <iostream>
 
 #define INTERRUPT_ENABLE 0xFFFF
@@ -34,7 +32,6 @@ GameBoy::GameBoy(Cartridge _cartridge):ram(new RAM){
 	cpu=new CPU(ram,IME);
 	interruptHander=InterruptHandler(cpu,ram,IME);
 	ppu=PPU(ram);
-
 }
 
 GameBoy::~GameBoy(){
@@ -128,7 +125,21 @@ void GameBoy::printRamRange(uint16_t begin, uint16_t end){
 	}
 }
 
+void GameBoy::dumpVram(){
+	ppu.dumpVram();
+}
 
+void GameBoy::updateGraphics(){
+	ppu.updateGraphics();
+}
+
+void GameBoy::createWindow(){
+	ppu.createWindow();
+}
+
+void GameBoy::drawPixelBuffer(){
+	ppu.drawPixelBuffer();
+}
 
 void GameBoy::run(){
 
