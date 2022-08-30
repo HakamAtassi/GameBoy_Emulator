@@ -18,3 +18,8 @@ g++ <file>.cpp ../../src/RAM.cpp ../../src/Debugger.cpp ../../src/CPU.cpp ../../
  <img src="https://user-images.githubusercontent.com/83780720/187287426-22f4fe4a-7963-41bf-8f49-ada1544be4da.png"/>
 </p>
 
+### Printing test results from verified mem dump 
+
+<p align="center">
+ <img src="https://user-images.githubusercontent.com/83780720/187350775-10a86cf9-fa8c-4614-b9bc-c4f564c1a6bd.png"/>
+</p>
