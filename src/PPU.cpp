@@ -26,15 +26,10 @@ PPU::PPU(Cartridge _cartridge){
 	for(int i=0;i<0xFFFF;i++){
 		ram->write(i,_cartridge.read(i));
 	}
-
-
-
 	for (auto& it : pixelBuffer) {
 		it=150;
 	}
-
 	ram->write(0xFF44,0);
-
 }
 
 PPU::~PPU(){
@@ -43,7 +38,6 @@ PPU::~PPU(){
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 }
-
 
 void PPU::dumpVram(){
 	for(int i=0x8000;i<0xA000;i++){
@@ -60,7 +54,6 @@ void PPU::dumpPalettes(){
 		printf("%X: %X\n",i, ram->read(i));
 	}
 }
-
 void PPU::dumpPixelbuffer(){
 	for(auto elem:pixelBuffer){
 		printf("%X\n",elem);
@@ -73,21 +66,15 @@ void PPU::createWindow(){
 			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s", SDL_GetError());
 			return;
 		}
-
 		window = SDL_CreateWindow("GameBoy",
 						SDL_WINDOWPOS_UNDEFINED,
 						SDL_WINDOWPOS_UNDEFINED,
 						WIDTH, HEIGHT,
 						SDL_WINDOW_RESIZABLE);
-
 		renderer = SDL_CreateRenderer(window, -1, 0);
-
 		texture = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_TARGET,WIDTH,HEIGHT);
 		SDL_SetRenderTarget(renderer, NULL);
-
 }
-
-
 void PPU::drawPixelBuffer(){	//simply draws the pixel buffer to the frame
 
 	SDL_UpdateTexture
@@ -117,18 +104,113 @@ uint16_t PPU::combineTileBytes(uint8_t left, uint8_t right){
 }
 
 void PPU::drawVram(){
+	for(int i=0;i<144;i++){
+		drawScanlineVram();
+	}
+}
+
+void PPU::updateGraphics(){
+	LCDC=ram->read(0xFF40);
+	STAT=ram->read(0xFF41);
 	drawScanline();
+}
+
+void PPU::drawScanline(){
+
+	renderTiles();
+	renderSprites();
+}
+
+void PPU::renderTiles(){
+	int scrollY=ram->read(0xFF42);
+	int scrollX=ram->read(0xFF43);
+	int windowY=ram->read(0xFF4A);
+	int windowX=ram->read(0xFF4B)-7;
+	bool unsig=true;
+
+	int tileDataBaseAddress=0;
+	if(TileDataSelect==1){
+		tileDataBaseAddress=0x8000;
+	}
+	else{
+		tileDataBaseAddress=0x8800;
+		unsig=false;
+	}
+
+	int tileMapBaseAddress=0;
+	if(BGTileMapSelect==1){
+		tileMapBaseAddress=0x9C00;
+	}
+	else{
+		tileMapBaseAddress=0x9800;
+	}
+
+	uint8_t yPos=scrollY+ram->read(0xFF44);	//scrollY + LY regsiter
+	uint16_t tileRow=(((uint8_t)(yPos/8))*32);
+
+	//each scanline draws 160 pixels
+	//20 tiles wide...
+	for(int i=0;i<160;i++){
+		uint8_t xPos=i+scrollX;
+		uint16_t tileCol = (xPos/8);
+		int16_t tileNum;
+
+		uint16_t tileAddress=tileMapBaseAddress+tileRow+tileCol;
+		if(unsig==true){
+			tileNum=(uint8_t)ram->read(tileAddress);
+		}
+		else{
+			tileNum=(int8_t)ram->read(tileAddress);
+
+		}
+		uint16_t tileLocation=tileDataBaseAddress;
+
+		if(unsig==true){
+			tileLocation+=tileNum*16;
+		}
+		else{
+			tileLocation+=((tileNum+128)*16);
+		}
+
+		uint8_t line=yPos%8;
+		line*=2;
+		
+		uint8_t byte0=ram->read(tileLocation+line);
+		uint8_t byte1=ram->read(tileLocation+line+1);
+
+		int colourBit = xPos % 8 ;
+		colourBit -= 7 ;
+		colourBit *= -1 ;
+
+		int colourNum = ((byte1&(1<<colourBit))>0) ;
+			colourNum <<= 1;
+			colourNum |= ((byte0&(1<<colourBit))>0) ;
+
+		int finaly = ram->read(0xFF44) ;
+
+
+		pixelBuffer[pixelNumber] = colourNum*50 ;
+		pixelNumber++;
+		pixelBuffer[pixelNumber] = colourNum*50  ;
+		pixelNumber++;
+		pixelBuffer[pixelNumber] = colourNum*50  ;
+		pixelNumber++;
+
+	}
+	ram->write(0xFF44,ram->read(0xFF44)+1);
+
+}
+
+void PPU::renderSprites(){
 
 }
 
 
 void PPU::updateStatusReg(){
-
-
 }
 
 
-void PPU::drawScanline(){
+void PPU::drawScanlineVram(){
 	uint8_t LY=ram->read(0xFF44);
 	uint16_t tileNumber=0x8000 + LY*2+0x100*(LY/8);	//the location of the tile whose first 8 pixels are being drawn in vram
 
@@ -180,10 +262,4 @@ void PPU::drawToPixelData(uint16_t lineSegment){
 		pixelNumber++;	//blue
 	}
 	printf("8 pixels done\n\n");
-
 }
-
-void PPU::renderTiles(){
-	
-}
-

@@ -57,7 +57,7 @@ private:
 			uint8_t LYLYC:1;
 			uint8_t Unused:1;
 		};
-		uint8_t LCDS;
+		uint8_t STAT;
 	};	//LCD status, 0xFF41
 
 
@@ -83,13 +83,19 @@ public:
 
 	void drawVram();
 
+	void updateGraphics();	//The actual update grpahics function
+
 
 private:
 	void updateStatusReg();
 	void updateControlReg();
 	//void requestInterrupt();
-	void drawScanline();
+	void drawScanlineVram();
 	void renderTiles();
+	void renderSprites();
+
+	void drawScanline();
+
 	uint16_t combineTileBytes(uint8_t left, uint8_t right);
 	void drawToPixelData(uint16_t lineSegment);
 
