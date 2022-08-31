@@ -388,33 +388,14 @@ int CPU::_or(uint8_t &reg1, uint8_t &reg2) {
 //stolen from code slinger
 int CPU::cp(uint8_t reg1, uint8_t reg2) { // doesnt actually store result of subtraction anywhere
 	//printf("==CP==\n");
-	cycles=4;
-	uint8_t before = reg1 ;
-	uint8_t toSubtract = reg2 ;
-	reg1 -= toSubtract ;
-	//regs.zero=(reg1==0);
-	if (reg1 == 0)
-		regs.zero=1;
-	
-	//else{
-	//	regs.zero=0;	//TODO: This is behaving very weird in blargg tests. Pretty sure this is correct though
-	//}
 
+    uint8_t result = reg1 - reg2;
+
+	regs.zero=(result == 0);
 	regs.negative=1;
-	// set if no borrow
-	if (before < toSubtract)
-		regs.carry=1;
-	else{
-		regs.carry=0;
-	}
-	signed short htest = before & 0xF ;
-	htest -= (toSubtract & 0xF) ;
+	regs.halfCarry=(((reg1 & 0xf) - (reg2 & 0xf)) < 0);
+	regs.carry=(reg1<reg2);
 
-	if (htest < 0)
-		regs.halfCarry=1;
-	else{
-		regs.halfCarry=0;
-	}
 	return 0;
 }
 int CPU::BIT(int bit, uint8_t & reg){	
@@ -537,15 +518,14 @@ int CPU::rr(uint8_t & reg){
 	// WHEN EDITING THIS ALSO EDIT CPU_RR_MEMORY
 	//printf("==rr==\n");
 	bool isCarrySet = (regs.carry==1) ;
-	bool isLSBSet = testBit(reg, 0) ;
+	bool isLSBSet = ((reg&0x1)>0);
 	regs.F = 0 ;
 	reg >>= 1 ;
 	if (isLSBSet)
 		regs.carry=1 ;
 	if (isCarrySet)
 		reg = bitSet(reg, 7) ;
-	if (reg == 0)
-		regs.F = (regs.zero==1) ;
+	regs.zero=(reg==0);
 }
 int CPU::sla(uint8_t & reg){
 	// WHEN EDITING THIS ALSO EDIT CPU_SLA_MEMORY
