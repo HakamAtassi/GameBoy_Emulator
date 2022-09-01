@@ -56,18 +56,18 @@ CPU::CPU(RAM * _ram, bool * _IME):ram(_ram),IME(_IME){
 			&CPU::rl_b,    &CPU::rl_c,    &CPU::rl_d,     &CPU::rl_e,   &CPU::rl_h,    &CPU::rl_l,    &CPU::rl_hl,    &CPU::rl_a,   &CPU::rr_b,    &CPU::rr_c,    &CPU::rr_d,     &CPU::rr_e,   &CPU::rr_h,    &CPU::rr_l,    &CPU::rr_hl,    &CPU::rr_a,
 			&CPU::sla_b,   &CPU::sla_c,   &CPU::sla_d,    &CPU::sla_e,  &CPU::sla_h,   &CPU::sla_l,   &CPU::sla_hl,   &CPU::sla_a,  &CPU::sra_b,   &CPU::sra_c,   &CPU::sra_d,    &CPU::sra_e,  &CPU::sra_h,   &CPU::sra_l,   &CPU::sra_hl,   &CPU::sra_a,
 			&CPU::swap_b,  &CPU::swap_c,  &CPU::swap_d,   &CPU::swap_e, &CPU::swap_h,  &CPU::swap_l,  &CPU::swap_hl,  &CPU::swap_a, &CPU::srl_b,   &CPU::srl_c,   &CPU::srl_d,    &CPU::srl_e,  &CPU::srl_h,   &CPU::srl_l,   &CPU::srl_hl,	&CPU::srl_a,
-			&CPU::bit_0_b, &CPU::bit_0_c, &CPU::bit_0_f,  &CPU::bit_0_e,&CPU::bit_0_h, &CPU::bit_0_l, &CPU::bit_0_hl, &CPU::bit_0_a,&CPU::bit_1_b, &CPU::bit_1_c, &CPU::bit_1_f,  &CPU::bit_1_e,&CPU::bit_1_h, &CPU::bit_1_l, &CPU::bit_1_hl, &CPU::bit_1_a,
-			&CPU::bit_2_b, &CPU::bit_2_c, &CPU::bit_2_f,  &CPU::bit_2_e,&CPU::bit_2_h, &CPU::bit_2_l, &CPU::bit_2_hl, &CPU::bit_2_a,&CPU::bit_3_b, &CPU::bit_3_c, &CPU::bit_3_f,  &CPU::bit_3_e,&CPU::bit_3_h, &CPU::bit_3_l, &CPU::bit_3_hl, &CPU::bit_3_a,
-			&CPU::bit_4_b, &CPU::bit_4_c, &CPU::bit_4_f,  &CPU::bit_4_e,&CPU::bit_4_h, &CPU::bit_4_l, &CPU::bit_4_hl, &CPU::bit_4_a,&CPU::bit_5_b, &CPU::bit_5_c, &CPU::bit_5_f,  &CPU::bit_5_e,&CPU::bit_5_h, &CPU::bit_5_l, &CPU::bit_5_hl, &CPU::bit_5_a,
-			&CPU::bit_6_b, &CPU::bit_6_c, &CPU::bit_6_f,  &CPU::bit_6_e,&CPU::bit_6_h, &CPU::bit_6_l, &CPU::bit_6_hl, &CPU::bit_6_a,&CPU::bit_7_b, &CPU::bit_7_c, &CPU::bit_7_f,  &CPU::bit_7_e,&CPU::bit_7_h, &CPU::bit_7_l, &CPU::bit_7_hl, &CPU::bit_7_a,
-			&CPU::res_0_b, &CPU::res_0_c, &CPU::res_0_f,  &CPU::res_0_e,&CPU::res_0_h, &CPU::res_0_l, &CPU::res_0_hl, &CPU::res_0_a,&CPU::res_1_b, &CPU::res_1_c, &CPU::res_1_f,  &CPU::res_1_e,&CPU::res_1_h, &CPU::res_1_l, &CPU::res_1_hl, &CPU::res_1_a,
-			&CPU::res_2_b, &CPU::res_2_c, &CPU::res_2_f,  &CPU::res_2_e,&CPU::res_2_h, &CPU::res_2_l, &CPU::res_2_hl, &CPU::res_2_a,&CPU::res_3_b, &CPU::res_3_c, &CPU::res_3_f,  &CPU::res_3_e,&CPU::res_3_h, &CPU::res_3_l, &CPU::res_3_hl, &CPU::res_3_a,
-			&CPU::res_4_b, &CPU::res_4_c, &CPU::res_4_f,  &CPU::res_4_e,&CPU::res_4_h, &CPU::res_4_l, &CPU::res_4_hl, &CPU::res_4_a,&CPU::res_5_b, &CPU::res_5_c, &CPU::res_5_f,  &CPU::res_5_e,&CPU::res_5_h, &CPU::res_5_l, &CPU::res_5_hl, &CPU::res_5_a,
-			&CPU::res_6_b, &CPU::res_6_c, &CPU::res_6_f,  &CPU::res_6_e,&CPU::res_6_h, &CPU::res_6_l, &CPU::res_6_hl, &CPU::res_6_a,&CPU::res_7_b, &CPU::res_7_c, &CPU::res_7_f,  &CPU::res_7_e,&CPU::res_7_h, &CPU::res_7_l, &CPU::res_7_hl, &CPU::res_7_a,
-			&CPU::set_0_b, &CPU::set_0_c, &CPU::set_0_f,  &CPU::set_0_e,&CPU::set_0_h, &CPU::set_0_l, &CPU::set_0_hl, &CPU::set_0_a,&CPU::set_1_b, &CPU::set_1_c, &CPU::set_1_f,  &CPU::set_1_e,&CPU::set_1_h, &CPU::set_1_l, &CPU::set_1_hl, &CPU::set_1_a,
-			&CPU::set_2_b, &CPU::set_2_c, &CPU::set_2_f,  &CPU::set_2_e,&CPU::set_2_h, &CPU::set_2_l, &CPU::set_2_hl, &CPU::set_2_a,&CPU::set_3_b, &CPU::set_3_c, &CPU::set_3_f,  &CPU::set_3_e,&CPU::set_3_h, &CPU::set_3_l, &CPU::set_3_hl, &CPU::set_3_a,
-			&CPU::set_4_b, &CPU::set_4_c, &CPU::set_4_f,  &CPU::set_4_e,&CPU::set_4_h, &CPU::set_4_l, &CPU::set_4_hl, &CPU::set_4_a,&CPU::set_5_b, &CPU::set_5_c, &CPU::set_5_f,  &CPU::set_5_e,&CPU::set_5_h, &CPU::set_5_l, &CPU::set_5_hl, &CPU::set_5_a,
-			&CPU::set_6_b, &CPU::set_6_c, &CPU::set_6_f,  &CPU::set_6_e,&CPU::set_6_h, &CPU::set_6_l, &CPU::set_6_hl, &CPU::set_6_a,&CPU::set_7_b, &CPU::set_7_c, &CPU::set_7_f,  &CPU::set_7_e,&CPU::set_7_h, &CPU::set_7_l, &CPU::set_7_hl, &CPU::set_7_a
+			&CPU::bit_0_b, &CPU::bit_0_c, &CPU::bit_0_d,  &CPU::bit_0_e,&CPU::bit_0_h, &CPU::bit_0_l, &CPU::bit_0_hl, &CPU::bit_0_a,&CPU::bit_1_b, &CPU::bit_1_c, &CPU::bit_1_d,  &CPU::bit_1_e,&CPU::bit_1_h, &CPU::bit_1_l, &CPU::bit_1_hl, &CPU::bit_1_a,
+			&CPU::bit_2_b, &CPU::bit_2_c, &CPU::bit_2_d,  &CPU::bit_2_e,&CPU::bit_2_h, &CPU::bit_2_l, &CPU::bit_2_hl, &CPU::bit_2_a,&CPU::bit_3_b, &CPU::bit_3_c, &CPU::bit_3_d,  &CPU::bit_3_e,&CPU::bit_3_h, &CPU::bit_3_l, &CPU::bit_3_hl, &CPU::bit_3_a,
+			&CPU::bit_4_b, &CPU::bit_4_c, &CPU::bit_4_d,  &CPU::bit_4_e,&CPU::bit_4_h, &CPU::bit_4_l, &CPU::bit_4_hl, &CPU::bit_4_a,&CPU::bit_5_b, &CPU::bit_5_c, &CPU::bit_5_d,  &CPU::bit_5_e,&CPU::bit_5_h, &CPU::bit_5_l, &CPU::bit_5_hl, &CPU::bit_5_a,
+			&CPU::bit_6_b, &CPU::bit_6_c, &CPU::bit_6_d,  &CPU::bit_6_e,&CPU::bit_6_h, &CPU::bit_6_l, &CPU::bit_6_hl, &CPU::bit_6_a,&CPU::bit_7_b, &CPU::bit_7_c, &CPU::bit_7_d,  &CPU::bit_7_e,&CPU::bit_7_h, &CPU::bit_7_l, &CPU::bit_7_hl, &CPU::bit_7_a,
+			&CPU::res_0_b, &CPU::res_0_c, &CPU::res_0_d,  &CPU::res_0_e,&CPU::res_0_h, &CPU::res_0_l, &CPU::res_0_hl, &CPU::res_0_a,&CPU::res_1_b, &CPU::res_1_c, &CPU::res_1_d,  &CPU::res_1_e,&CPU::res_1_h, &CPU::res_1_l, &CPU::res_1_hl, &CPU::res_1_a,
+			&CPU::res_2_b, &CPU::res_2_c, &CPU::res_2_d,  &CPU::res_2_e,&CPU::res_2_h, &CPU::res_2_l, &CPU::res_2_hl, &CPU::res_2_a,&CPU::res_3_b, &CPU::res_3_c, &CPU::res_3_d,  &CPU::res_3_e,&CPU::res_3_h, &CPU::res_3_l, &CPU::res_3_hl, &CPU::res_3_a,
+			&CPU::res_4_b, &CPU::res_4_c, &CPU::res_4_d,  &CPU::res_4_e,&CPU::res_4_h, &CPU::res_4_l, &CPU::res_4_hl, &CPU::res_4_a,&CPU::res_5_b, &CPU::res_5_c, &CPU::res_5_d,  &CPU::res_5_e,&CPU::res_5_h, &CPU::res_5_l, &CPU::res_5_hl, &CPU::res_5_a,
+			&CPU::res_6_b, &CPU::res_6_c, &CPU::res_6_d,  &CPU::res_6_e,&CPU::res_6_h, &CPU::res_6_l, &CPU::res_6_hl, &CPU::res_6_a,&CPU::res_7_b, &CPU::res_7_c, &CPU::res_7_d,  &CPU::res_7_e,&CPU::res_7_h, &CPU::res_7_l, &CPU::res_7_hl, &CPU::res_7_a,
+			&CPU::set_0_b, &CPU::set_0_c, &CPU::set_0_d,  &CPU::set_0_e,&CPU::set_0_h, &CPU::set_0_l, &CPU::set_0_hl, &CPU::set_0_a,&CPU::set_1_b, &CPU::set_1_c, &CPU::set_1_d,  &CPU::set_1_e,&CPU::set_1_h, &CPU::set_1_l, &CPU::set_1_hl, &CPU::set_1_a,
+			&CPU::set_2_b, &CPU::set_2_c, &CPU::set_2_d,  &CPU::set_2_e,&CPU::set_2_h, &CPU::set_2_l, &CPU::set_2_hl, &CPU::set_2_a,&CPU::set_3_b, &CPU::set_3_c, &CPU::set_3_d,  &CPU::set_3_e,&CPU::set_3_h, &CPU::set_3_l, &CPU::set_3_hl, &CPU::set_3_a,
+			&CPU::set_4_b, &CPU::set_4_c, &CPU::set_4_d,  &CPU::set_4_e,&CPU::set_4_h, &CPU::set_4_l, &CPU::set_4_hl, &CPU::set_4_a,&CPU::set_5_b, &CPU::set_5_c, &CPU::set_5_d,  &CPU::set_5_e,&CPU::set_5_h, &CPU::set_5_l, &CPU::set_5_hl, &CPU::set_5_a,
+			&CPU::set_6_b, &CPU::set_6_c, &CPU::set_6_d,  &CPU::set_6_e,&CPU::set_6_h, &CPU::set_6_l, &CPU::set_6_hl, &CPU::set_6_a,&CPU::set_7_b, &CPU::set_7_c, &CPU::set_7_d,  &CPU::set_7_e,&CPU::set_7_h, &CPU::set_7_l, &CPU::set_7_hl, &CPU::set_7_a
 	};
 }
 int CPU::fetchExecute(){
@@ -426,12 +426,10 @@ int CPU::push(uint16_t &reg1) {
 int CPU::rst(int index) {
 	//printf("==RST==\n");
 	cycles = 16;
-	SP--;
-	ram->write(SP, (PC & 0xFF00) >> 8);
-	SP--;
-	ram->write(SP, PC & 0x00FF);
-	PC = ram->read(0x00) << 8;
-	PC |= ram->read(0x8 * index);
+
+	pushWordToStack(PC);
+
+	PC = ram->read(0x08 * index);
 	return 0;
 }
 int CPU::_ret(bool condition) {

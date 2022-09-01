@@ -1,6 +1,6 @@
-#include "../../src/headers/Cartridge.h"
-#include "../../src/headers/GameBoy.h"
-#include "../../src/headers/Debugger.h"
+#include "../../../src/headers/Cartridge.h"
+#include "../../../src/headers/GameBoy.h"
+#include "../../../src/headers/Debugger.h"
 
 #include <iostream>
 #include <vector>
@@ -29,7 +29,9 @@ int main(){
 
 int main(){
     
-    Cartridge cartridge("../../ROMS/blargg_cpu_instrs/individual/07-jr,jp,call,ret,rst.gb");
+    Cartridge cartridge("../../../ROMS/blargg_cpu_instrs/individual/07-jr,jp,call,ret,rst.gb");
+
+
     GameBoy gameboy(cartridge);
     printf("Starting test\n\n");
 
@@ -40,4 +42,14 @@ int main(){
             gameboy.write(SC,0);
         }
     }
+
+/*
+    GameBoy * gameboy= new GameBoy(cartridge);
+    Debugger debugger(gameboy);
+    //printf("Starting test\n\n");
+
+    for(int i=0;i<900000;i++){
+        debugger.run();        
+    }
+*/
 }

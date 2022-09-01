@@ -498,7 +498,7 @@ class CPU {
 		/*0x04*/
 		int bit_0_b();
 		int bit_0_c();
-		int bit_0_f();
+		int bit_0_d();
 		int bit_0_e();
 		int bit_0_h();
 		int bit_0_l();
@@ -506,7 +506,7 @@ class CPU {
 		int bit_0_a();
 		int bit_1_b();
 		int bit_1_c();
-		int bit_1_f();
+		int bit_1_d();
 		int bit_1_e();
 		int bit_1_h();
 		int bit_1_l();
@@ -516,7 +516,7 @@ class CPU {
 		/*0x05*/
 		int bit_2_b();
 		int bit_2_c();
-		int bit_2_f();
+		int bit_2_d();
 		int bit_2_e();
 		int bit_2_h();
 		int bit_2_l();
@@ -524,7 +524,7 @@ class CPU {
 		int bit_2_a();
 		int bit_3_b();
 		int bit_3_c();
-		int bit_3_f();
+		int bit_3_d();
 		int bit_3_e();
 		int bit_3_h();
 		int bit_3_l();
@@ -534,7 +534,7 @@ class CPU {
 		/*0x06*/
 		int bit_4_b();
 		int bit_4_c();
-		int bit_4_f();
+		int bit_4_d();
 		int bit_4_e();
 		int bit_4_h();
 		int bit_4_l();
@@ -542,7 +542,7 @@ class CPU {
 		int bit_4_a();
 		int bit_5_b();
 		int bit_5_c();
-		int bit_5_f();
+		int bit_5_d();
 		int bit_5_e();
 		int bit_5_h();
 		int bit_5_l();
@@ -552,7 +552,7 @@ class CPU {
 		/*0x07*/
 		int bit_6_b();
 		int bit_6_c();
-		int bit_6_f();
+		int bit_6_d();
 		int bit_6_e();
 		int bit_6_h();
 		int bit_6_l();
@@ -560,7 +560,7 @@ class CPU {
 		int bit_6_a();
 		int bit_7_b();
 		int bit_7_c();
-		int bit_7_f();
+		int bit_7_d();
 		int bit_7_e();
 		int bit_7_h();
 		int bit_7_l();
@@ -570,7 +570,7 @@ class CPU {
 		/*0x08*/
 		int res_0_b();
 		int res_0_c();
-		int res_0_f();
+		int res_0_d();
 		int res_0_e();
 		int res_0_h();
 		int res_0_l();
@@ -578,7 +578,7 @@ class CPU {
 		int res_0_a();
 		int res_1_b();
 		int res_1_c();
-		int res_1_f();
+		int res_1_d();
 		int res_1_e();
 		int res_1_h();
 		int res_1_l();
@@ -588,7 +588,7 @@ class CPU {
 		/*0x09*/
 		int res_2_b();
 		int res_2_c();
-		int res_2_f();
+		int res_2_d();
 		int res_2_e();
 		int res_2_h();
 		int res_2_l();
@@ -596,7 +596,7 @@ class CPU {
 		int res_2_a();
 		int res_3_b();
 		int res_3_c();
-		int res_3_f();
+		int res_3_d();
 		int res_3_e();
 		int res_3_h();
 		int res_3_l();
@@ -606,7 +606,7 @@ class CPU {
 		/*0x0A*/
 		int res_4_b();
 		int res_4_c();
-		int res_4_f();
+		int res_4_d();
 		int res_4_e();
 		int res_4_h();
 		int res_4_l();
@@ -614,7 +614,7 @@ class CPU {
 		int res_4_a();
 		int res_5_b();
 		int res_5_c();
-		int res_5_f();
+		int res_5_d();
 		int res_5_e();
 		int res_5_h();
 		int res_5_l();
@@ -624,7 +624,7 @@ class CPU {
 		/*0x0B*/
 		int res_6_b();
 		int res_6_c();
-		int res_6_f();
+		int res_6_d();
 		int res_6_e();
 		int res_6_h();
 		int res_6_l();
@@ -632,7 +632,7 @@ class CPU {
 		int res_6_a();
 		int res_7_b();
 		int res_7_c();
-		int res_7_f();
+		int res_7_d();
 		int res_7_e();
 		int res_7_h();
 		int res_7_l();
@@ -642,7 +642,7 @@ class CPU {
 		/*0x0C*/
 		int set_0_b();
 		int set_0_c();
-		int set_0_f();
+		int set_0_d();
 		int set_0_e();
 		int set_0_h();
 		int set_0_l();
@@ -650,7 +650,7 @@ class CPU {
 		int set_0_a();
 		int set_1_b();
 		int set_1_c();
-		int set_1_f();
+		int set_1_d();
 		int set_1_e();
 		int set_1_h();
 		int set_1_l();
@@ -660,7 +660,7 @@ class CPU {
 		/*0x0D*/
 		int set_2_b();
 		int set_2_c();
-		int set_2_f();
+		int set_2_d();
 		int set_2_e();
 		int set_2_h();
 		int set_2_l();
@@ -668,7 +668,7 @@ class CPU {
 		int set_2_a();
 		int set_3_b();
 		int set_3_c();
-		int set_3_f();
+		int set_3_d();
 		int set_3_e();
 		int set_3_h();
 		int set_3_l();
@@ -678,7 +678,7 @@ class CPU {
 		/*0x0E*/
 		int set_4_b();
 		int set_4_c();
-		int set_4_f();
+		int set_4_d();
 		int set_4_e();
 		int set_4_h();
 		int set_4_l();
@@ -686,7 +686,7 @@ class CPU {
 		int set_4_a();
 		int set_5_b();
 		int set_5_c();
-		int set_5_f();
+		int set_5_d();
 		int set_5_e();
 		int set_5_h();
 		int set_5_l();
@@ -696,7 +696,7 @@ class CPU {
 		/*0x0F*/
 		int set_6_b();
 		int set_6_c();
-		int set_6_f();
+		int set_6_d();
 		int set_6_e();
 		int set_6_h();
 		int set_6_l();
@@ -704,7 +704,7 @@ class CPU {
 		int set_6_a();
 		int set_7_b();
 		int set_7_c();
-		int set_7_f();
+		int set_7_d();
 		int set_7_e();
 		int set_7_h();
 		int set_7_l();

@@ -462,25 +462,15 @@ int CPU::ld_sp_hl() {	//0xF9
 	return 0;
 }
 int CPU::ld_hl_sp_s8() {	//0xF8
-	//TODO: add half carry	
 	int8_t s8=ram->read(PC);
-	PC++;
+	int result=SP+s8;
+
 	regs.zero=0;
 	regs.negative=0;
-	uint16_t result=SP+s8;
+	regs.halfCarry=(((SP ^ s8 ^ (result & 0xFFFF)) & 0x10) == 0x10);
+	regs.carry=(((SP ^ s8 ^ (result & 0xFFFF)) & 0x100) == 0x100);
+	PC++;
 	regs.HL=result;
-
-	if( result > 0xFFFF )
-		regs.carry=1;
-	else
-		regs.carry=0;
-
-	if( (SP& 0xF) + (s8 & 0xF) > 0xF )
-		regs.halfCarry=1;
-	else
-		regs.halfCarry=0;
-
-	return 0;
 }
 
 
@@ -957,8 +947,16 @@ int CPU::add_a_d8() {	//0xC6
 	return 0;
 }
 int CPU::add_sp_s8() {	//0xE6
-	//TODO: IMPLEMENT THIS
+
+	int8_t s8=ram->read(PC);
+	int result=SP+s8;
+
+	regs.zero=0;
+	regs.negative=0;
+	regs.halfCarry=(((SP ^ s8 ^ (result & 0xFFFF)) & 0x10) == 0x10);
+	regs.carry=(((SP ^ s8 ^ (result & 0xFFFF)) & 0x100) == 0x100);
 	PC++;
+	SP=result;
 	return 0;
 }
 /*===============================ADC INSTRUCTIONS===============================*/
@@ -1600,8 +1598,8 @@ int CPU::bit_0_c() {
 	BIT(0,regs.C);
 	return 0;
 }
-int CPU::bit_0_f() {
-	BIT(0,regs.F);
+int CPU::bit_0_d() {
+	BIT(0,regs.D);
 	return 0;
 }
 int CPU::bit_0_e() {
@@ -1634,8 +1632,8 @@ int CPU::bit_1_c() {
 	BIT(1,regs.C);
 	return 0;
 }
-int CPU::bit_1_f() {
-	BIT(1,regs.F);
+int CPU::bit_1_d() {
+	BIT(1,regs.D);
 	return 0;
 }
 int CPU::bit_1_e() {
@@ -1669,8 +1667,8 @@ int CPU::bit_2_c() {
 	BIT(2,regs.C);
 	return 0;
 }
-int CPU::bit_2_f() {
-	BIT(2,regs.F);
+int CPU::bit_2_d() {
+	BIT(2,regs.D);
 	return 0;
 }
 int CPU::bit_2_e() {
@@ -1704,8 +1702,8 @@ int CPU::bit_3_c() {
 	BIT(3,regs.C);
 	return 0;
 }
-int CPU::bit_3_f() {
-	BIT(3,regs.F);
+int CPU::bit_3_d() {
+	BIT(3,regs.D);
 	return 0;
 }
 int CPU::bit_3_e() {
@@ -1740,8 +1738,8 @@ int CPU::bit_4_c() {
 	BIT(4,regs.C);
 	return 0;
 }
-int CPU::bit_4_f() {
-	BIT(4,regs.F);
+int CPU::bit_4_d() {
+	BIT(4,regs.D);
 	return 0;
 }
 int CPU::bit_4_e() {
@@ -1775,8 +1773,8 @@ int CPU::bit_5_c() {
 	BIT(5,regs.C);
 	return 0;
 }
-int CPU::bit_5_f() {
-	BIT(5,regs.F);
+int CPU::bit_5_d() {
+	BIT(5,regs.D);
 	return 0;
 }
 int CPU::bit_5_e() {
@@ -1811,8 +1809,8 @@ int CPU::bit_6_c() {
 	BIT(6,regs.C);
 	return 0;
 }
-int CPU::bit_6_f() {
-	BIT(6,regs.F);
+int CPU::bit_6_d() {
+	BIT(6,regs.D);
 	return 0;
 }
 int CPU::bit_6_e() {
@@ -1846,8 +1844,8 @@ int CPU::bit_7_c() {
 	BIT(7,regs.C);
 	return 0;
 }
-int CPU::bit_7_f() {
-	BIT(7,regs.F);
+int CPU::bit_7_d() {
+	BIT(7,regs.D);
 	return 0;
 }
 int CPU::bit_7_e() {
@@ -1884,8 +1882,8 @@ int CPU::res_0_c() {
 	res(regs.C,0);
 	return 0;
 }
-int CPU::res_0_f() {
-	res(regs.F,0);
+int CPU::res_0_d() {
+	res(regs.D,0);
 	return 0;
 }
 int CPU::res_0_e() {
@@ -1919,8 +1917,8 @@ int CPU::res_1_c() {
 	res(regs.C,1);
 	return 0;
 }
-int CPU::res_1_f() {
-	res(regs.F,1);
+int CPU::res_1_d() {
+	res(regs.D,1);
 	return 0;
 }
 int CPU::res_1_e() {
@@ -1955,8 +1953,8 @@ int CPU::res_2_c() {
 	res(regs.C,2);
 	return 0;
 }
-int CPU::res_2_f() {
-	res(regs.F,2);
+int CPU::res_2_d() {
+	res(regs.D,2);
 	return 0;
 }
 int CPU::res_2_e() {
@@ -1990,8 +1988,8 @@ int CPU::res_3_c() {
 	res(regs.C,3);
 	return 0;
 }
-int CPU::res_3_f() {
-	res(regs.F,3);
+int CPU::res_3_d() {
+	res(regs.D,3);
 	return 0;
 }
 int CPU::res_3_e() {
@@ -2026,8 +2024,8 @@ int CPU::res_4_c() {
 	res(regs.C,4);
 	return 0;
 }
-int CPU::res_4_f() {
-	res(regs.F,4);
+int CPU::res_4_d() {
+	res(regs.D,4);
 	return 0;
 }
 int CPU::res_4_e() {
@@ -2061,8 +2059,8 @@ int CPU::res_5_c() {
 	res(regs.C,5);
 	return 0;
 }
-int CPU::res_5_f() {
-	res(regs.F,5);
+int CPU::res_5_d() {
+	res(regs.D,5);
 	return 0;
 }
 int CPU::res_5_e() {
@@ -2098,8 +2096,8 @@ int CPU::res_6_c() {
 	return 0;
 }
 
-int CPU::res_6_f() {
-	res(regs.F,6);
+int CPU::res_6_d() {
+	res(regs.D,6);
 	return 0;
 }
 int CPU::res_6_e() {
@@ -2132,8 +2130,8 @@ int CPU::res_7_c() {
 	res(regs.C,7);
 	return 0;
 }
-int CPU::res_7_f() {
-	res(regs.F,7);
+int CPU::res_7_d() {
+	res(regs.D,7);
 	return 0;
 }
 int CPU::res_7_e() {
@@ -2171,8 +2169,8 @@ int CPU::set_0_c() {
 	set(regs.C,0);
 	return 0;
 }
-int CPU::set_0_f() {
-	set(regs.F,0);
+int CPU::set_0_d() {
+	set(regs.D,0);
 	return 0;
 }
 int CPU::set_0_e() {
@@ -2206,8 +2204,8 @@ int CPU::set_1_c() {
 	set(regs.C,1);
 	return 0;
 }
-int CPU::set_1_f() {
-	set(regs.F,1);
+int CPU::set_1_d() {
+	set(regs.D,1);
 	return 0;
 }
 int CPU::set_1_e() {
@@ -2234,23 +2232,23 @@ int CPU::set_1_a() {
 }
 /*0x0D*/
 int CPU::set_2_b() {
-	set(regs.B,1);
+	set(regs.B,2);
 	return 0;
 }
 int CPU::set_2_c() {
-	set(regs.C,1);
+	set(regs.C,2);
 	return 0;
 }
-int CPU::set_2_f() {
-	set(regs.F,1);
+int CPU::set_2_d() {
+	set(regs.D,2);
 	return 0;
 }
 int CPU::set_2_e() {
-	set(regs.E,1);
+	set(regs.E,2);
 	return 0;
 }
 int CPU::set_2_h() {
-	set(regs.H,1);
+	set(regs.H,2);
 	return 0;
 }
 int CPU::set_2_l() {
@@ -2278,8 +2276,8 @@ int CPU::set_3_e() {
 	set(regs.E,3);
 	return 0;
 }
-int CPU::set_3_f() {
-	set(regs.F,3);
+int CPU::set_3_d() {
+	set(regs.D,3);
 	return 0;
 }
 int CPU::set_3_h() {
@@ -2310,8 +2308,8 @@ int CPU::set_4_c() {
 	set(regs.C,4);
 	return 0;
 }
-int CPU::set_4_f() {
-	set(regs.F,4);
+int CPU::set_4_d() {
+	set(regs.D,4);
 	return 0;
 }
 int CPU::set_4_e() {
@@ -2333,7 +2331,7 @@ int CPU::set_4_hl() {
 	return 0;
 }
 int CPU::set_4_a() {
-	set(regs.A,5);
+	set(regs.A,4);
 	return 0;
 }
 int CPU::set_5_b() {
@@ -2344,8 +2342,8 @@ int CPU::set_5_c() {
 	set(regs.C,5);
 	return 0;
 }
-int CPU::set_5_f() {
-	set(regs.F,5);
+int CPU::set_5_d() {
+	set(regs.D,5);
 	return 0;
 }
 int CPU::set_5_e() {
@@ -2380,8 +2378,8 @@ int CPU::set_6_c() {
 	set(regs.C,6);
 	return 0;
 }
-int CPU::set_6_f() {
-	set(regs.F,6);
+int CPU::set_6_d() {
+	set(regs.D,6);
 	return 0;
 }
 int CPU::set_6_e() {
@@ -2415,8 +2413,8 @@ int CPU::set_7_c() {
 	set(regs.C,7);
 	return 0;
 }
-int CPU::set_7_f() {
-	set(regs.F,7);
+int CPU::set_7_d() {
+	set(regs.D,7);
 	return 0;
 }
 int CPU::set_7_e() {

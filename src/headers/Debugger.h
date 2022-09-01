@@ -14,6 +14,10 @@ private:
     uint16_t prevPC;
     uint8_t opcode;
     uint8_t instruction;
+
+    bool breakpointFlag=false;
+    uint16_t breakpoint;
+
     bool CBFlag=false;
 
 

@@ -199,10 +199,35 @@ void Debugger::run(){
             gameboy->update();
             checkSerialOut();
         }
-        debug();
+        printf("\n");
+        
     }
+    
 	else if (input=="clear"){
         system("clear");
+    }
+    else if(input=="set Breakpoint"){
+        breakpointFlag=true;
+        int PCTarget=0;
+        std::cout<<"Breakpoint at PC:\n";
+        std::cin>>hex>>PCTarget;
+        while(breakpointFlag==true){
+            while(gameboy->getPC()!=PCTarget){
+                gameboy->update();
+                checkSerialOut();
+            }
+            debug();
+            gameboy->update();
+
+            getline(std::cin,input);
+            if(input=="end Breakpoint"){
+                std::cout<<"Breakpoint ended\n";
+                breakpointFlag=false;
+                break;
+            }
+        }
+
+        printf("\n");
     }
 	else{
         system("clear");
