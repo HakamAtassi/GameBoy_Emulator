@@ -68,6 +68,10 @@ void Debugger::printRegs(){
 
 }
 
+void Debugger::printChecksum(){
+    std::cout<<"0xFF80\t"<<(int)gameboy->read(0xFF80)<<" " <<(int)gameboy->read(0xFF81)<< " "<<(int)gameboy->read(0xFF82)<<" "<<(int)gameboy->read(0xFF83)<<"\n";
+}
+
 void Debugger::printPC(){
     std::cout<<left<<setw(10)<<uppercase<<hex<<PC;
 }
@@ -116,6 +120,7 @@ void Debugger::debug(){
     printPC();
     printInstruction();
     printRegs();
+    printChecksum();
     cout<<"\n";
     //printFlags();
 }
@@ -167,7 +172,7 @@ void Debugger::run(){
             gameboy->update();
             checkSerialOut();
         }
-        debug();
+        //debug();
     }
 	else if(input=="nw"){
         printNextWord();

@@ -95,7 +95,7 @@ void CPU::getRegs(){
 	<<"HL="<<std::uppercase<<std::hex<<regs.HL<<" "
 	<<"AF="<<std::uppercase<<std::hex<<regs.AF<<" "
 	<<"SP="<<std::uppercase<<std::hex<<SP<<" "
-	<<"PC="<<std::uppercase<<std::hex<<PC<<" ";
+	<<"PC="<<std::uppercase<<std::hex<<PC<<"\n";
 }
 
 
@@ -309,6 +309,7 @@ int CPU::add(uint16_t &reg1, uint16_t &reg2){
 	regs.carry = result > 0xffff;
 	regs.halfCarry = ((reg1 & 0x0fff) + (reg2 & 0x0fff) > 0x0fff);
 	regs.negative = 0;
+	reg1=result;
 	return 0;
 }
 int CPU::adc(uint8_t &reg1, uint8_t &reg2) {
@@ -486,13 +487,15 @@ int CPU::rlc(uint8_t & reg){
 }
 int CPU::rrc(uint8_t & reg){
 	//printf("==rrc==\n");
-	uint8_t prev=reg;
-	reg>>=1;
-	regs.carry=((prev&1)==1);	//set carry if lower bit was 1
-	reg=reg|(regs.carry<<8);	//put carry into bit 0 of result
+	uint8_t carryFlag=((reg&0x01)>0);
+	uint8_t result = ((reg >> 1) | (carryFlag << 7));
+	reg=result;
+
+	regs.carry=(carryFlag);	//set carry if lower bit was 1
 	regs.zero=(reg==0);
 	regs.negative=0;
 	regs.halfCarry=0;
+
 	return 0;
 }
 
@@ -511,8 +514,8 @@ int CPU::rl(uint8_t & reg){
 	if (isCarrySet)
 		reg = bitSet(reg, 0) ;
 
-	if (reg == 0)
-		regs.F = (regs.zero==1) ;
+
+	regs.zero=(reg==0);
 }
 int CPU::rr(uint8_t & reg){
 	// WHEN EDITING THIS ALSO EDIT CPU_RR_MEMORY
@@ -535,8 +538,7 @@ int CPU::sla(uint8_t & reg){
 	regs.F = 0 ;
 	if (isMSBSet)
 		regs.carry=1 ;
-	if (reg == 0)
-		regs.F = (regs.zero==1) ;
+	regs.zero=(reg==0);
 }
 int CPU::sra(uint8_t & reg){
 	// WHEN EDITING THIS FUNCTION ALSO EDIT CPU_SRA_MEMORY
@@ -549,8 +551,8 @@ int CPU::sra(uint8_t & reg){
 		reg = bitSet(reg,7) ;
 	if (isLSBSet)
 		regs.carry=1 ;
-	if (reg == 0)
-		regs.F = (regs.zero==1) ;
+	regs.zero=(reg==0);
+
 }
 int CPU::swap(uint8_t & reg){
 	//printf("==swap==\n");
@@ -558,12 +560,11 @@ int CPU::swap(uint8_t & reg){
 	cycles=8;
 	reg = (((reg & 0xF0) >> 4) | ((reg & 0x0F) << 4));
 
-	if (reg == 0){
-		regs.zero=1;
-	}
-	else{
-		regs.zero=0;
-	}
+	regs.zero=(reg==0);
+	regs.negative=0;
+	regs.carry=0;
+	regs.halfCarry=0;
+
 }
 int CPU::srl(uint8_t & reg){
 	//WHEN EDITING THIS FUNCTION ALSO EDIT CPU_SRL_MEMORY
@@ -573,15 +574,15 @@ int CPU::srl(uint8_t & reg){
 	reg >>= 1;
 	if (isLSBSet)
 		regs.carry=1 ;
-	if (reg == 0)
-		regs.F = (regs.zero==1) ;
+	regs.zero=(reg==0);
+
 }
 
 
 int CPU::res(uint8_t & reg, int pos){	//reset bit at offset
 	//printf("==RES==\n");
 	cycles=8;
-	int offsetBin=1<<pos;
+	uint8_t offsetBin=1<<pos;
 	offsetBin=~offsetBin;
 	reg=reg&offsetBin;	//and reg with the inverse of its "offset"
 	return 0;

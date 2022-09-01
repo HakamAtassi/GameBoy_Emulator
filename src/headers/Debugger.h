@@ -22,6 +22,7 @@ private:
     std::string testResult="";
 
     void printRegs();
+    void printChecksum();
     void printPC();
     void printInterrupts();
     void printInstruction();

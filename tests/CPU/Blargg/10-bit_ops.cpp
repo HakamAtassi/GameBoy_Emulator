@@ -1,5 +1,5 @@
-#include "../../src/headers/Cartridge.h"
-#include "../../src/headers/GameBoy.h"
+#include "../../../src/headers/Cartridge.h"
+#include "../../../src/headers/GameBoy.h"
 #include <iostream>
 
 #define SB 0xFF01
@@ -9,11 +9,11 @@
 
 int main(){
 
-    Cartridge cartridge("../../ROMS/blargg_cpu_instrs/individual/10-bit ops.gb");
+    Cartridge cartridge("../../../ROMS/blargg_cpu_instrs/individual/10-bit ops.gb");
     GameBoy gameboy(cartridge);
     printf("Starting test\n\n");
 
-    for(int i=0;i<1000000;i++){
+    for(int i=0;i<9000000;i++){
         gameboy.update();
         if(gameboy.read(SC)==0x81){
             printf("%C",gameboy.read(SB));

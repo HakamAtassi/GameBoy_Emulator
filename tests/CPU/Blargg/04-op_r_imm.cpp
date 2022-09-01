@@ -24,7 +24,7 @@ int main(){
     }
 */
 
-
+/*
     GameBoy gameboy(cartridge);
     printf("Starting test\n\n");
 
@@ -34,6 +34,15 @@ int main(){
             printf("%C",gameboy.read(SB));
             gameboy.write(SC,0);
         }
+    }
+*/
+
+    GameBoy * gameboy= new GameBoy(cartridge);
+    Debugger debugger(gameboy);
+    //printf("Starting test\n\n");
+
+    for(int i=0;i<100000;i++){
+        debugger.run();        
     }
 
 
