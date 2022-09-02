@@ -61,13 +61,18 @@ void GameBoy::update(){
 	//results in 4194304/60 = 69905 updates per second
 
 	int clocks=0;
-	//while(clocks<69905){	//this function is called 60 times a second. Hence, this is done at a rate of 4 mHz
+	while(clocks<69905){	//this function is called 60 times a second. Hence, this is done at a rate of 4 mHz
         int requiredClocks=cpu->fetchExecute();
 		updateTimers(requiredClocks);
-		//ppu.updateGraphics();
+		//updateGraphics(requiredClocks);
 		interruptHander.handleInterrupts();
 		clocks+=requiredClocks;
-	//}
+
+		if(ram->read(0xFF02)==0x81){
+            printf("%C",ram->read(0xFF01));
+            ram->write(0xFF02,0);
+        }
+	}
 	//refreshDisplay();	//since this function is called 60 times a second, refresh rate with be 60Hz. 
 	
 }
@@ -139,6 +144,7 @@ void GameBoy::dumpVram(){
 
 void GameBoy::updateGraphics(int clocks){
 	ppu.updateGraphics(clocks);
+	
 }
 
 void GameBoy::createWindow(){

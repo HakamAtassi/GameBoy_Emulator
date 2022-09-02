@@ -25,30 +25,21 @@ int main(){
 
     gameboy.createWindow();
 
-
-    for(int i=0;i<100;i++){ //each update is 69905 clocks
-        gameboy.update();
-    }
-    //gameboy.dumpVram();
-
-
-
-   // ppu.dumpPixelbuffer();
- 
-    for(int i=0;i<100000;i++){
-        gameboy.updateGraphics(5);
-    }
     
 
 	SDL_Event eventMain;
 
-    gameboy.drawPixelBuffer();
 
 	while(1){
-
+        gameboy.update();
+        if(gameboy.read(SC)==0x81){
+            printf("%C",gameboy.read(SB));
+            gameboy.write(SC,0);
+        }
 		SDL_PollEvent(&eventMain);
 		if(eventMain.type == SDL_QUIT)
 				break;
 	}
-    
+    gameboy.drawPixelBuffer();
+
 }

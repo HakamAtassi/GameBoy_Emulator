@@ -124,7 +124,7 @@ void PPU::drawVram(){
 void PPU::updateGraphics(int clocks){
 	LCDC=ram->read(0xFF40);
 	STAT=ram->read(0xFF41);
-	//setSTAT();	//update status register
+	setSTAT();	//update status register
 
 	if(LCDDisplayEnable==1){
 		scanlineClocks-=clocks;
@@ -153,7 +153,8 @@ void PPU::updateGraphics(int clocks){
 			drawScanline();
 		}
 	}
-	printf("LY: %X\n",(int)ram->read(LY_ADDR));
+	//printf("LY: %X\n",(int)ram->read(LY_ADDR));
+//	drawPixelBuffer();
 }
 
 void PPU::drawScanline(){
