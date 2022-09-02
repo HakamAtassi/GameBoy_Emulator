@@ -15,7 +15,7 @@ g++ <file>.cpp ../../src/RAM.cpp ../../src/Debugger.cpp ../../src/CPU.cpp ../../
 
 ### Tetris 
 <p align="center">
- <img src="https://user-images.githubusercontent.com/83780720/188169021-ccd7ecc3-8c05-4f23-9535-998e6dc95af9.png"/>
+ <img src="https://user-images.githubusercontent.com/83780720/188169265-ff9f7885-919b-4f11-8938-0d10c5592ba9.png"/>
 </p>
 
 
