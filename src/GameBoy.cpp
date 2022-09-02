@@ -137,8 +137,8 @@ void GameBoy::dumpVram(){
 	ppu.dumpVram();
 }
 
-void GameBoy::updateGraphics(){
-	ppu.updateGraphics();
+void GameBoy::updateGraphics(int clocks){
+	ppu.updateGraphics(clocks);
 }
 
 void GameBoy::createWindow(){

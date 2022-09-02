@@ -84,7 +84,7 @@ public:
 
 	void drawVram();
 
-	void updateGraphics();	//The actual update grpahics function
+	void updateGraphics(int clocks);	//The actual update grpahics function
 
 
 

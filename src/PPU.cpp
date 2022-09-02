@@ -121,12 +121,39 @@ void PPU::drawVram(){
 	}
 }
 
-void PPU::updateGraphics(){
+void PPU::updateGraphics(int clocks){
 	LCDC=ram->read(0xFF40);
 	STAT=ram->read(0xFF41);
-	setSTAT();	//update status register
+	//setSTAT();	//update status register
 
-	drawScanline();
+	if(LCDDisplayEnable==1){
+		scanlineClocks-=clocks;
+	}
+	else{	//dont draw anything if ppu is disabled
+		return;
+	}
+	int LY=ram->read(LY_ADDR);
+
+	if(scanlineClocks<=0){	//each scanline take 456 cycles, always.
+							//remember, each scanline is padded so above is true (h-blank)
+		//LY++;
+		//ram->write(LY_ADDR,LY);
+		scanlineClocks=456;	//reset back to 456
+
+		if(LY==144){
+			//TODO: add this functionality to interrupt handler. 
+			uint8_t interruptFlags=ram->read(INTERRUPT_FLAGS);
+			interruptFlags|=1<<0;
+			ram->write(INTERRUPT_FLAGS, interruptFlags);
+		}
+		else if(LY>153){
+			ram->write(LY_ADDR,0);
+		}
+		else{
+			drawScanline();
+		}
+	}
+	printf("LY: %X\n",(int)ram->read(LY_ADDR));
 }
 
 void PPU::drawScanline(){
@@ -162,7 +189,8 @@ void PPU::renderTiles(){
 	}
 
 	//scrollY is the number of pixels offset from the top of the screen
-	uint8_t yPos=scrollY+ram->read(0xFF44);	//where do the rendered pixels go?
+	uint8_t LY=ram->read(LY_ADDR);
+	uint8_t yPos=scrollY+LY;	//where do the rendered pixels go?
 	//Y axis of the pixel currently being drawn
 	//both in pixels, not tiles
 

@@ -23,7 +23,7 @@ int main(){
     GameBoy gameboy(cartridge);
     printf("Starting test\n\n");
 
-    for(int i=0;i<90000000;i++){
+    for(int i=0;i<1000000;i++){
         gameboy.update();
         if(gameboy.read(SC)==0x81){
             printf("%C",gameboy.read(SB));
@@ -37,7 +37,7 @@ int main(){
    // ppu.dumpPixelbuffer();
  
     for(int i=0;i<144;i++){
-        gameboy.updateGraphics();
+        gameboy.updateGraphics(456);
     }
     
     gameboy.createWindow();

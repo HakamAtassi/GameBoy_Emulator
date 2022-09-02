@@ -64,7 +64,7 @@ class GameBoy
         void printRam(int maxAddr);
         void dumpVram();
         void printTitle();
-        void updateGraphics();
+        void updateGraphics(int clocks);
         void createWindow();
         void drawPixelBuffer();
         void run();
