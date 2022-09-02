@@ -135,10 +135,6 @@ void CPU::execute() { // dont forget interrupts
 }
 
 
-/*Interrupts*/
-void CPU::requestInterrupt(int interrupt){
-
-}
 
 
 /*Helpers*/

@@ -5,6 +5,7 @@
 #include "vector"
 #include "RAM.h"
 #include "Cartridge.h"
+#include "InterruptHandler.h"
 
 #include "SDL2/SDL.h"
 #include <SDL2/SDL_events.h>
@@ -18,6 +19,7 @@ private:
 	
 	RAM * ram;
 	Cartridge cartridge;
+
 
 	uint8_t pixelBuffer[WIDTH*HEIGHT*3];
 	int pixelNumber=0;
@@ -87,7 +89,7 @@ public:
 
 
 private:
-	void updateStatusReg();
+	void setSTAT();
 	void updateControlReg();
 	//void requestInterrupt();
 	void drawScanlineVram();

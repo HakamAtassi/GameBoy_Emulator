@@ -46,13 +46,14 @@ class GameBoy
 		*	Bit 3 | Serial	|	int 0x58
 		*	Bit 4 | Joypad	|	int 0x60
 		*/
-        void requestInterrupt(int interruptVal);    //sets bit corresponding to interrupt type
         void handleInterrupts(); //checks if ISR should be called
         void ISR(int interruptVal);    //calls interrupt service routine
 
 
 
     public:
+        void requestInterrupt(int interruptVal);    //sets bit corresponding to interrupt type
+
         GameBoy();
         GameBoy(Cartridge cartridge);
         ~GameBoy();

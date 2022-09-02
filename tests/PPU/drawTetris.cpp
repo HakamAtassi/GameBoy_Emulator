@@ -16,13 +16,13 @@ int main(){
     //Cartridge cartridge("04-op r,imm.dump");    //a varified correct memory dump file
 
 
-    Cartridge cartridge("../../ROMS/mooneye_tests/acceptance/instr/daa.gb");
+    Cartridge cartridge("../../ROMS/Tetris.gb");
     GameBoy gameboy(cartridge);
     printf("Starting test\n\n");
     gameboy.printTitle();
 
 
-    for(int i=0;i<9900000;i++){
+    for(int i=0;i<99900000;i++){
         gameboy.update();
         if(gameboy.read(SC)==0x81){
             printf("%C",gameboy.read(SB));

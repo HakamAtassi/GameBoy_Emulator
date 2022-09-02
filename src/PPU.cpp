@@ -5,6 +5,17 @@
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_render.h>
 
+#define LCDC_ADDR 0xFF40
+#define STAT_ADDR 0xFF41
+#define SCY_ADDR 0xFF42
+#define SCX_ADDR 0xFF43
+#define LY_ADDR 0xFF44
+#define LYC_ADDR 0xFF45
+#define WY_ADDR 0xFF4A
+#define WX_ADDR 0xFF4B
+
+#define INTERRUPT_ENABLE 0xFFFF
+#define INTERRUPT_FLAGS 0xFF0F
 
 #define PIXELSIZE 1;
 
@@ -113,6 +124,8 @@ void PPU::drawVram(){
 void PPU::updateGraphics(){
 	LCDC=ram->read(0xFF40);
 	STAT=ram->read(0xFF41);
+	setSTAT();	//update status register
+
 	drawScanline();
 }
 
@@ -191,9 +204,7 @@ void PPU::renderTiles(){
 		
 		uint8_t byte0=ram->read(tileLocation+line);
 		uint8_t byte1=ram->read(tileLocation+line+1);
-		if(byte0!=0){
-			printf("Byte0: %X, Byte1: %X\n", byte0, byte1);
-		}
+
 
 		int colorBit = xPos % 8 ;
 		colorBit -= 7 ;
@@ -223,7 +234,60 @@ void PPU::renderSprites(){
 }
 
 
-void PPU::updateStatusReg(){
+void PPU::setSTAT(){
+	if(LCDDisplayEnable==false){	//PPU is disabled
+		scanlineClocks=456;
+		ram->write(LY_ADDR,0);	//reset scanline number to 0
+		PPUMode=1;
+		ram->write(STAT_ADDR,STAT);	//"save" STAT_ADDR
+		return;
+	}
+
+	uint8_t currentLine=ram->read(LY_ADDR);	//current scanline number
+	uint8_t prevMode=PPUMode;	//if the new mode is different than what it is right now
+								//an interrupt *may* be requested
+	
+	bool requestInt=false;
+
+	if(currentLine>=144)
+	{
+		//set PPU to mode 1 (V-Blank)
+		PPUMode=1;
+		requestInt=Mode0Interrupt;
+	}
+	else{
+		//see PPU timing diagram on pandocs
+		int mode2Bound=456-80;
+		int mode3Bound=mode2Bound-172;
+
+		if(scanlineClocks>=mode2Bound){
+			PPUMode=2;
+			requestInt=Mode2Interrupt;
+		}
+		else if(scanlineClocks>=mode3Bound){
+			PPUMode=3;
+		}
+		else{
+			PPUMode=0;
+			requestInt=Mode0Interrupt;
+		}
+	}
+
+	if(requestInt && (PPUMode!=prevMode)){	//request timer interrupt
+
+		uint8_t interruptFlags=ram->read(INTERRUPT_FLAGS);
+    	interruptFlags|=1<<1;
+    	ram->write(INTERRUPT_FLAGS, interruptFlags);
+	}
+
+	if(ram->read(LY_ADDR)==ram->read(LYC_ADDR)){
+		CoincidenceFlag=1;
+	}
+	else{
+		CoincidenceFlag=0;
+	}
+	ram->write(STAT_ADDR,STAT);	//write new status back... "Save" STAT
+
 }
 
 
