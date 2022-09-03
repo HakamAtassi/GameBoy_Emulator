@@ -25,14 +25,10 @@ void RAM::DMATransfer(uint8_t data){
 //run OAM DMA transfer if writing to 0xFF46
 void RAM::write(uint16_t PC, uint8_t val){
 
-    if(PC==0xFF46){
-        DMATransfer(val);
-        return;
-    }
-    else{
-        memory[PC]=val;
-        return;
-    }
+
+    memory[PC]=val;
+    return;
+    
 
 }
 

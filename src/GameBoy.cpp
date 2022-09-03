@@ -64,22 +64,26 @@ void GameBoy::update(){
 	while(clocks<69905){	//this function is called 60 times a second. Hence, this is done at a rate of 4 mHz
         int requiredClocks=cpu->fetchExecute();
 		updateTimers(requiredClocks);
-		//updateGraphics(requiredClocks);
+		updateGraphics(requiredClocks);
 		interruptHander.handleInterrupts();
 		clocks+=requiredClocks;
 
+		
 		if(ram->read(0xFF02)==0x81){
             printf("%C",ram->read(0xFF01));
             ram->write(0xFF02,0);
         }
 	}
+	//drawPixelBuffer();	//update what is displayed to the window only after a scanline is drawn
+
+
 	//refreshDisplay();	//since this function is called 60 times a second, refresh rate with be 60Hz. 
 	
 }
 
-void GameBoy::printRam(int maxAddr){
+void GameBoy::printRam(int minAddr, int maxAddr){
 
-	for(int i=0;i<=(maxAddr&0xFF00);i+=0x10){
+	for(int i=minAddr;i<=(maxAddr&0xFFF0);i+=0x10){
     	std::cout<<std::uppercase<<std::hex<<i<<"\t";
 		for(int j=0; j<0xF;j++){
 			std::cout<<std::left<<std::setw(3)<<std::uppercase<<std::hex<<(int)ram->read(i+j);
@@ -153,6 +157,10 @@ void GameBoy::createWindow(){
 
 void GameBoy::drawPixelBuffer(){
 	ppu.drawPixelBuffer();
+}
+
+void GameBoy::dumpPixelbuffer(){
+	ppu.dumpPixelbuffer();
 }
 
 void GameBoy::run(){

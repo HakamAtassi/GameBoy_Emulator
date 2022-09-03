@@ -28,21 +28,26 @@ int main(){
 
     for(int i=0;i<100;i++){ //each update is 69905 clocks
         gameboy.update();
+        //gameboy.printRam(0x8000,0x9000);
+    }
+
+    for(int i=0;i<100000;i++){
+        gameboy.updateGraphics(5);
     }
     //gameboy.dumpVram();
 
 
+    gameboy.drawPixelBuffer();
 
-   // ppu.dumpPixelbuffer();
- 
-    for(int i=0;i<100000;i++){
-        gameboy.updateGraphics(5);
-    }
-    
+    gameboy.printRam(0,0xFFFF);
+//    gameboy.dumpPixelbuffer();
+
+
+
 
 	SDL_Event eventMain;
 
-    gameboy.drawPixelBuffer();
+
 
 	while(1){
 
@@ -50,5 +55,5 @@ int main(){
 		if(eventMain.type == SDL_QUIT)
 				break;
 	}
-    
+
 }

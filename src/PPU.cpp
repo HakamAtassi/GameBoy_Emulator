@@ -126,6 +126,7 @@ void PPU::updateGraphics(int clocks){
 	STAT=ram->read(0xFF41);
 	setSTAT();	//update status register
 
+
 	if(LCDDisplayEnable==1){
 		scanlineClocks-=clocks;
 	}
@@ -136,18 +137,20 @@ void PPU::updateGraphics(int clocks){
 
 	if(scanlineClocks<=0){	//each scanline take 456 cycles, always.
 							//remember, each scanline is padded so above is true (h-blank)
-		//LY++;
-		//ram->write(LY_ADDR,LY);
+		LY++;
+		ram->write(LY_ADDR,LY);
 		scanlineClocks=456;	//reset back to 456
 
 		if(LY==144){
 			//TODO: add this functionality to interrupt handler. 
-			uint8_t interruptFlags=ram->read(INTERRUPT_FLAGS);
-			interruptFlags|=1<<0;
-			ram->write(INTERRUPT_FLAGS, interruptFlags);
+//			uint8_t interruptFlags=ram->read(INTERRUPT_FLAGS);
+//			interruptFlags|=1<<0;
+//			ram->write(INTERRUPT_FLAGS, interruptFlags);
 		}
 		else if(LY>153){
+			LY=0;
 			ram->write(LY_ADDR,0);
+
 		}
 		else{
 			drawScanline();
@@ -158,16 +161,24 @@ void PPU::updateGraphics(int clocks){
 }
 
 void PPU::drawScanline(){
+	//LCDC=ram->read(LCDC_ADDR);
+	//STAT=ram->read(STAT_ADDR);
 
-	renderTiles();
-	renderSprites();
+
+	if(BGWindowEnable==1){
+		renderTiles();
+	}
+	if(SpriteEnable==1){
+		renderSprites();
+	}
 }
 
 void PPU::renderTiles(){
-	int scrollY=ram->read(0xFF42);
-	int scrollX=ram->read(0xFF43);
-	int windowY=ram->read(0xFF4A);
-	int windowX=ram->read(0xFF4B)-7;
+	uint8_t scrollY=ram->read(0xFF42);
+
+	uint8_t scrollX=ram->read(0xFF43);
+	uint8_t windowY=ram->read(0xFF4A);
+	uint8_t windowX=ram->read(0xFF4B)-7;
 	bool unsig=true;
 
 	//what tile map and tile data to use
@@ -192,12 +203,15 @@ void PPU::renderTiles(){
 	//scrollY is the number of pixels offset from the top of the screen
 	uint8_t LY=ram->read(LY_ADDR);
 	uint8_t yPos=scrollY+LY;	//where do the rendered pixels go?
+
+	//printf("%X | %X\n", scrollY, LY);
 	//Y axis of the pixel currently being drawn
 	//both in pixels, not tiles
 
 	uint16_t tileRow=(((uint8_t)(yPos/8))*32);
 	//what number tile is currently being rendered? include all tiles
 	//remember, the background is actually 32x32
+	
 
 
 	//each scanline draws 160 pixels
@@ -208,6 +222,7 @@ void PPU::renderTiles(){
 		int16_t tileNum;
 
 		uint16_t tileAddress=tileMapBaseAddress+tileRow+tileCol;
+
 		if(unsig==true){
 			tileNum=(uint8_t)ram->read(tileAddress);
 		}
@@ -220,20 +235,19 @@ void PPU::renderTiles(){
 		//get the final, absolute index of the tile that needs to be rendered in
 		//depends on 8000 vs 8800 addressing
 		if(unsig==true){
-			tileLocation+=tileNum*16;
+			tileLocation=tileDataBaseAddress+tileNum*16;
 		}
 		else{
-			tileLocation+=((tileNum+128)*16);
+			tileLocation=tileDataBaseAddress+((tileNum+128)*16);
 		}
 
 		//the relative line number of the window
 		//y pos is the line number relative to the 32x32 window
 		uint8_t line=yPos%8;
 		line*=2;
-		
+		//printf("Map coords: %X %X %X \n",tileMapBaseAddress, tileRow, tileCol);
 		uint8_t byte0=ram->read(tileLocation+line);
 		uint8_t byte1=ram->read(tileLocation+line+1);
-
 
 		int colorBit = xPos % 8 ;
 		colorBit -= 7 ;
@@ -245,6 +259,7 @@ void PPU::renderTiles(){
 
 		int finaly = ram->read(0xFF44) ;
 
+		pixelNumber%=(WIDTH*HEIGHT*3);
 
 		pixelBuffer[pixelNumber] = colorNum*50 ;
 		pixelNumber++;
@@ -253,8 +268,10 @@ void PPU::renderTiles(){
 		pixelBuffer[pixelNumber] = colorNum*50  ;
 		pixelNumber++;
 
+
+
 	}
-	ram->write(0xFF44,ram->read(0xFF44)+1);
+	//ram->write(0xFF44,ram->read(0xFF44)+1);
 
 }
 
