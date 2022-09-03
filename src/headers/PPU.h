@@ -95,7 +95,6 @@ public:
 	void createWindow();
 	void drawPixelBuffer();
 
-	void drawVram();
 
 	void updateGraphics(int clocks);	//The actual update grpahics function
 
@@ -105,14 +104,12 @@ private:
 	void setSTAT();
 	void updateControlReg();
 	//void requestInterrupt();
-	void drawScanlineVram();
 	void renderTiles();
 	void renderSprites();
 
 	void drawScanline();
 
 	uint16_t combineTileBytes(uint8_t left, uint8_t right);
-	void drawToPixelData(uint16_t lineSegment);
 
 };
 
