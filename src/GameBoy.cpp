@@ -74,7 +74,7 @@ void GameBoy::update(){
             ram->write(0xFF02,0);
         }
 	}
-	//drawPixelBuffer();	//update what is displayed to the window only after a scanline is drawn
+	drawPixelBuffer();	//update what is displayed to the window only after a scanline is drawn
 
 
 	//refreshDisplay();	//since this function is called 60 times a second, refresh rate with be 60Hz. 

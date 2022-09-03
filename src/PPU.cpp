@@ -122,8 +122,10 @@ void PPU::drawVram(){
 }
 
 void PPU::updateGraphics(int clocks){
-	LCDC=ram->read(0xFF40);
-	STAT=ram->read(0xFF41);
+	LCDC=ram->read(LCDC_ADDR);
+	STAT=ram->read(STAT_ADDR);
+
+
 	setSTAT();	//update status register
 
 
@@ -143,21 +145,27 @@ void PPU::updateGraphics(int clocks){
 
 		if(LY==144){
 			//TODO: add this functionality to interrupt handler. 
-//			uint8_t interruptFlags=ram->read(INTERRUPT_FLAGS);
-//			interruptFlags|=1<<0;
-//			ram->write(INTERRUPT_FLAGS, interruptFlags);
+			uint8_t interruptFlags=ram->read(INTERRUPT_FLAGS);
+			interruptFlags|=1<<0;
+			ram->write(INTERRUPT_FLAGS, interruptFlags);
 		}
 		else if(LY>153){
 			LY=0;
 			ram->write(LY_ADDR,0);
-
 		}
-		else{
+		
+		//codeslinger has a type here.
+		//when LY is 153, it resets, true...
+		//but you need to draw the 0th scan line.
+		//therefore, reset, then seperately draw the scanline
+		//in other words, its "if" not "else if"...
+		if(LY<144){
 			drawScanline();
 		}
+
+
 	}
-	//printf("LY: %X\n",(int)ram->read(LY_ADDR));
-//	drawPixelBuffer();
+
 }
 
 void PPU::drawScanline(){
@@ -175,7 +183,6 @@ void PPU::drawScanline(){
 
 void PPU::renderTiles(){
 	uint8_t scrollY=ram->read(0xFF42);
-
 	uint8_t scrollX=ram->read(0xFF43);
 	uint8_t windowY=ram->read(0xFF4A);
 	uint8_t windowX=ram->read(0xFF4B)-7;
@@ -212,6 +219,7 @@ void PPU::renderTiles(){
 	//what number tile is currently being rendered? include all tiles
 	//remember, the background is actually 32x32
 	
+
 
 
 	//each scanline draws 160 pixels
@@ -257,7 +265,6 @@ void PPU::renderTiles(){
 		colorNum <<= 1;
 		colorNum |= ((byte0&(1<<colorBit))>0) ;
 
-		int finaly = ram->read(0xFF44) ;
 
 		pixelNumber%=(WIDTH*HEIGHT*3);
 

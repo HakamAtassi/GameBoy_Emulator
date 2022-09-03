@@ -19,29 +19,28 @@ int main(){
     //Cartridge cartridge("04-op r,imm.dump");    //a varified correct memory dump file
 
 
-    Cartridge cartridge("../../ROMS/blargg_cpu_instrs/individual/06-ld r, r.gb");
+    //Cartridge cartridge("../../ROMS/blargg_cpu_instrs/individual/06-ld r, r.gb");
+    
+    Cartridge cartridge("../../ROMS/mooneye_tests/acceptance/instr/daa.gb");
+ 
     GameBoy gameboy(cartridge);
     printf("Starting test\n\n");
-
+    gameboy.printTitle();
     gameboy.createWindow();
 
 
-    for(int i=0;i<200;i++){ //each update is 69905 clocks
+    for(int i=0;i<5000;i++){ //each update is 69905 clocks
         gameboy.update();
         //gameboy.printRam(0x8000,0x9000);
     }
 
-/*
-    gameboy.write(0xff44,0);
-    for(int i=0;i<100000;i++){
-        gameboy.updateGraphics(5);
-    }
-*/
+
+  
     //gameboy.dumpVram();
 
 
-    gameboy.drawPixelBuffer();
-    gameboy.printRam(0,0xFFFF);
+    //gameboy.drawPixelBuffer();
+    //gameboy.printRam(0,0xFFFF);
 
 
 //    gameboy.dumpPixelbuffer();
