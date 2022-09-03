@@ -21,8 +21,8 @@ private:
 	Cartridge cartridge;
 
 
-	uint8_t pixelBuffer[WIDTH*HEIGHT*3];
-	int pixelNumber=0;
+
+
 
 	SDL_Window *window;
 	SDL_Event event;

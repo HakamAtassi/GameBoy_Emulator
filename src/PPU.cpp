@@ -178,10 +178,12 @@ void PPU::drawScanline(){
 	if(BGWindowEnable==1){
 		renderTiles();
 	}
-	//if(SpriteEnable==1){
-	//	renderSprites();
-	//}
-	//pixelNumber+=2;
+	if(SpriteEnable==1){
+		renderSprites();
+	}
+
+	
+
 }
 
 void PPU::renderTiles(){
@@ -258,6 +260,8 @@ void PPU::renderTiles(){
 
 	//each scanline draws 160 pixels
 	//20 tiles wide...
+	int index=160*3*((int)LY);
+
 	for(int i=0;i<160;i++){
 		uint8_t xPos=i+scrollX;
 
@@ -310,16 +314,15 @@ void PPU::renderTiles(){
 		colorNum |= ((byte0&(1<<colorBit))>0) ;
 
 
-		pixelNumber%=(WIDTH*HEIGHT*3);
-
-		pixelBuffer[pixelNumber] = colorNum*50 ;
-		pixelNumber++;
-		pixelBuffer[pixelNumber] = colorNum*50  ;
-		pixelNumber++;
-		pixelBuffer[pixelNumber] = colorNum*50  ;
-		pixelNumber++;
+		pixelNumberBG%=(WIDTH*HEIGHT*3);
 
 
+		pixelBuffer[index] = colorNum*50 ;
+		index++;
+		pixelBuffer[index] = colorNum*50;
+		index++;
+		pixelBuffer[index] = colorNum*50;
+		index++;
 
 	}
 	//ram->write(0xFF44,ram->read(0xFF44)+1);
@@ -342,7 +345,8 @@ void PPU::renderSprites(){
 		Attributes=ram->read(OAM_ADDR+index+3);
 		
 		uint8_t LY = ram->read(0xFF44);
-		
+		int pixelIndex=160*3*((int)LY);
+
 		int spriteHeight=8;
 		if(sprite8x16){
 			int spriteHeight=16;
@@ -372,9 +376,12 @@ void PPU::renderSprites(){
 				colorNum <<= 1;
 				colorNum |= ((byte0&(1<<colorBit))>0) ;
 
-				pixelBuffer[pixelNumber] = colorNum*50 ;
-				pixelBuffer[pixelNumber+1] = colorNum*50  ;
-				pixelBuffer[pixelNumber+2] = colorNum*50  ;
+				pixelBuffer[pixelIndex] = colorNum*50 ;
+				pixelIndex++;
+				pixelBuffer[pixelIndex] = colorNum*50;
+				pixelIndex++;
+				pixelBuffer[pixelIndex] = colorNum*50;
+				pixelIndex++;
 			}
 
 		}
@@ -469,7 +476,7 @@ void PPU::drawScanlineVram(){
 void PPU::drawToPixelData(uint16_t lineSegment){
 	//printf("line segment: %X\n", lineSegment);
 	uint8_t LY=ram->read(0xFF44);
-	pixelNumber%=(WIDTH*HEIGHT*3);
+	pixelNumberBG%=(WIDTH*HEIGHT*3);
 
 	for(int i=0;i<8;i++){
 		//printf("pixel %d: ",i);
@@ -485,12 +492,12 @@ void PPU::drawToPixelData(uint16_t lineSegment){
 		/*dont worry about coloring yet*/
 		//printf("pixelBuffer index=%d\n", pixelNumber);
 
-		pixelBuffer[pixelNumber]=pixel*80;
-		pixelNumber++;	//red
-		pixelBuffer[pixelNumber]=pixel*0;
-		pixelNumber++;	//green
-		pixelBuffer[pixelNumber]=pixel*0;
-		pixelNumber++;	//blue
+		pixelBuffer[pixelNumberBG]=pixel*80;
+		pixelNumberBG++;	//red
+		pixelBuffer[pixelNumberBG]=pixel*0;
+		pixelNumberBG++;	//green
+		pixelBuffer[pixelNumberBG]=pixel*0;
+		pixelNumberBG++;	//blue
 	}
 	printf("8 pixels done\n\n");
 }
