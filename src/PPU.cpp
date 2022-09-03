@@ -14,6 +14,8 @@
 #define WY_ADDR 0xFF4A
 #define WX_ADDR 0xFF4B
 
+#define OAM_ADDR 0xFE00
+
 #define INTERRUPT_ENABLE 0xFFFF
 #define INTERRUPT_FLAGS 0xFF0F
 
@@ -169,16 +171,17 @@ void PPU::updateGraphics(int clocks){
 }
 
 void PPU::drawScanline(){
-	//LCDC=ram->read(LCDC_ADDR);
-	//STAT=ram->read(STAT_ADDR);
+	LCDC=ram->read(LCDC_ADDR);
+	STAT=ram->read(STAT_ADDR);
 
 
 	if(BGWindowEnable==1){
 		renderTiles();
 	}
-	if(SpriteEnable==1){
-		renderSprites();
-	}
+	//if(SpriteEnable==1){
+	//	renderSprites();
+	//}
+	//pixelNumber+=2;
 }
 
 void PPU::renderTiles(){
@@ -187,6 +190,15 @@ void PPU::renderTiles(){
 	uint8_t windowY=ram->read(0xFF4A);
 	uint8_t windowX=ram->read(0xFF4B)-7;
 	bool unsig=true;
+
+	bool usingWindow=false;
+
+	if(WindowDisplayEnable==1){	
+
+		if(windowY<=ram->read(0xFF44)){
+			usingWindow=true;	//if window is enabled and it is on the current scanline
+		}
+	}
 
 	//what tile map and tile data to use
 	//both based on the values of ppu registers set by the game
@@ -200,16 +212,38 @@ void PPU::renderTiles(){
 	}
 
 	int tileMapBaseAddress=0;
-	if(BGTileMapSelect==1){
-		tileMapBaseAddress=0x9C00;
+
+	if(usingWindow==false){
+		if(BGTileMapSelect==1){
+			tileMapBaseAddress=0x9C00;
+		}
+		else{
+			tileMapBaseAddress=0x9800;
+		}
 	}
 	else{
-		tileMapBaseAddress=0x9800;
+		//if window is enabled, base address depends on a different bit
+		if(WindowTileMapSelect==1){
+			tileMapBaseAddress=0x9C00;
+		}
+		else{
+			tileMapBaseAddress=0x9800;
+		}
 	}
+
+	uint8_t yPos;	//where do the rendered pixels go?
+
+	if(usingWindow==false){
+		yPos=scrollY+ram->read(0xFF44);
+	}
+	else{
+		yPos=ram->read(0xFF44) - windowY;
+	}
+
+
 
 	//scrollY is the number of pixels offset from the top of the screen
 	uint8_t LY=ram->read(LY_ADDR);
-	uint8_t yPos=scrollY+LY;	//where do the rendered pixels go?
 
 	//printf("%X | %X\n", scrollY, LY);
 	//Y axis of the pixel currently being drawn
@@ -226,9 +260,19 @@ void PPU::renderTiles(){
 	//20 tiles wide...
 	for(int i=0;i<160;i++){
 		uint8_t xPos=i+scrollX;
+
+		if(usingWindow)
+		{
+			if(i>=windowX)
+			{
+				xPos=i-windowX;	//window can be shifted right
+				//if the pixel being drawin is at or past where the window starts, update xPos
+			}
+		}
+
+
 		uint16_t tileCol = (xPos/8);
 		int16_t tileNum;
-
 		uint16_t tileAddress=tileMapBaseAddress+tileRow+tileCol;
 
 		if(unsig==true){
@@ -283,6 +327,59 @@ void PPU::renderTiles(){
 }
 
 void PPU::renderSprites(){
+
+	bool sprite8x16=(SpriteSize==1);
+
+	for(int sprite=0;sprite<40;sprite++){	//the screen can host a max of 40 sprites at a time
+		uint8_t index=sprite*4;	//sprite 0 goes uses byts 0-3, so sprite 1 uses 4-7...
+		uint8_t yPos=ram->read(OAM_ADDR+index)-16;
+		uint8_t xPos=ram->read(OAM_ADDR+index+1)-8;	//you need a way to scroll in the sprite...
+													//so if ram says pos is 8, it will be invisible
+													//then, as it moves right, it will scroll in line by line
+													//the y is 16 pixels higher because sprites can be 2 bytes high
+													//(see sprite sizing...)
+		uint8_t tileLocation=ram->read(OAM_ADDR+index+2);
+		Attributes=ram->read(OAM_ADDR+index+3);
+		
+		uint8_t LY = ram->read(0xFF44);
+		
+		int spriteHeight=8;
+		if(sprite8x16){
+			int spriteHeight=16;
+		}
+
+		if((LY>=yPos) && (LY<(yPos+spriteHeight))){
+			int line=LY-yPos;
+
+			if(YFlip==1){
+				line-=spriteHeight;
+				line*=-1;
+			}
+			line*-2;
+
+			uint16_t spriteDataAddr=0x8000+tileLocation*16+line;
+			uint8_t byte0=ram->read(spriteDataAddr);
+			uint8_t byte1=ram->read(spriteDataAddr+1);
+
+			for(int tilePixel=7;tilePixel>=0;tilePixel--){
+				int colorBit=tilePixel;
+
+				if(XFlip){
+					colorBit-=7;
+					colorBit*=-1;
+				}
+				int colorNum = ((byte1&(1<<colorBit))>0) ;
+				colorNum <<= 1;
+				colorNum |= ((byte0&(1<<colorBit))>0) ;
+
+				pixelBuffer[pixelNumber] = colorNum*50 ;
+				pixelBuffer[pixelNumber+1] = colorNum*50  ;
+				pixelBuffer[pixelNumber+2] = colorNum*50  ;
+			}
+
+		}
+
+	}
 
 }
 

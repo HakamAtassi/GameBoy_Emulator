@@ -63,6 +63,18 @@ private:
 	};	//LCD status, 0xFF41
 
 
+	union{
+		struct
+		{
+			uint8_t notUnused:4;			//Bit 0-3
+			uint8_t PaletteNumber:1;	//Bit 4
+			uint8_t XFlip:1;			//Bit 5
+			uint8_t YFlip:1;			//Bit 6
+			uint8_t Priority:1;			//Bit 7
+		};
+		uint8_t Attributes;
+	};
+
 
 public:
 	PPU();	//default constructor
