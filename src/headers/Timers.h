@@ -14,7 +14,7 @@ class Timers{
         RAM * ram;
 
         uint8_t DIV=0;
-        int DIVCounter=0;
+        int DIVCounter=213;
 
         uint8_t TIMA=0;
         int TIMACounter=0;

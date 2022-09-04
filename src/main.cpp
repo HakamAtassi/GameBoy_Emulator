@@ -1,35 +1,49 @@
 #include "headers/Cartridge.h"
+#include "headers/PPU.h"
 #include "headers/GameBoy.h"
+#include "headers/Debugger.h"
 #include <iostream>
-
-#define SB 0xFF01
-#define SC 0xFF02
+#include <vector>
 
 
-
+using namespace std;
 int main(){
 
-    Cartridge cartridge("../ROMS/blargg_cpu_instrs/individual/04-op r,imm.gb");
+
+
+    //Cartridge cartridge("../ROMS/Dr_Mario.gb");
+    //Cartridge cartridge("../ROMS/blargg_cpu_instrs/individual/06-ld r, r.gb");
+    //Cartridge cartridge("../ROMS/mooneye_tests/acceptance/ppu/hblank_ly_scx_timing-GS.gb");
+
+/*
+    Cartridge cartridge("../ROMS/dmg-acid2.gb");
+    
+
     GameBoy gameboy(cartridge);
-
-    //gameboy.printRam(0x0120);	printf("Before Reg1: %X",regs);
-
     gameboy.printTitle();
-    std::cout<<"\n";
+    gameboy.createWindow();
+	SDL_Event eventMain;
 
-
-    while(1){
-
+	while(1){
         gameboy.update();
-        //std::cout<<"\n";
-        if(gameboy.read(SC)==0x81){
-            printf("SB: %C\n",gameboy.read(SB));
-            gameboy.write(SC,0);
-            std::cout<<"\n";
-        }
+		SDL_PollEvent(&eventMain);
+		if(eventMain.type == SDL_QUIT)
+				break;
+	}
+*/
+
+
+
+
+
+    Cartridge cartridge("../ROMS/dmg-acid2.gb");
+    GameBoy * gameboy= new GameBoy(cartridge);
+    Debugger debugger(gameboy);
+    //printf("Starting test\n\n");
+
+    for(int i=0;i<100000;i++){
+        debugger.run();
     }
-
-
 
 
 }

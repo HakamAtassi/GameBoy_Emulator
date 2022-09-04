@@ -121,6 +121,7 @@ void Debugger::debug(){
     printInstruction();
     printRegs();
     printChecksum();
+    printf("DIV: %X \n",(int)gameboy->read(0xff04));
     cout<<"\n";
     //printFlags();
 }
@@ -152,7 +153,7 @@ void Debugger::run(){
 
     if(input=="log"){
         for(int i=0;i<10000000;i++){
-            gameboy->update();
+            gameboy->updateDebug();
             checkSerialOut();
             debug();
         }
@@ -162,14 +163,14 @@ void Debugger::run(){
 	if(input==""){
         debug();
         printf("\n");
-        gameboy->update();
+        gameboy->updateDebug();
     }
 	else if(input=="step"){
         int stepSize=0;
         std::cout<<"print step number:\n";
         std::cin>>stepSize;
         for(int i=0;i<stepSize;i++){
-            gameboy->update();
+            gameboy->updateDebug();
             checkSerialOut();
         }
         //debug();
@@ -186,7 +187,7 @@ void Debugger::run(){
 	else if(input=="read"){
         uint16_t addr=0;
         std::cout<<"address:\n";
-        std::cin>>addr;
+        std::cin>>hex>>addr;
         printf("ram[0x%X]=0x%X\n",addr,gameboy->read(addr));
         getline(std::cin,input);
 
@@ -196,7 +197,7 @@ void Debugger::run(){
         std::cout<<"skip to PC:\n";
         std::cin>>hex>>PCTarget;
        	while(gameboy->getPC()!=PCTarget){
-            gameboy->update();
+            gameboy->updateDebug();
             checkSerialOut();
         }
         printf("\n");
@@ -213,11 +214,11 @@ void Debugger::run(){
         std::cin>>hex>>PCTarget;
         while(breakpointFlag==true){
             while(gameboy->getPC()!=PCTarget){
-                gameboy->update();
+                gameboy->updateDebug();
                 checkSerialOut();
             }
             debug();
-            gameboy->update();
+            gameboy->updateDebug();
 
             getline(std::cin,input);
             if(input=="end Breakpoint"){

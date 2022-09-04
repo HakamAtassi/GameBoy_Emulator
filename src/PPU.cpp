@@ -27,7 +27,6 @@ PPU::PPU(){
 
 PPU::PPU(RAM * _ram){
 	ram=_ram;
-	ram->write(0xFF44,0);
 
 }
 
@@ -139,7 +138,7 @@ void PPU::updateGraphics(int clocks){
 							//remember, each scanline is padded so above is true (h-blank)
 		LY++;
 		ram->write(LY_ADDR,LY);
-		scanlineClocks=456;	//reset back to 456
+		scanlineClocks+=456;	//reset back to 456
 
 		if(LY==144){
 			//TODO: add this functionality to interrupt handler. 
@@ -166,6 +165,36 @@ void PPU::updateGraphics(int clocks){
 
 }
 
+
+
+
+PPU::Color PPU::getColor(uint8_t colorNum, uint16_t address) const{
+	Color result=White;
+	uint8_t palette=ram->read(address);
+	int hi=0;
+	int lo=0;
+
+	switch (colorNum)
+	{
+		case 0: hi=1;lo=0;break;
+		case 1: hi=3;lo=2;break;
+		case 2: hi=5;lo=4;break;
+		case 3: hi=7;lo=6;break;
+	}
+	int color=0;
+	color=((palette&(1<<hi))>0)<<1;
+	color|=((palette&(1<<lo))>0);
+
+	switch (color)
+	{
+		case 0: result = White ;break ;
+		case 1: result = LightGray ;break ;
+		case 2: result = DarkGray ;break ;
+		case 3: result = Black ;break ;
+	}
+	return result;
+}
+
 void PPU::drawScanline(){
 	LCDC=ram->read(LCDC_ADDR);
 	STAT=ram->read(STAT_ADDR);
@@ -174,6 +203,7 @@ void PPU::drawScanline(){
 	if(BGWindowEnable==1){
 		renderTiles();
 	}
+	
 	if(SpriteEnable==1){
 		renderSprites();
 	}
@@ -187,6 +217,11 @@ void PPU::renderTiles(){
 	uint8_t scrollX=ram->read(0xFF43);
 	uint8_t windowY=ram->read(0xFF4A);
 	uint8_t windowX=ram->read(0xFF4B)-7;
+
+	LCDC=ram->read(0xFF40);
+	STAT=ram->read(0xFF41);
+
+
 	bool unsig=true;
 
 	bool usingWindow=false;
@@ -308,17 +343,28 @@ void PPU::renderTiles(){
 		int colorNum = ((byte1&(1<<colorBit))>0) ;
 		colorNum <<= 1;
 		colorNum |= ((byte0&(1<<colorBit))>0) ;
+		
+		Color col=getColor(colorNum,0xFF47);
+		int red=0;
+		int green=0;
+		int blue=0;
+
+		switch (col)
+		{
+			case White: red = 255; green = 255 ; blue = 255; break ;
+			case LightGray:red = 0xCC; green = 0xCC ; blue = 0xCC; break ;
+			case DarkGray: red = 0x77; green = 0x77 ; blue = 0x77; break ;
+			case Black: red = 0; green = 0 ; blue = 0; break ;
+
+		}
 
 
-
-
-		pixelBuffer[index] = colorNum*50 ;
+		pixelBuffer[index] = red ;
 		index++;
-		pixelBuffer[index] = colorNum*50;
+		pixelBuffer[index] = green;
 		index++;
-		pixelBuffer[index] = colorNum*50;
+		pixelBuffer[index] = blue;
 		index++;
-
 	}
 	//ram->write(0xFF44,ram->read(0xFF44)+1);
 
@@ -340,6 +386,8 @@ void PPU::renderSprites(){
 		Attributes=ram->read(OAM_ADDR+index+3);
 		
 		uint8_t LY = ram->read(0xFF44);
+
+
 		int pixelIndex=160*3*((int)LY);
 
 		int spriteHeight=8;
@@ -371,12 +419,42 @@ void PPU::renderSprites(){
 				colorNum <<= 1;
 				colorNum |= ((byte0&(1<<colorBit))>0) ;
 
-				pixelBuffer[pixelIndex] = colorNum*50 ;
-				pixelIndex++;
-				pixelBuffer[pixelIndex] = colorNum*50;
-				pixelIndex++;
-				pixelBuffer[pixelIndex] = colorNum*50;
-				pixelIndex++;
+				uint16_t colorAddress=(PaletteNumber==1)?0xFF49:0xFF48;
+
+				
+
+				Color col=getColor(colorNum,colorAddress);
+
+				//dont draw anything if sprite is "white"
+				if(col==White){
+					pixelIndex+=3;
+					continue;
+				}
+
+				int xPix=0-tilePixel;
+				xPix+=7;
+				int pixel=xPos+xPix;
+
+
+				int red=0;
+				int green=0;
+				int blue=0;
+
+				switch (col)
+				{
+					case White: red = 255; green = 255 ; blue = 255; break ;
+					case LightGray:red = 0xCC; green = 0xCC ; blue = 0xCC; break ;
+					case DarkGray: red = 0x77; green = 0x77 ; blue = 0x77; break ;
+					case Black: red = 0; green = 0 ; blue = 0; break ;
+
+				}
+				
+				pixelBuffer[160*3*LY+pixel*3] = red;
+				pixelBuffer[160*3*LY+pixel*3+1] = green;
+				pixelBuffer[160*3*LY+pixel*3+2] = blue;
+
+
+
 			}
 
 		}
@@ -387,6 +465,9 @@ void PPU::renderSprites(){
 
 
 void PPU::setSTAT(){
+
+	STAT=ram->read(0xFF41);
+
 	if(LCDDisplayEnable==false){	//PPU is disabled
 		scanlineClocks=456;
 		ram->write(LY_ADDR,0);	//reset scanline number to 0
@@ -425,8 +506,9 @@ void PPU::setSTAT(){
 		}
 	}
 
-	if(requestInt && (PPUMode!=prevMode)){	//request timer interrupt
 
+
+	if(requestInt && (PPUMode!=prevMode)){	//request timer interrupt
 		uint8_t interruptFlags=ram->read(INTERRUPT_FLAGS);
     	interruptFlags|=1<<1;
     	ram->write(INTERRUPT_FLAGS, interruptFlags);
@@ -434,6 +516,11 @@ void PPU::setSTAT(){
 
 	if(ram->read(LY_ADDR)==ram->read(LYC_ADDR)){
 		CoincidenceFlag=1;
+		if(LYLYC==1){
+			uint8_t interruptFlags=ram->read(INTERRUPT_FLAGS);
+			interruptFlags|=1<<1;
+			ram->write(INTERRUPT_FLAGS, interruptFlags);	
+		}
 	}
 	else{
 		CoincidenceFlag=0;

@@ -4,9 +4,11 @@
 #include "RAM.h"
 #include "Registers.h"
 #include "Cartridge.h"
+#include "Joypad.h"
 #include <cstdint>
 #include <vector>
 #include <memory>
+
 
 class CPU {
 

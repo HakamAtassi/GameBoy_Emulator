@@ -17,6 +17,14 @@ class PPU
 {
 private:
 	
+	enum Color
+	{
+		White,
+		LightGray,
+		DarkGray,
+		Black
+	};
+
 	RAM * ram;
 	Cartridge cartridge;
 
@@ -106,6 +114,8 @@ private:
 	//void requestInterrupt();
 	void renderTiles();
 	void renderSprites();
+	Color getColor(uint8_t colorNum, uint16_t address) const;
+
 
 	void drawScanline();
 

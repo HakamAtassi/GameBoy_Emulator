@@ -344,6 +344,7 @@ int CPU::sbc(uint8_t &reg1, uint8_t &reg2) {
 }
 int CPU::_and(uint16_t &reg1,uint16_t &reg2) { // many of these functions cam be written as templates
 	//printf("==AND==\n");
+
 	reg1 = reg1 & reg2;
 	regs.carry = 0;
 	regs.halfCarry = 1;
@@ -385,7 +386,7 @@ int CPU::_or(uint8_t &reg1, uint8_t &reg2) {
 //stolen from code slinger
 int CPU::cp(uint8_t reg1, uint8_t reg2) { // doesnt actually store result of subtraction anywhere
 	//printf("==CP==\n");
-
+	cycles=4;
     uint8_t result = reg1 - reg2;
 
 	regs.zero=(result == 0);
@@ -397,6 +398,8 @@ int CPU::cp(uint8_t reg1, uint8_t reg2) { // doesnt actually store result of sub
 }
 int CPU::BIT(int bit, uint8_t & reg){	
 	//printf("==BIT==\n");
+	cycles=8;
+
 	uint8_t bitResult=reg&(1<<bit);	//bitResult will store the and of the result and the 
 									//bit in question
 	regs.zero=((bitResult==0));	//instead of complementing, just set if reset, and reset if set...
@@ -456,12 +459,14 @@ int CPU::jp_a16(bool condition){
 }
 int CPU::call(bool condition){	
 	//printf("==CALL==\n");
-	cycles+=12 ;
+	cycles=12 ;
 	uint16_t nn = readWord() ;
 	PC += 2;
 	//printf("Jump to %X from %X\n",nn,PC);
 
 	if(condition){
+		cycles+=12 ;
+
 		pushWordToStack(PC) ;
 		PC = nn ;
 	}
@@ -469,7 +474,7 @@ int CPU::call(bool condition){
 }
 int CPU::rlc(uint8_t & reg){
 	//printf("==rlc==\n");
-
+	cycles=8;
 	uint8_t prev=reg;
 	reg<<=1;
 	regs.carry=((prev&0x80)==0x80);	//set carry if top bit was one
@@ -481,6 +486,8 @@ int CPU::rlc(uint8_t & reg){
 }
 int CPU::rrc(uint8_t & reg){
 	//printf("==rrc==\n");
+	cycles=8;
+
 	uint8_t carryFlag=((reg&0x01)>0);
 	uint8_t result = ((reg >> 1) | (carryFlag << 7));
 	reg=result;
@@ -498,6 +505,8 @@ int CPU::rrc(uint8_t & reg){
 int CPU::rl(uint8_t & reg){
 	// WHEN EDITING THIS FUNCTION ALSO EDIT CPU_RL_MEMORY
 	//printf("==rl==\n");
+	cycles=8;
+
 	bool isCarrySet = (regs.carry==1) ;
 	bool isMSBSet = testBit(reg, 7) ;
 	regs.F = 0 ;
@@ -514,6 +523,8 @@ int CPU::rl(uint8_t & reg){
 int CPU::rr(uint8_t & reg){
 	// WHEN EDITING THIS ALSO EDIT CPU_RR_MEMORY
 	//printf("==rr==\n");
+	cycles=8;
+
 	bool isCarrySet = (regs.carry==1) ;
 	bool isLSBSet = ((reg&0x1)>0);
 	regs.F = 0 ;
@@ -527,6 +538,8 @@ int CPU::rr(uint8_t & reg){
 int CPU::sla(uint8_t & reg){
 	// WHEN EDITING THIS ALSO EDIT CPU_SLA_MEMORY
 	//printf("==SLA==\n");
+	cycles=8;
+
 	bool isMSBSet = testBit(reg, 7);
 	reg <<= 1;
 	regs.F = 0 ;
@@ -537,6 +550,8 @@ int CPU::sla(uint8_t & reg){
 int CPU::sra(uint8_t & reg){
 	// WHEN EDITING THIS FUNCTION ALSO EDIT CPU_SRA_MEMORY
 	//printf("==SRA==\n");
+	cycles=8;
+
 	bool isLSBSet = testBit(reg,0) ;
 	bool isMSBSet = testBit(reg,7) ;
 	regs.F = 0 ;
@@ -563,6 +578,8 @@ int CPU::swap(uint8_t & reg){
 int CPU::srl(uint8_t & reg){
 	//WHEN EDITING THIS FUNCTION ALSO EDIT CPU_SRL_MEMORY
 	//printf("==SRL==\n");
+	cycles=8;
+
 	bool isLSBSet = testBit(reg,0) ;
 	regs.F = 0 ;
 	reg >>= 1;
@@ -583,6 +600,7 @@ int CPU::res(uint8_t & reg, int pos){	//reset bit at offset
 }
 int CPU::set(uint8_t & reg, int pos){ //set bit at offset
 	//printf("==SET==\n");
+
 	cycles=8;
 	int offsetBin=1<<pos;
 	reg=reg|offsetBin;	//and reg with the inverse of its "offset"

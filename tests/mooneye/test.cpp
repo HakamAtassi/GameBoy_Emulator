@@ -1,6 +1,7 @@
 #include "../../src/headers/Cartridge.h"
 #include "../../src/headers/PPU.h"
 #include "../../src/headers/GameBoy.h"
+#include "../../src/headers/Debugger.h"
 
 
 #include <iostream>
@@ -13,39 +14,36 @@ using namespace std;
 int main(){
 
 
-    //Cartridge cartridge("04-op r,imm.dump");    //a varified correct memory dump file
+    Cartridge cartridge("../../ROMS/dmg-acid2.dump");
+  
 
-
-    Cartridge cartridge("../../ROMS/mooneye_tests/acceptance/instr/daa.gb");
     GameBoy gameboy(cartridge);
     printf("Starting test\n\n");
     gameboy.printTitle();
 
 
-    for(int i=0;i<9900000;i++){
-        gameboy.update();
-        if(gameboy.read(SC)==0x81){
-            printf("%C",gameboy.read(SB));
-            gameboy.write(SC,0);
-        }
-    }
- 
-    gameboy.printRam(0xFFFF);
-
-    for(int i=0;i<144;i++){
-        gameboy.updateGraphics();
-    }
-    
-    
-
     gameboy.createWindow();
+
+
 	SDL_Event eventMain;
 	while(1){
-
+        gameboy.update();
+        gameboy.printRam(0xff00,0xff70);
         gameboy.drawPixelBuffer();
 		SDL_PollEvent(&eventMain);
 		if(eventMain.type == SDL_QUIT)
 				break;
 	}
-    
+    //gameboy.printRam(0xff00,0xff70);
+
+ /*
+    GameBoy * gameboy= new GameBoy(cartridge);
+    Debugger debugger(gameboy);
+    //printf("Starting test\n\n");
+
+    for(int i=0;i<100000;i++){
+        debugger.run();        
+        gameboy->printRam(0xff00,0xff70);
+    }
+   */
 }

@@ -8,18 +8,22 @@
 /*===============================LOAD INSTUCTIONS===============================*/
 /*ld reg, d16*/
 int CPU::ld_bc_d16() { // 0x01
+	cycles=12;
 	ld_reg_d16(regs.BC);
 	return 0;
 }
 int CPU::ld_de_d16() { // 0x11
+	cycles=12;
 	ld_reg_d16(regs.DE);
 	return 0;
 }
 int CPU::ld_hl_d16() { // 0x21
+	cycles=12;
 	ld_reg_d16(regs.HL);
 	return 0;
 }
 int CPU::ld_sp_d16() { // 0x31
+	cycles=12;
 	ld_reg_d16(SP);
 	return 0;
 }
@@ -89,6 +93,8 @@ int CPU::ld_a_hl() {	//0x7E
 	return 0;
 }
 int CPU::ld_a_hlp() { // 0x2A
+	cycles = 8;
+
 	regs.A=ram->read(regs.HL);
 	regs.HL++;
 	return 0;
@@ -132,26 +138,34 @@ int CPU::ld_a_a16() {	//0xFA
 
 /*ld (addr), data*/
 int CPU::ld_hl_d8() { // 0x36
-	cycles = 8;
+	cycles = 12;
 	uint8_t imm = ram->read(PC);
 	PC++;
 	ram->write(regs.HL, imm);
 	return 0;
 }
 int CPU::ld_bc_a() { // 0x02
+	cycles = 8;
+
 	ld_mem_a(regs.BC);
 	return 0;
 }
 int CPU::ld_de_a() { // 0x12
+	cycles = 8;
+
 	ld_mem_a(regs.DE);
 	return 0;
 }
 int CPU::ld_hlp_a() { // 0x22
+	cycles = 8;
+
 	ld_mem_a(regs.HL);
 	regs.HL++;
 	return 0;
 }
 int CPU::ld_hlm_a() { // 0x32
+	cycles = 8;
+
 	ld_mem_a(regs.HL);
 	regs.HL--;
 	return 0;
@@ -168,7 +182,7 @@ int CPU::ld_a16_a() {	//0xEA
 }
 int CPU::ld_a16_sp() { // 0x08
 	//TODO: double check
-	int cycles = 20;
+	cycles = 20;
 	//printf("==LOAD SP INTO MEM==\n");
 	uint16_t addr=readWord();
 	PC+=2;
@@ -194,30 +208,44 @@ int CPU::ld_c_mem_a() {	//0xE2
 	return 0;
 }
 int CPU::ld_b_d8() { // 0x06
+	cycles = 8;
+
 	ld_reg_d8(regs.B);
 	return 0;
 }
 int CPU::ld_d_d8() { // 0x16
+	cycles = 8;
+
 	ld_reg_d8(regs.D);
 	return 0;
 }
 int CPU::ld_h_d8() { // 0x26
+	cycles = 8;
+
 	ld_reg_d8(regs.H);
 	return 0;
 }
 int CPU::ld_c_d8() { // 0x0E
+	cycles = 8;
+
 	ld_reg_d8(regs.C);
 	return 0;
 }
 int CPU::ld_e_d8() { // 0x1E
+	cycles = 8;
+
 	ld_reg_d8(regs.E);
 	return 0;
 }
 int CPU::ld_l_d8() { // 0x2E
+	cycles = 8;
+
 	ld_reg_d8(regs.L);
 	return 0;
 }
 int CPU::ld_a_d8() { // 0x3E
+	cycles = 8;
+
 	ld_reg_d8(regs.A);
 	return 0;
 }
@@ -257,211 +285,315 @@ int CPU::ld_hl_a() {	//0x77
 	return 0;
 }
 /*ld reg reg*/
-int CPU::ld_b_c() { // 0x40
-	ld_reg_reg(regs.B, regs.C);
-	return 0;
-}
 int CPU::ld_b_b() { // 0x40
+	cycles = 4;
+
 	ld_reg_reg(regs.B, regs.B);
 	return 0;
 }
+
+int CPU::ld_b_c() { // 0x41
+	cycles = 4;
+	ld_reg_reg(regs.B, regs.C);
+	return 0;
+}
+
 int CPU::ld_b_d() { // 0x42
+	cycles = 4;
+
 	ld_reg_reg(regs.B, regs.D);
 	return 0;
 }
 int CPU::ld_b_e() { // 0x43
+	cycles = 4;
+
 	ld_reg_reg(regs.B, regs.E);
 	return 0;
 }
 int CPU::ld_b_h() { // 0x44
+	cycles = 4;
+
 	ld_reg_reg(regs.B, regs.H);
 	return 0;
 }
 int CPU::ld_b_l() { // 0x45
+	cycles = 4;
+
 	ld_reg_reg(regs.B, regs.L);
 	return 0;
 }
 int CPU::ld_b_a() { // 0x47
+	cycles = 4;
+
 	ld_reg_reg(regs.B, regs.A);
 	return 0;
 }
 int CPU::ld_c_b() { // 0x48
+	cycles = 4;
+
 	ld_reg_reg(regs.C, regs.B);
 	return 0;
 }
 int CPU::ld_c_c() { // 0x49
+	cycles = 4;
+
 	ld_reg_reg(regs.C, regs.C);
 	return 0;
 }
 int CPU::ld_c_d() { // 0x4A
+	cycles = 4;
+
 	ld_reg_reg(regs.C, regs.D);
 	return 0;
 }
 int CPU::ld_c_e() { // 0x4B
+	cycles = 4;
+
 	ld_reg_reg(regs.C, regs.E);
 	return 0;
 }
 int CPU::ld_c_h() { // 0x4C
+	cycles = 4;
+
 	ld_reg_reg(regs.C, regs.H);
 	return 0;
 }
 int CPU::ld_c_l() { // 0x4D
+	cycles = 4;
+
 	ld_reg_reg(regs.C, regs.L);
 	return 0;
 }
 int CPU::ld_c_a() { // 0x4F
+	cycles = 4;
+
 	ld_reg_reg(regs.C, regs.A);
 	return 0;
 }
 int CPU::ld_d_b() { // 0x50
+
 	ld_reg_reg(regs.D, regs.B);
 	return 0;
 }
 int CPU::ld_d_c() { // 0x51
+	cycles = 4;
+
 	ld_reg_reg(regs.D, regs.C);
 	return 0;
 }
 int CPU::ld_d_d() { // 0x52
+	cycles = 4;
+
 	ld_reg_reg(regs.D, regs.D);
 	return 0;
 }
 int CPU::ld_d_e() { // 0x53
+	cycles = 4;
+
 	ld_reg_reg(regs.D, regs.E);
 	return 0;
 }
 int CPU::ld_d_h() { // 0x54
+	cycles = 4;
+
 	ld_reg_reg(regs.D, regs.H);
 	return 0;
 }
 int CPU::ld_d_l() { // 0x55
+	cycles = 4;
+
 	ld_reg_reg(regs.D, regs.L);
 	return 0;
 }
 int CPU::ld_d_a() { // 0x57
+	cycles = 4;
+
 	ld_reg_reg(regs.D, regs.A);
 	return 0;
 }
 int CPU::ld_e_b() { // 0x58
+	cycles = 4;
+
 	ld_reg_reg(regs.E, regs.B);
 	return 0;
 }
 int CPU::ld_e_c() { // 0x59
+	cycles = 4;
+
 	ld_reg_reg(regs.E, regs.C);
 	return 0;
 }
 int CPU::ld_e_d() { // 0x5A
+	cycles = 4;
+
 	ld_reg_reg(regs.E, regs.D);
 	return 0;
 }
 int CPU::ld_e_e() { // 0x5B
+	cycles = 4;
+
 	ld_reg_reg(regs.E, regs.E);
 	return 0;
 }
 int CPU::ld_e_h() { // 0x5C
+	cycles = 4;
+
 	ld_reg_reg(regs.E, regs.H);
 	return 0;
 }
 int CPU::ld_e_l() { // 0x5D
+	cycles = 4;
+
 	ld_reg_reg(regs.E, regs.L);
 	return 0;
 }
 int CPU::ld_e_a() { // 0x5F
+	cycles = 4;
+
 	ld_reg_reg(regs.E, regs.A);
 	return 0;
 }
 int CPU::ld_h_b() { // 0x60
+	cycles = 4;
+
 	ld_reg_reg(regs.H, regs.B);
 	return 0;
 }
 int CPU::ld_h_c() { // 0x61
+	cycles = 4;
+
 	ld_reg_reg(regs.H, regs.C);
 	return 0;
 }
 int CPU::ld_h_d() { // 0x62
+	cycles = 4;
+
 	ld_reg_reg(regs.H, regs.D);
 	return 0;
 }
 int CPU::ld_h_e() { // 0x63
+	cycles = 4;
+
 	ld_reg_reg(regs.H, regs.E);
 	return 0;
 }
 int CPU::ld_h_h() { // 0x64
+	cycles = 4;
+
 	ld_reg_reg(regs.H, regs.H);
 	return 0;
 }
 int CPU::ld_h_l() { // 0x65
+	cycles = 4;
+
 	ld_reg_reg(regs.H, regs.L);
 	return 0;
 }
 int CPU::ld_h_a() { // 0x67
+	cycles = 4;
+
 	ld_reg_reg(regs.H, regs.A);
 	return 0;
 }
 int CPU::ld_l_b() { // 0x68
+	cycles = 4;
+
 	ld_reg_reg(regs.L, regs.B);
 	return 0;
 }
 int CPU::ld_l_c() { // 0x69
+	cycles = 4;
+
 	ld_reg_reg(regs.L, regs.C);
 	return 0;
 }
 int CPU::ld_l_d() { // 0x6A
+	cycles = 4;
+
 	ld_reg_reg(regs.L, regs.D);
 	return 0;
 }
 int CPU::ld_l_e() { // 0x6B
+	cycles = 4;
+
 	ld_reg_reg(regs.L, regs.E);
 	return 0;
 }
 int CPU::ld_l_h() { // 0x6C
+	cycles = 4;
+
 	ld_reg_reg(regs.L, regs.H);
 	return 0;
 }
 int CPU::ld_l_l() { // 0x6D
+	cycles = 4;
+
 	ld_reg_reg(regs.L, regs.L);
 	return 0;
 }
 int CPU::ld_l_a() { // 0x6F
+	cycles = 4;
+
 	ld_reg_reg(regs.L, regs.A);
 	return 0;
 }
 int CPU::halt() {	//0x76
+	cycles = 4;
+
 	HALT=true;
 	return 0;
 }
 int CPU::ld_a_b() {	//0x78
+	cycles = 4;
+
 	ld_reg_reg(regs.A, regs.B);
 	return 0;
 }
 int CPU::ld_a_c() {	//0x79
+	cycles = 4;
+
 	ld_reg_reg(regs.A, regs.C);
 	return 0;
 }
 int CPU::ld_a_d() {	//0x7A
+	cycles = 4;
+
 	ld_reg_reg(regs.A, regs.D);
 	return 0;
 }
 int CPU::ld_a_e() {	//0x7B
+	cycles = 4;
+
 	ld_reg_reg(regs.A, regs.E);
 	return 0;
 }
 int CPU::ld_a_h() {	//0x7C
+	cycles = 4;
+
 	ld_reg_reg(regs.A, regs.H);
 	return 0;
 }
 int CPU::ld_a_l() {	//0x7D
+	cycles = 4;
+
 	ld_reg_reg(regs.A, regs.L);
 	return 0;
 }
 int CPU::ld_a_a() {	//0x7F
+	cycles = 4;
+
 	ld_reg_reg(regs.A, regs.A);
 	return 0;
 };
 int CPU::ld_sp_hl() {	//0xF9
+	cycles = 8;
+
 	SP=regs.HL;
 	return 0;
 }
 int CPU::ld_hl_sp_s8() {	//0xF8
+	cycles = 12;
+
 	int8_t s8=ram->read(PC);
 	int result=SP+s8;
 
@@ -578,10 +710,14 @@ int CPU::reti() { // 0xD8
 
 /*===============================INC INSTRUCTIONS===============================*/
 int CPU::inc_bc() { // 0x03
+	cycles = 8;
+
 	inc_reg(regs.BC);
 	return 0;
 }
 int CPU::inc_b() { // 0x04
+	cycles = 4;
+
 	inc_reg(regs.B);
 	return 0;
 }

@@ -8,6 +8,7 @@
 #include "Cartridge.h"
 #include "Timers.h"
 #include "InterruptHandler.h"
+#include "Joypad.h"
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_render.h>
 #include "SDL2/SDL.h"
@@ -19,6 +20,7 @@ class GameBoy
         Timers timers;
         CPU * cpu;
         PPU ppu;
+        Joypad joypad;
         Cartridge cartridge;
         InterruptHandler interruptHander;
 
@@ -58,7 +60,10 @@ class GameBoy
         GameBoy(Cartridge cartridge);
         ~GameBoy();
 
+
         void update();
+        void updateDebug();
+
         void updateTimers(int requiredClocks);
 		void refreshDisplay(); 
         void printRam(int minAddr,int maxAddr);
