@@ -14,7 +14,7 @@ using namespace std;
 int main(){
 
 
-    Cartridge cartridge("../../ROMS/dmg-acid2.dump");
+    Cartridge cartridge("../../ROMS/dmg-acid2.gb");
   
 
     GameBoy gameboy(cartridge);

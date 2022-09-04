@@ -116,8 +116,11 @@ private:
 	void renderSprites();
 	Color getColor(uint8_t colorNum, uint16_t address) const;
 
-
+	void drawCurrentLine();
 	void drawScanline();
+	void issueVerticalBlank();
+	void requestInterrupt(int bit);
+
 
 	uint16_t combineTileBytes(uint8_t left, uint8_t right);
 
