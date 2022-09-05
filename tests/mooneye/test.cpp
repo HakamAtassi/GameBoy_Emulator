@@ -14,12 +14,15 @@ using namespace std;
 int main(){
 
 
+    //Cartridge cartridge("../../ROMS/Tetris.gb");
+    //Cartridge cartridge("../../ROMS/mooneye_tests/acceptance/boot_hwio-dmgABCmgb.gb");
     Cartridge cartridge("../../ROMS/dmg-acid2.gb");
-  
 
+/*
     GameBoy gameboy(cartridge);
     printf("Starting test\n\n");
     gameboy.printTitle();
+    gameboy.printRam(0xff00,0xff70);
 
 
     gameboy.createWindow();
@@ -28,7 +31,6 @@ int main(){
 	SDL_Event eventMain;
 	while(1){
         gameboy.update();
-        gameboy.printRam(0xff00,0xff70);
         gameboy.drawPixelBuffer();
 		SDL_PollEvent(&eventMain);
 		if(eventMain.type == SDL_QUIT)
@@ -36,7 +38,8 @@ int main(){
 	}
     //gameboy.printRam(0xff00,0xff70);
 
- /*
+ */
+
     GameBoy * gameboy= new GameBoy(cartridge);
     Debugger debugger(gameboy);
     //printf("Starting test\n\n");
@@ -45,5 +48,5 @@ int main(){
         debugger.run();        
         gameboy->printRam(0xff00,0xff70);
     }
-   */
+   
 }

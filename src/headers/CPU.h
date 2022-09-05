@@ -45,6 +45,7 @@ class CPU {
 		uint16_t PC = 0; // program counter
 		uint16_t SP = 0; // stack pointer
 		uint8_t instruction = 0;
+		
 
 
 		/*Interrupt Master Switch*/
@@ -77,7 +78,10 @@ class CPU {
 
 		/*Look up tables*/
 		std::vector<int (CPU::*)(void)> opcodeLUT;
+		
 		std::vector<int (CPU::*)(void)> opcodeLUTCB; // functions for CB indexed instructions
+		std::vector<int> cyclesTable;
+		std::vector<int> cyclesTableCB; // functions for CB indexed instructions
 
 
 		/*Execution*/

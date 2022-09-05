@@ -20,6 +20,7 @@ void InterruptHandler::pushWordToStack(uint16_t data){
     cpu->pushWordToStack(data);
 }
 void InterruptHandler::ISR(int interruptVal){
+	printf("\n==\nHandeling interruptVal\n==\n");
 	pushWordToStack(cpu->getPC());	//save current state
 	cpu->setHalt(false);
 	*IME=false;
@@ -29,46 +30,47 @@ void InterruptHandler::ISR(int interruptVal){
 	interruptRequests=interruptRequests&(~(1<<interruptVal));	//reset IR bit
 	ram->write(INTERRUPT_FLAGS,interruptRequests);
 
-	//call ISR;
-	switch (interruptVal)
+
+	pushWordToStack(cpu->getPC());
+	cpu->setHalt(false);
+
+
+	switch(interruptVal)
 	{
-	case 0:	//VBLANK
-		VBlankInterrupt();
-		break;
-	case 1:	//LCDSTAT
-		STATInterrupt();
-		break;
-	case 2:	//TIMER
-		TimerInterrupt();
-		break;
-	case 3:	//SERIAL
-		SerialInterrupt();
-		break;
-	case 4:	//JOYPAD
-		JoypadInterrupt();
-		break;
-	
-	default:
-		break;
+		case 0: cpu->setPC(0x40); break ;// V-Blank
+		case 1: cpu->setPC(0x48); break ;// LCD-STATE
+		case 2: cpu->setPC(0x50); break ;// Timer
+		case 4: cpu->setPC(0x60); break ;// JoyPad
 	}
+
+	*IME = false ;
+	interruptRequests=interruptRequests&(~(1<<interruptVal));	//reset IR bit
+	ram->write(INTERRUPT_FLAGS,interruptRequests);
 }
+
+
 void InterruptHandler::handleInterrupts(){
-		uint8_t interruptFlags=ram->read(INTERRUPT_FLAGS);
-		uint8_t interruptEnable=ram->read(INTERRUPT_ENABLE);
-		if(interruptFlags>0){	//dont handel interrupts if they are all 0
-			for(int i=0;i<8;i++){	//bit 0 is higest prio.
-				if(testBit<uint8_t>(interruptEnable,i)==true){	//is that intr. enabled
-					if(testBit<uint8_t>(interruptFlags,i)==true){	//is that intr. requested
-						if(*IME==true){
-							ISR(i);	//run isr for that interrupt
-						}
+	if (*IME==true)
+	{
+		// has anything requested an interrupt?
+		uint8_t requestFlag = ram->read(0xFF0F);
+		if (requestFlag > 0)
+		{
+			// which requested interrupt has the lowest priority?
+			for (int bit = 0; bit < 8; bit++)
+			{
+				if ((requestFlag&(1<<bit))>0)
+				{
+					// this interupt has been requested. But is it enabled?
+					uint8_t enabledReg = ram->read(0xFFFF);
+					if ((enabledReg&(1<<bit))>0)
+					{
+						ISR(bit) ;
 					}
 				}
 			}
 		}
-		if((interruptFlags&interruptEnable)>0){
-			cpu->setHalt(false);
-		}
+	}
 }
 void InterruptHandler::VBlankInterrupt(){
     cpu->setPC(VBlank);

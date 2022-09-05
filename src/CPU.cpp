@@ -69,13 +69,59 @@ CPU::CPU(RAM * _ram, bool * _IME):ram(_ram),IME(_IME){
 			&CPU::set_4_b, &CPU::set_4_c, &CPU::set_4_d,  &CPU::set_4_e,&CPU::set_4_h, &CPU::set_4_l, &CPU::set_4_hl, &CPU::set_4_a,&CPU::set_5_b, &CPU::set_5_c, &CPU::set_5_d,  &CPU::set_5_e,&CPU::set_5_h, &CPU::set_5_l, &CPU::set_5_hl, &CPU::set_5_a,
 			&CPU::set_6_b, &CPU::set_6_c, &CPU::set_6_d,  &CPU::set_6_e,&CPU::set_6_h, &CPU::set_6_l, &CPU::set_6_hl, &CPU::set_6_a,&CPU::set_7_b, &CPU::set_7_c, &CPU::set_7_d,  &CPU::set_7_e,&CPU::set_7_h, &CPU::set_7_l, &CPU::set_7_hl, &CPU::set_7_a
 	};
+
+	cyclesTable = std::vector<int>{
+			4, 12,  8, 8,  4,  4,  8,  4,  20,   8,  8,   8,    4,    4, 8,  4,
+			4, 12,  8, 8,  4,  4,  8,  4,  12,   8,  8,   8,    4,    4, 8,  4,
+			8, 12,  8, 8,  4,  4,  8,  4,  8,    8,  8,   8,	4,    4, 8,  4,
+			8, 12,  8, 8, 12, 12, 12,  4,  8,    8,  8,   8,	4,    4, 8,  4,
+			4,  4,  4, 4,  4,  4,  8,  4,  4,    4,  4,   4,	4,    4, 8,  4,
+			4,  4,  4, 4,  4,  4,  8,  4,  4,    4,  4,   4,	4,    4, 8,  4,
+			4,  4,  4, 4,  4,  4,  8,  4,  4,    4,  4,   4,	4,    4, 8,  4,
+			8,  8,  8, 8,  8,  8,  4,  8,  4,    4,  4,   4,	4,    4, 8,  4,
+			4,  4,  4, 4,  4,  4,  8,  4,  4,    4,  4,   4,    4,    4, 8,  4,
+			4,  4,  4, 4,  4,  4,  8,  4,  4,    4,  4,   4,    4,    4, 8,  4,
+			4,  4,  4, 4,  4,  4,  8,  4,  4,    4,  4,   4,	4,    4, 8,  4,
+			4,  4,  4, 4,  4,  4,  8,  4,  4,    4,  4,   4,	4,    4, 8,  4,
+			8,  12, 12,16, 12, 16, 8, 16,  8,    16, 12,  4,    12,  12, 8, 16,
+			8,  12, 12,0,  12, 16, 8, 16,  8,    16, 12,  0,    12,   0, 8, 16,
+			12, 12, 8, 0,  0,  16, 8, 16,  16,   4,  16,  0,    0,    0, 8, 16,
+			12, 12, 8, 4,  0,  16, 8, 16,  12,   8,  16,  4,	0,    0, 8, 16
+			};
+
+		cyclesTableCB = std::vector<int>{
+			8,  8,  8,  8,  8,  8,  16,  8,  8,  8,  8,  8,  8, 8,  16,  8,
+			8,  8,  8,  8,  8,  8,  16,  8,  8,  8,  8,  8,  8, 8,  16,  8,
+			8,  8,  8,  8,  8,  8,  16,  8,  8,  8,  8,  8,  8, 8,  16,  8,
+			8,  8,  8,  8,  8,  8,  16,  8,  8,  8,  8,  8,  8, 8,  16,  8,
+			8,  8,  8,  8,  8,  8,  16,  8,  8,  8,  8,  8,  8, 8,  16,  8,
+			8,  8,  8,  8,  8,  8,  16,  8,  8,  8,  8,  8,  8, 8,  16,  8,
+			8,  8,  8,  8,  8,  8,  16,  8,  8,  8,  8,  8,  8, 8,  16,  8,
+			8,  8,  8,  8,  8,  8,  16,  8,  8,  8,  8,  8,  8, 8,  16,  8,
+			8,  8,  8,  8,  8,  8,  16,  8,  8,  8,  8,  8,  8, 8,  16,  8,
+			8,  8,  8,  8,  8,  8,  16,  8,  8,  8,  8,  8,  8, 8,  16,  8,
+			8,  8,  8,  8,  8,  8,  16,  8,  8,  8,  8,  8,  8, 8,  16,  8,
+			8,  8,  8,  8,  8,  8,  16,  8,  8,  8,  8,  8,  8, 8,  16,  8,
+			8,  8,  8,  8,  8,  8,  16,  8,  8,  8,  8,  8,  8, 8,  16,  8,
+			8,  8,  8,  8,  8,  8,  16,  8,  8,  8,  8,  8,  8, 8,  16,  8,
+			8,  8,  8,  8,  8,  8,  16,  8,  8,  8,  8,  8,  8, 8,  16,  8,
+			8,  8,  8,  8,  8,  8,  16,  8,  8,  8,  8,  8,  8, 8,  16,  8
+	};
+
 }
 int CPU::fetchExecute(){
 	//TODO: halt means fetch execture isnt done
+	cycles=0;
 	if(HALT==false){
 		fetch();
 		execute();
 	}
+	else{
+		cycles=4;
+	}
+
+	//printf("instruction %X\n",instruction);
+
 	return cycles;
 }
 
@@ -125,11 +171,14 @@ void CPU::fetch() {
 }
 void CPU::execute() { // dont forget interrupts
 					// use correct lookup table
+	cycles=0;
 	if (flagCB == 0) {
 		(this->*opcodeLUT[instruction])();
+		cycles+=cyclesTable[instruction];
 	} 
 	else {
 		(this->*opcodeLUTCB[instruction])();
+		cycles+=cyclesTableCB[instruction];
 		flagCB=0;
 	}
 }
@@ -190,14 +239,12 @@ bool CPU::getFlag(std::string flag){
 /*===========================================*/
 int CPU::ld_reg_addr(uint8_t &reg1, uint8_t data) {	//TODO: misleading name
 	//printf("==LOAD REG FROM MEM==\n");
-	cycles = 8;
 	reg1 = data;
 	return 0;
 }
 int CPU::ld_reg_reg(uint8_t &reg1, uint8_t reg2) {
 	//printf("==LOAD FROM REG==\n");
 	//printf("Before: Reg1: %x, Reg2: %x\n", reg1,reg2);
-	cycles = 4;
 	reg1 = reg2;
 	//printf("After: Reg1: %x, Reg2: %x\n",reg1,reg2);
 	return 0;
@@ -205,7 +252,6 @@ int CPU::ld_reg_reg(uint8_t &reg1, uint8_t reg2) {
 int CPU::ld_reg_d8(uint8_t &reg) {
 	//printf("==LOAD FROM MEM==\n");
 	//printf("Before: Reg1: %X\n",reg);
-	cycles = 8;
 	uint8_t imm = ram->read(PC);
 	PC++;
 	reg = imm;
@@ -215,7 +261,6 @@ int CPU::ld_reg_d8(uint8_t &reg) {
 int CPU::ld_reg_d16(uint16_t &reg1) {
 	//printf("==LOAD FROM MEM==\n");
 	//printf("Before: Reg1: %X\n",reg1);
-	cycles = 12;
 	uint16_t data = readWord();
 	PC+=2;
 	reg1 = data;
@@ -239,13 +284,11 @@ int CPU::inc_reg(uint8_t &reg) {
 
 int CPU::inc_reg(uint16_t &reg) {
 	//printf("==INCREMENT REG==\n");
-	cycles = 8;
 	reg++;
 	return 0;
 }
 
 int CPU::dec_reg(uint8_t &reg) {
-	cycles = 4;
 	//printf("==DECREMENT REG==\n");
 	//printf("Before: reg: %X\n", reg);
 	uint8_t before = reg ;
@@ -260,13 +303,11 @@ int CPU::dec_reg(uint8_t &reg) {
 }
 int CPU::dec_reg(uint16_t &reg) {
 	//printf("==DECREMENT REG==\n");
-	cycles = 8;
 	reg--;
 	return 0;
 }
 int CPU::ld_mem_a(uint16_t &addr) {
 	//printf("==LOAD A TO MEM==\n");
-	cycles = 8;
 	ram->write(addr, regs.A);
 	return 0;
 }
@@ -274,12 +315,11 @@ int CPU::jr(bool condition) {
 	//printf("==Jump PC==\n");
 	//printf("Before: PC:%X \n",PC);
 	if (condition) {
-		cycles = 12;
+		cycles+=4;	//if taken add a few clocks
 		int8_t s8 = ram->read(PC);
 		PC++;
 		PC = PC + s8;
 	} else {
-		cycles = 8;
 		PC++;
 	}
 	//printf("After: PC:%X \n",PC);
@@ -287,7 +327,6 @@ int CPU::jr(bool condition) {
 }
 int CPU::add(uint8_t &reg1, uint8_t &reg2) {
 	//printf("==ADD==\n");
-	cycles = 4;
 	uint16_t result = reg1 + reg2;
 	
 	regs.zero=((result&0xff)==0);
@@ -299,7 +338,6 @@ int CPU::add(uint8_t &reg1, uint8_t &reg2) {
 }
 int CPU::add(uint16_t &reg1, uint16_t &reg2){
 	//printf("==ADD==\n");
-	cycles = 8;
 	regs.negative = 0;
 	uint32_t result = reg1 + reg2;
 	regs.carry = result > 0xffff;
@@ -310,7 +348,6 @@ int CPU::add(uint16_t &reg1, uint16_t &reg2){
 }
 int CPU::adc(uint8_t &reg1, uint8_t &reg2) {
 	//printf("==ADC==\n");
-	cycles=4;
 	int carry = (regs.carry == 1);
 	uint16_t result = reg1 + reg2 + carry;
 	regs.zero = ((result&0xFF) == 0);
@@ -332,7 +369,6 @@ int CPU::sub(uint8_t &reg1, uint8_t &reg2) {
 }
 int CPU::sbc(uint8_t &reg1, uint8_t &reg2) {
 	//printf("==SBC==\n");
-	cycles=4;
 	int carry = regs.carry;
 	regs.carry = ((reg2 + carry) > reg1);
 	regs.halfCarry = (((reg2 & 0x0F) + carry) > (reg1 & 0x0F));
@@ -354,7 +390,6 @@ int CPU::_and(uint16_t &reg1,uint16_t &reg2) { // many of these functions cam be
 }
 int CPU::_and(uint8_t &reg1, uint8_t &reg2) {
 	//printf("==AND==\n");
-	cycles=4;
 	reg1 = reg1 & reg2;
 	regs.carry = 0;
 	regs.halfCarry = 1;
@@ -365,7 +400,6 @@ int CPU::_and(uint8_t &reg1, uint8_t &reg2) {
 
 int CPU::_xor(uint8_t &reg1, uint8_t &reg2) {
 	//printf("==XOR==\n");
-	cycles=4;
 	reg1 ^= reg2;
 	regs.carry = 0;
 	regs.halfCarry = 0;
@@ -375,7 +409,6 @@ int CPU::_xor(uint8_t &reg1, uint8_t &reg2) {
 }
 int CPU::_or(uint8_t &reg1, uint8_t &reg2) {
 	//printf("==OR==\n");
-	cycles=4;
 	reg1 |= reg2;
 	regs.carry = 0;
 	regs.halfCarry = 0;
@@ -386,7 +419,6 @@ int CPU::_or(uint8_t &reg1, uint8_t &reg2) {
 //stolen from code slinger
 int CPU::cp(uint8_t reg1, uint8_t reg2) { // doesnt actually store result of subtraction anywhere
 	//printf("==CP==\n");
-	cycles=4;
     uint8_t result = reg1 - reg2;
 
 	regs.zero=(result == 0);
@@ -398,7 +430,6 @@ int CPU::cp(uint8_t reg1, uint8_t reg2) { // doesnt actually store result of sub
 }
 int CPU::BIT(int bit, uint8_t & reg){	
 	//printf("==BIT==\n");
-	cycles=8;
 
 	uint8_t bitResult=reg&(1<<bit);	//bitResult will store the and of the result and the 
 									//bit in question
@@ -408,7 +439,6 @@ int CPU::BIT(int bit, uint8_t & reg){
 	return 0;
 }
 int CPU::pop(uint16_t &reg1) {
-	cycles=12;
 	//printf("==POP REG FROM STACK==\n");
 	uint16_t data=popWordOffStack();
 	reg1 =data;
@@ -417,24 +447,21 @@ int CPU::pop(uint16_t &reg1) {
 }
 int CPU::push(uint16_t &reg1) {
 	//printf("==PUSH REG TO STACK==\n");
-	cycles=16;
 	//push pc to stack then jump
 	pushWordToStack(reg1);
 	return 0;
 }
 int CPU::rst(int index) {
 	//printf("==RST==\n");
-	cycles = 16;
-
 	pushWordToStack(PC);
 
 	PC = ram->read(0x08 * index);
 	return 0;
 }
 int CPU::_ret(bool condition) {
-	cycles = 16;
 	//printf("==RETURNING==\n");
 	if(condition){
+		cycles+=12;
 		PC = popWordOffStack() ;
 		//printf("Return address=%X\n",PC);
 		return 0;
@@ -448,18 +475,16 @@ int CPU::jp_a16(bool condition){
 	uint16_t a16=readWord();
 	PC+=2;
 	if(condition){
-		cycles=16;
+		cycles+=4;
 		PC=a16;
 	}
 	else{
-		cycles=12;
 	}
 	//printf("PC after: %X\n",PC);
 	return 0;
 }
 int CPU::call(bool condition){	
 	//printf("==CALL==\n");
-	cycles=12 ;
 	uint16_t nn = readWord() ;
 	PC += 2;
 	//printf("Jump to %X from %X\n",nn,PC);
@@ -474,7 +499,6 @@ int CPU::call(bool condition){
 }
 int CPU::rlc(uint8_t & reg){
 	//printf("==rlc==\n");
-	cycles=8;
 	uint8_t prev=reg;
 	reg<<=1;
 	regs.carry=((prev&0x80)==0x80);	//set carry if top bit was one
@@ -486,7 +510,6 @@ int CPU::rlc(uint8_t & reg){
 }
 int CPU::rrc(uint8_t & reg){
 	//printf("==rrc==\n");
-	cycles=8;
 
 	uint8_t carryFlag=((reg&0x01)>0);
 	uint8_t result = ((reg >> 1) | (carryFlag << 7));
@@ -505,7 +528,6 @@ int CPU::rrc(uint8_t & reg){
 int CPU::rl(uint8_t & reg){
 	// WHEN EDITING THIS FUNCTION ALSO EDIT CPU_RL_MEMORY
 	//printf("==rl==\n");
-	cycles=8;
 
 	bool isCarrySet = (regs.carry==1) ;
 	bool isMSBSet = testBit(reg, 7) ;
@@ -523,7 +545,6 @@ int CPU::rl(uint8_t & reg){
 int CPU::rr(uint8_t & reg){
 	// WHEN EDITING THIS ALSO EDIT CPU_RR_MEMORY
 	//printf("==rr==\n");
-	cycles=8;
 
 	bool isCarrySet = (regs.carry==1) ;
 	bool isLSBSet = ((reg&0x1)>0);
@@ -538,7 +559,6 @@ int CPU::rr(uint8_t & reg){
 int CPU::sla(uint8_t & reg){
 	// WHEN EDITING THIS ALSO EDIT CPU_SLA_MEMORY
 	//printf("==SLA==\n");
-	cycles=8;
 
 	bool isMSBSet = testBit(reg, 7);
 	reg <<= 1;
@@ -550,7 +570,6 @@ int CPU::sla(uint8_t & reg){
 int CPU::sra(uint8_t & reg){
 	// WHEN EDITING THIS FUNCTION ALSO EDIT CPU_SRA_MEMORY
 	//printf("==SRA==\n");
-	cycles=8;
 
 	bool isLSBSet = testBit(reg,0) ;
 	bool isMSBSet = testBit(reg,7) ;
@@ -566,7 +585,6 @@ int CPU::sra(uint8_t & reg){
 int CPU::swap(uint8_t & reg){
 	//printf("==swap==\n");
 	//printf("==swap==\n");
-	cycles=8;
 	reg = (((reg & 0xF0) >> 4) | ((reg & 0x0F) << 4));
 
 	regs.zero=(reg==0);
@@ -578,7 +596,6 @@ int CPU::swap(uint8_t & reg){
 int CPU::srl(uint8_t & reg){
 	//WHEN EDITING THIS FUNCTION ALSO EDIT CPU_SRL_MEMORY
 	//printf("==SRL==\n");
-	cycles=8;
 
 	bool isLSBSet = testBit(reg,0) ;
 	regs.F = 0 ;
@@ -592,7 +609,6 @@ int CPU::srl(uint8_t & reg){
 
 int CPU::res(uint8_t & reg, int pos){	//reset bit at offset
 	//printf("==RES==\n");
-	cycles=8;
 	uint8_t offsetBin=1<<pos;
 	offsetBin=~offsetBin;
 	reg=reg&offsetBin;	//and reg with the inverse of its "offset"
@@ -601,7 +617,6 @@ int CPU::res(uint8_t & reg, int pos){	//reset bit at offset
 int CPU::set(uint8_t & reg, int pos){ //set bit at offset
 	//printf("==SET==\n");
 
-	cycles=8;
 	int offsetBin=1<<pos;
 	reg=reg|offsetBin;	//and reg with the inverse of its "offset"
 	return 0;

@@ -118,8 +118,8 @@ private:
 
 	void drawCurrentLine();
 	void drawScanline();
-	void issueVerticalBlank();
 	void requestInterrupt(int bit);
+	void issueVerticalBlank();
 
 
 	uint16_t combineTileBytes(uint8_t left, uint8_t right);

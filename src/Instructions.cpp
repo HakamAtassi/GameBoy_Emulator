@@ -8,22 +8,18 @@
 /*===============================LOAD INSTUCTIONS===============================*/
 /*ld reg, d16*/
 int CPU::ld_bc_d16() { // 0x01
-	cycles=12;
 	ld_reg_d16(regs.BC);
 	return 0;
 }
 int CPU::ld_de_d16() { // 0x11
-	cycles=12;
 	ld_reg_d16(regs.DE);
 	return 0;
 }
 int CPU::ld_hl_d16() { // 0x21
-	cycles=12;
 	ld_reg_d16(regs.HL);
 	return 0;
 }
 int CPU::ld_sp_d16() { // 0x31
-	cycles=12;
 	ld_reg_d16(SP);
 	return 0;
 }
@@ -31,7 +27,6 @@ int CPU::ld_sp_d16() { // 0x31
 int CPU::ld_b_hl() { // 0x46
 	//printf("==LOAD from HL==\n");
 	//printf("Before: Reg1: %X, HL: %X",regs.B,regs.HL);
-	cycles = 8;
 	uint8_t operand = ram->read(regs.HL);
 	regs.B = operand;
 	//printf("After: Reg1: %X, HL: %X",regs.B,regs.HL);
@@ -40,7 +35,6 @@ int CPU::ld_b_hl() { // 0x46
 int CPU::ld_d_hl() { // 0x56
 	//printf("==LOAD from HL==\n");
 	//printf("Before: Reg1: %X, HL: %X",regs.D,regs.HL);
-	cycles = 8;
 	uint8_t operand = ram->read(regs.HL);
 	regs.D = operand;
 	//printf("After: Reg1: %X, HL: %X",regs.D,regs.HL);
@@ -49,7 +43,7 @@ int CPU::ld_d_hl() { // 0x56
 int CPU::ld_h_hl() { // 0x66
 	//printf("==LOAD from HL==\n");
 	//printf("Before: Reg1: %X, HL: %X",regs.H,regs.HL);
-	cycles = 8;
+
 	uint8_t operand = ram->read(regs.HL);
 	regs.H = operand;
 	//printf("After: Reg1: %X, HL: %X",regs.H,regs.HL);
@@ -59,7 +53,7 @@ int CPU::ld_h_hl() { // 0x66
 int CPU::ld_c_hl() { // 0x4E
 	//printf("==LOAD from HL==\n");
 	//printf("Before: Reg1: %X, HL: %X",regs.C,regs.HL);
-	cycles = 8;
+
 	uint8_t operand = ram->read(regs.HL);
 	regs.C = operand;
 	//printf("After: Reg1: %X, HL: %X",regs.C,regs.HL);
@@ -68,7 +62,6 @@ int CPU::ld_c_hl() { // 0x4E
 int CPU::ld_e_hl() { // 0x5E
 	//printf("==LOAD from HL==\n");
 	//printf("Before: Reg1: %X, HL: %X",regs.E,regs.HL);
-	cycles = 8;
 	uint8_t operand = ram->read(regs.HL);
 	regs.E = operand;
 	//printf("After: Reg1: %X, HL: %X",regs.E,regs.HL);
@@ -77,7 +70,6 @@ int CPU::ld_e_hl() { // 0x5E
 int CPU::ld_l_hl() { // 0x6E
 	//printf("==LOAD from HL==\n");
 	//printf("Before: Reg1: %X, HL: %X",regs.L,regs.HL);
-	cycles = 8;
 	uint8_t operand = ram->read(regs.HL);
 	regs.L = operand;
 	//printf("After: Reg1: %X, HL: %X",regs.L,regs.HL);
@@ -86,50 +78,42 @@ int CPU::ld_l_hl() { // 0x6E
 int CPU::ld_a_hl() {	//0x7E
 	//printf("==LOAD from HL==\n");
 	//printf("Before: Reg1: %X, HL: %X",regs.A,regs.HL);
-	cycles = 8;
 	uint8_t operand = ram->read(regs.HL);
 	regs.A = operand;
 	//printf("After: Reg1: %X, HL: %X",regs.A,regs.HL);
 	return 0;
 }
 int CPU::ld_a_hlp() { // 0x2A
-	cycles = 8;
 
 	regs.A=ram->read(regs.HL);
 	regs.HL++;
 	return 0;
 }
 int CPU::ld_a_hlm() { // 0x3A
-	cycles = 8;
 	regs.A = ram->read(regs.HL);
 	regs.HL--;
 	return 0;
 }
 int CPU::ld_a_bc() { // 0x0A
-	cycles = 8;
 	regs.A = ram->read(regs.BC);
 	return 0;
 }
 int CPU::ld_a_de() { // 0x1A
-	cycles = 8;
 	regs.A = ram->read(regs.DE);
 	return 0;
 }
 int CPU::ld_a_c_mem() {	//0xF2
-	cycles=8;
 	uint16_t addr=regs.C+0xFF00;
 	regs.A=ram->read(addr);
 	return 0;
 }
 int CPU::ld_a_a8() {	//0xF0
-	cycles=12;
 	uint16_t addr=ram->read(PC)+0xFF00;
 	PC++;
 	regs.A=ram->read(addr);
 	return 0;
 }
 int CPU::ld_a_a16() {	//0xFA
-	cycles=16;
 	uint16_t a16=readWord();
 	PC+=2;
 	regs.A=ram->read(a16);
@@ -138,40 +122,33 @@ int CPU::ld_a_a16() {	//0xFA
 
 /*ld (addr), data*/
 int CPU::ld_hl_d8() { // 0x36
-	cycles = 12;
 	uint8_t imm = ram->read(PC);
 	PC++;
 	ram->write(regs.HL, imm);
 	return 0;
 }
 int CPU::ld_bc_a() { // 0x02
-	cycles = 8;
 
 	ld_mem_a(regs.BC);
 	return 0;
 }
 int CPU::ld_de_a() { // 0x12
-	cycles = 8;
 
 	ld_mem_a(regs.DE);
 	return 0;
 }
 int CPU::ld_hlp_a() { // 0x22
-	cycles = 8;
 
 	ld_mem_a(regs.HL);
 	regs.HL++;
 	return 0;
 }
 int CPU::ld_hlm_a() { // 0x32
-	cycles = 8;
-
 	ld_mem_a(regs.HL);
 	regs.HL--;
 	return 0;
 }
 int CPU::ld_a16_a() {	//0xEA
-	cycles=16;
 	//printf("==LOAD A INTO MEM==\n");
 	uint16_t addr=readWord();
 	PC+=2;
@@ -182,7 +159,6 @@ int CPU::ld_a16_a() {	//0xEA
 }
 int CPU::ld_a16_sp() { // 0x08
 	//TODO: double check
-	cycles = 20;
 	//printf("==LOAD SP INTO MEM==\n");
 	uint16_t addr=readWord();
 	PC+=2;
@@ -192,7 +168,6 @@ int CPU::ld_a16_sp() { // 0x08
 	return 0;
 }
 int CPU::ld_a8_a() {	//0xE0
-	cycles=12;
 	//printf("==LOAD A INTO MEM==\n");
 	uint16_t addr=ram->read(PC)+0xFF00;
 	PC++;
@@ -202,170 +177,144 @@ int CPU::ld_a8_a() {	//0xE0
 	return 0;
 }
 int CPU::ld_c_mem_a() {	//0xE2
-	cycles=8;
 	uint16_t addr=regs.C+0xFF00;
 	ram->write(addr,regs.A);
 	return 0;
 }
 int CPU::ld_b_d8() { // 0x06
-	cycles = 8;
 
 	ld_reg_d8(regs.B);
 	return 0;
 }
 int CPU::ld_d_d8() { // 0x16
-	cycles = 8;
 
 	ld_reg_d8(regs.D);
 	return 0;
 }
 int CPU::ld_h_d8() { // 0x26
-	cycles = 8;
 
 	ld_reg_d8(regs.H);
 	return 0;
 }
 int CPU::ld_c_d8() { // 0x0E
-	cycles = 8;
 
 	ld_reg_d8(regs.C);
 	return 0;
 }
 int CPU::ld_e_d8() { // 0x1E
-	cycles = 8;
 
 	ld_reg_d8(regs.E);
 	return 0;
 }
 int CPU::ld_l_d8() { // 0x2E
-	cycles = 8;
 
 	ld_reg_d8(regs.L);
 	return 0;
 }
 int CPU::ld_a_d8() { // 0x3E
-	cycles = 8;
 
 	ld_reg_d8(regs.A);
 	return 0;
 }
 int CPU::ld_hl_b() {	//0x70
-	cycles = 8;
 	ram->write(regs.HL, regs.B);
 	return 0;
 }
 int CPU::ld_hl_c() {	//0x71
-	cycles = 8;
 	ram->write(regs.HL, regs.C);
 	return 0;
 }
 int CPU::ld_hl_d() {	//0x72
-	cycles = 8;
 	ram->write(regs.HL, regs.D);
 	return 0;
 }
 int CPU::ld_hl_e() {	//0x73
-	cycles = 8;
 	ram->write(regs.HL, regs.E);
 	return 0;
 }
 int CPU::ld_hl_h() {	//0x74
-	cycles = 8;
 	ram->write(regs.HL, regs.H);
 	return 0;
 }
 int CPU::ld_hl_l() {	//0x75
-	cycles = 8;
 	ram->write(regs.HL, regs.L);
 	return 0;
 }
 int CPU::ld_hl_a() {	//0x77
-	cycles = 8;
 	ram->write(regs.HL, regs.A);
 	return 0;
 }
 /*ld reg reg*/
 int CPU::ld_b_b() { // 0x40
-	cycles = 4;
 
 	ld_reg_reg(regs.B, regs.B);
 	return 0;
 }
 
 int CPU::ld_b_c() { // 0x41
-	cycles = 4;
 	ld_reg_reg(regs.B, regs.C);
 	return 0;
 }
 
 int CPU::ld_b_d() { // 0x42
-	cycles = 4;
 
 	ld_reg_reg(regs.B, regs.D);
 	return 0;
 }
 int CPU::ld_b_e() { // 0x43
-	cycles = 4;
 
 	ld_reg_reg(regs.B, regs.E);
 	return 0;
 }
 int CPU::ld_b_h() { // 0x44
-	cycles = 4;
 
 	ld_reg_reg(regs.B, regs.H);
 	return 0;
 }
 int CPU::ld_b_l() { // 0x45
-	cycles = 4;
 
 	ld_reg_reg(regs.B, regs.L);
 	return 0;
 }
 int CPU::ld_b_a() { // 0x47
-	cycles = 4;
 
 	ld_reg_reg(regs.B, regs.A);
 	return 0;
 }
 int CPU::ld_c_b() { // 0x48
-	cycles = 4;
 
 	ld_reg_reg(regs.C, regs.B);
 	return 0;
 }
 int CPU::ld_c_c() { // 0x49
-	cycles = 4;
 
 	ld_reg_reg(regs.C, regs.C);
 	return 0;
 }
 int CPU::ld_c_d() { // 0x4A
-	cycles = 4;
 
 	ld_reg_reg(regs.C, regs.D);
 	return 0;
 }
 int CPU::ld_c_e() { // 0x4B
-	cycles = 4;
 
 	ld_reg_reg(regs.C, regs.E);
 	return 0;
 }
 int CPU::ld_c_h() { // 0x4C
-	cycles = 4;
+
 
 	ld_reg_reg(regs.C, regs.H);
 	return 0;
 }
 int CPU::ld_c_l() { // 0x4D
-	cycles = 4;
+
 
 	ld_reg_reg(regs.C, regs.L);
 	return 0;
 }
 int CPU::ld_c_a() { // 0x4F
-	cycles = 4;
+
 
 	ld_reg_reg(regs.C, regs.A);
 	return 0;
@@ -376,223 +325,192 @@ int CPU::ld_d_b() { // 0x50
 	return 0;
 }
 int CPU::ld_d_c() { // 0x51
-	cycles = 4;
+
 
 	ld_reg_reg(regs.D, regs.C);
 	return 0;
 }
 int CPU::ld_d_d() { // 0x52
-	cycles = 4;
+
 
 	ld_reg_reg(regs.D, regs.D);
 	return 0;
 }
 int CPU::ld_d_e() { // 0x53
-	cycles = 4;
+
 
 	ld_reg_reg(regs.D, regs.E);
 	return 0;
 }
 int CPU::ld_d_h() { // 0x54
-	cycles = 4;
 
 	ld_reg_reg(regs.D, regs.H);
 	return 0;
 }
 int CPU::ld_d_l() { // 0x55
-	cycles = 4;
+
 
 	ld_reg_reg(regs.D, regs.L);
 	return 0;
 }
 int CPU::ld_d_a() { // 0x57
-	cycles = 4;
+
 
 	ld_reg_reg(regs.D, regs.A);
 	return 0;
 }
 int CPU::ld_e_b() { // 0x58
-	cycles = 4;
+
 
 	ld_reg_reg(regs.E, regs.B);
 	return 0;
 }
 int CPU::ld_e_c() { // 0x59
-	cycles = 4;
 
 	ld_reg_reg(regs.E, regs.C);
 	return 0;
 }
 int CPU::ld_e_d() { // 0x5A
-	cycles = 4;
 
 	ld_reg_reg(regs.E, regs.D);
 	return 0;
 }
 int CPU::ld_e_e() { // 0x5B
-	cycles = 4;
 
 	ld_reg_reg(regs.E, regs.E);
 	return 0;
 }
 int CPU::ld_e_h() { // 0x5C
-	cycles = 4;
 
 	ld_reg_reg(regs.E, regs.H);
 	return 0;
 }
 int CPU::ld_e_l() { // 0x5D
-	cycles = 4;
 
 	ld_reg_reg(regs.E, regs.L);
 	return 0;
 }
 int CPU::ld_e_a() { // 0x5F
-	cycles = 4;
 
 	ld_reg_reg(regs.E, regs.A);
 	return 0;
 }
 int CPU::ld_h_b() { // 0x60
-	cycles = 4;
 
 	ld_reg_reg(regs.H, regs.B);
 	return 0;
 }
 int CPU::ld_h_c() { // 0x61
-	cycles = 4;
 
 	ld_reg_reg(regs.H, regs.C);
 	return 0;
 }
 int CPU::ld_h_d() { // 0x62
-	cycles = 4;
 
 	ld_reg_reg(regs.H, regs.D);
 	return 0;
 }
 int CPU::ld_h_e() { // 0x63
-	cycles = 4;
 
 	ld_reg_reg(regs.H, regs.E);
 	return 0;
 }
 int CPU::ld_h_h() { // 0x64
-	cycles = 4;
 
 	ld_reg_reg(regs.H, regs.H);
 	return 0;
 }
 int CPU::ld_h_l() { // 0x65
-	cycles = 4;
 
 	ld_reg_reg(regs.H, regs.L);
 	return 0;
 }
 int CPU::ld_h_a() { // 0x67
-	cycles = 4;
 
 	ld_reg_reg(regs.H, regs.A);
 	return 0;
 }
 int CPU::ld_l_b() { // 0x68
-	cycles = 4;
 
 	ld_reg_reg(regs.L, regs.B);
 	return 0;
 }
 int CPU::ld_l_c() { // 0x69
-	cycles = 4;
 
 	ld_reg_reg(regs.L, regs.C);
 	return 0;
 }
 int CPU::ld_l_d() { // 0x6A
-	cycles = 4;
 
 	ld_reg_reg(regs.L, regs.D);
 	return 0;
 }
 int CPU::ld_l_e() { // 0x6B
-	cycles = 4;
 
 	ld_reg_reg(regs.L, regs.E);
 	return 0;
 }
 int CPU::ld_l_h() { // 0x6C
-	cycles = 4;
 
 	ld_reg_reg(regs.L, regs.H);
 	return 0;
 }
 int CPU::ld_l_l() { // 0x6D
-	cycles = 4;
 
 	ld_reg_reg(regs.L, regs.L);
 	return 0;
 }
 int CPU::ld_l_a() { // 0x6F
-	cycles = 4;
 
 	ld_reg_reg(regs.L, regs.A);
 	return 0;
 }
 int CPU::halt() {	//0x76
-	cycles = 4;
 
 	HALT=true;
 	return 0;
 }
 int CPU::ld_a_b() {	//0x78
-	cycles = 4;
 
 	ld_reg_reg(regs.A, regs.B);
 	return 0;
 }
 int CPU::ld_a_c() {	//0x79
-	cycles = 4;
 
 	ld_reg_reg(regs.A, regs.C);
 	return 0;
 }
 int CPU::ld_a_d() {	//0x7A
-	cycles = 4;
 
 	ld_reg_reg(regs.A, regs.D);
 	return 0;
 }
 int CPU::ld_a_e() {	//0x7B
-	cycles = 4;
 
 	ld_reg_reg(regs.A, regs.E);
 	return 0;
 }
 int CPU::ld_a_h() {	//0x7C
-	cycles = 4;
 
 	ld_reg_reg(regs.A, regs.H);
 	return 0;
 }
 int CPU::ld_a_l() {	//0x7D
-	cycles = 4;
 
 	ld_reg_reg(regs.A, regs.L);
 	return 0;
 }
 int CPU::ld_a_a() {	//0x7F
-	cycles = 4;
 
 	ld_reg_reg(regs.A, regs.A);
 	return 0;
 };
 int CPU::ld_sp_hl() {	//0xF9
-	cycles = 8;
 
 	SP=regs.HL;
 	return 0;
 }
 int CPU::ld_hl_sp_s8() {	//0xF8
-	cycles = 12;
 
 	int8_t s8=ram->read(PC);
 	int result=SP+s8;
@@ -612,6 +530,7 @@ int CPU::jr_s8() { // 0x18
 	return 0;
 }
 int CPU::jr_nz_s8() { // 0x20
+	
 	jr(regs.zero == 0);
 	return 0;
 }
@@ -650,7 +569,6 @@ int CPU::jp_c_a16() { // 0xDA
 	return 0;
 }
 int CPU::jp_hl() {	//0xE9
-	cycles=4;
 	PC=regs.HL;
 	return 0;
 }
@@ -710,13 +628,11 @@ int CPU::reti() { // 0xD8
 
 /*===============================INC INSTRUCTIONS===============================*/
 int CPU::inc_bc() { // 0x03
-	cycles = 8;
 
 	inc_reg(regs.BC);
 	return 0;
 }
 int CPU::inc_b() { // 0x04
-	cycles = 4;
 
 	inc_reg(regs.B);
 	return 0;
@@ -755,7 +671,6 @@ int CPU::inc_sp() { // 0x33
 }
 int CPU::inc_hl_mem() { // 0x34
 	uint8_t contents = ram->read(regs.HL);
-	cycles = 4;
 	contents++;
 
 	regs.halfCarry = ((contents & 0x0F) == 0x00);
@@ -842,7 +757,6 @@ int CPU::push_hl() {	//0xE5
 	return 0;
 }
 int CPU::push_af() {	//0xF5
-	cycles=16;
 	uint16_t data = regs.AF&0xFFF0;
 	push(data);
 	return 0;
@@ -872,17 +786,15 @@ int CPU::pop_af() {	//0xF1
 
 int CPU::nop() { // 0x00
 	//printf("NOP\n");
-	cycles = 4;
 	return 0;
 }
 int CPU::invalid() {	//illegal opcodes. 
 						//for now they do nothing. 
-	cycles = 4;
 	return 0;
 }
 
 int CPU::rlca() { // 0x07
-	cycles = 4;
+
 	regs.zero = 0;
 	regs.negative = 0;
 	regs.halfCarry = 0;
@@ -898,7 +810,7 @@ int CPU::add_hl_bc() { // 0x09
 	return 0;
 }
 int CPU::rrca() { // 0x0F
-	cycles = 4;
+
 	regs.zero = 0;
 	regs.negative = 0;
 	regs.halfCarry = 0;
@@ -911,7 +823,6 @@ int CPU::stop() { // 0x10
 	return 0;
 }
 int CPU::rla() { // 0x17
-	cycles=4;
 	regs.zero = 0;
 	regs.negative = 0;
 	regs.halfCarry = 0;
@@ -930,7 +841,6 @@ int CPU::add_hl_de() { // 0x19
 	return 0;
 }
 int CPU::rra() { // 0x1F
-	cycles=4;
 	//printf("===RRA===\n");
 	//printf("Before: REG.A: %d\n",regs.A);
 
@@ -959,7 +869,6 @@ int CPU::rra() { // 0x1F
 
 //adapted from jgilchrist on github
 int CPU::daa() { // 0x27
-	cycles=4;
 
 	uint8_t reg = regs.A;
 
@@ -993,13 +902,11 @@ int CPU::daa() { // 0x27
 	return 0;
 }
 int CPU::di() {	//0xF3
-	cycles=4;
 	//TODO: probably some waiting I need to do here since change doesnt affect next instruction
 	*IME=false;
 	return 0;
 }
 int CPU::ei() {	//0xFB
-	cycles=4;
 	*IME=true;
 	return 0;
 }
@@ -1009,14 +916,12 @@ int CPU::add_hl_hl() { // 0x29
 	return 0;
 }
 int CPU::cpl() { // 0x2F
-	cycles = 4;
 	regs.A = ~regs.A;
 	regs.negative = 1;
 	regs.halfCarry = 1;
 	return 0;
 }
 int CPU::scf() { // 0x37
-	cycles = 4;
 
 	regs.carry = 1;
 	regs.halfCarry = 0;
@@ -1028,7 +933,6 @@ int CPU::add_hl_sp() { // 0x39
 	return 0;
 }
 int CPU::ccf() { // 0x3F
-	cycles = 4;
 	regs.negative = 0;
 	regs.halfCarry = 0;
 	regs.carry = ~regs.carry;
@@ -1060,7 +964,6 @@ int CPU::add_a_l() { // 0x85
 	return 0;
 }
 int CPU::add_a_hl() { // 0x86
-	cycles = 4;
 	uint8_t reg_hl_contents=ram->read(regs.HL);
 	
 	uint16_t result = regs.A + reg_hl_contents;
@@ -1079,7 +982,6 @@ int CPU::add_a_d8() {	//0xC6
 	uint8_t data=ram->read(PC);
 	PC++;
 	add(regs.A,data);
-	cycles=8;	//TODO: dont override the cycles set by the helper function
 	return 0;
 }
 int CPU::add_sp_s8() {	//0xE6
@@ -1290,7 +1192,6 @@ int CPU::xor_a() { // 0xAF
 	return 0;
 }
 int CPU::xor_d8() {	//0xEE
-	cycles=8;
 	uint8_t data=ram->read(PC);
 	PC++;
 	_xor(regs.A,data);
@@ -1375,7 +1276,6 @@ int CPU::cp_a() { // 0xB0
 	return 0;
 }
 int CPU::cp_d8() {	//0xFE
-	cycles=8;
 	uint8_t data=ram->read(PC);
 	PC++;
 	cp(regs.A,data);

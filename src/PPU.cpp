@@ -312,40 +312,38 @@ void PPU::renderTiles(){
 
 			uint8_t line = yPos % 8 ;
 			line *= 2;
-			uint8_t data1 = ram->read(tileLocation + line) ;
-			uint8_t data2 = ram->read(tileLocation + line + 1) ;
+		uint8_t byte0=ram->read(tileLocation+line);
+		uint8_t byte1=ram->read(tileLocation+line+1);
 
-			int colorBit = xPos % 8 ;
-			colorBit -= 7 ;
-			colorBit *= -1 ;
+		int colorBit = xPos % 8 ;
+		colorBit -= 7 ;
+		colorBit *= -1 ;
 
-			int colorNum = ((data2&(1<<colorBit))>0) ;
-			colorNum <<= 1;
-			colorNum |= ((data1&(1<<colorBit))>0) ;
+		int colorNum = ((byte1&(1<<colorBit))>0) ;
+		colorNum <<= 1;
+		colorNum |= ((byte0&(1<<colorBit))>0) ;
+		
+		Color col=getColor(colorNum,0xFF47);
+		int red=0;
+		int green=0;
+		int blue=0;
 
-			Color col = getColor(colorNum, 0xFF47) ;
-			int red = 0;
-			int green = 0;
-			int blue = 0;
+		switch (col)
+		{
+			case White: red = 255; green = 255 ; blue = 255; break ;
+			case LightGray:red = 0xCC; green = 0xCC ; blue = 0xCC; break ;
+			case DarkGray: red = 0x77; green = 0x77 ; blue = 0x77; break ;
+			case Black: red = 0; green = 0 ; blue = 0; break ;
 
-			switch(col)
-			{
-				case White:	red = 255; green = 255 ; blue = 255; break ;
-				case LightGray:red = 0xCC; green = 0xCC ; blue = 0xCC; break ;
-				case DarkGray:	red = 0x77; green = 0x77 ; blue = 0x77; break ;
-				case Black:	red = 0; green = 0 ; blue = 0; break ;
-
-			}
-
-			int finaly = ram->read(0xFF44) ;
+		}
 
 
-			pixelBuffer[finaly*160*3+pixel*3+0] = red ;
-			index++;
-			pixelBuffer[finaly*160*3+pixel*3+3] = green;
-			index++;
-			pixelBuffer[finaly*160*3+pixel*3+2] = blue;
-			index++;
+		pixelBuffer[index] = red ;
+		index++;
+		pixelBuffer[index] = green;
+		index++;
+		pixelBuffer[index] = blue;
+		index++;
 		}
 	}
 
@@ -514,7 +512,8 @@ void PPU::setSTAT(){
 
 	// just entered a new mode. Request interupt
 	if (reqInt && (currentMode != mode)){
-
+		printf("Stat Interrupt\n");
+		requestInterrupt(1) ;
 	}
 
 	// check for coincidence flag
@@ -524,7 +523,7 @@ void PPU::setSTAT(){
 
 		if (LYLYC)
 		{
-
+			requestInterrupt(1) ;
 		}
 	}
 	else
@@ -535,7 +534,3 @@ void PPU::setSTAT(){
 	ram->write(0xFF41, STAT) ;
 
 }
-
-
-
-
